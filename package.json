@@ -1,0 +1,7 @@
+{
+  "name": "cpm-wall-3",
+  "type": "module",
+  "dependencies": {
+    "firebase-admin": "^12.1.0"
+  }
+}

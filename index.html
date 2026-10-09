@@ -1,0 +1,278 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CPM WALL 3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#080808;color:#ededed;font-family:'Inter',system-ui,sans-serif;letter-spacing:-0.01em}
+.head{text-align:center;padding:20px;border-bottom:1px solid rgba(255,255,255,0.06)}
+.container{max-width:500px;margin:0 auto;padding:15px}
+.box,.card{background:#111111;border:1px solid rgba(255,255,255,0.08);box-shadow:0 4px 20px rgba(0,0,0,0.4);border-radius:14px}
+.box{padding:16px;margin-bottom:20px}
+.box input,.box textarea{width:100%;background:#1a1a1a;border:1px solid #333;color:#fff;padding:12px;border-radius:10px;margin:6px 0;transition:all 0.2s}
+.box input:focus,.box textarea:focus,#searchInput:focus{outline:none;border-color:#00ff88;box-shadow:0 0 10px rgba(0,255,136,0.15)}
+.box button{width:100%;background:#00ff88;color:#000;padding:13px;border:none;border-radius:10px;font-weight:bold;cursor:pointer;transition:0.2s}
+.box button:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,255,136,0.3)}
+.box button:disabled{opacity:0.6;transform:none;box-shadow:none;cursor:not-allowed}
+.topic-chips{display:flex;gap:6px;margin:8px 0;flex-wrap:wrap}
+.chip{background:#1a1a1a;border:1px solid #333;color:#888;font-size:11px;padding:4px 8px;border-radius:6px;cursor:pointer;user-select:none;transition:0.15s}
+.chip:hover{color:#00ff88;border-color:#00ff88}
+.search-bar{width:100%;background:#111;border:1px solid rgba(255,255,255,0.1);color:#fff;padding:10px 14px;border-radius:10px;margin-bottom:14px;font-size:13px;transition:all 0.2s}
+.wall{display:flex;flex-direction:column;gap:12px}
+.card{padding:14px}
+.card.new-card{animation:cardFade 0.25s ease-out}
+.card.bot-card{border-left:3px solid #00ff88;background:linear-gradient(135deg, rgba(0,255,136,0.04), #111)}
+.pinned-card{background:linear-gradient(135deg, rgba(255,170,0,0.08), #111);border:1px solid rgba(255,170,0,0.3);border-left:4px solid #ffaa00;border-radius:14px;padding:14px;margin-bottom:14px;animation:cardFade 0.25s ease-out}
+.pinned-badge{display:inline-flex;align-items:center;font-size:11px;font-weight:700;color:#ffaa00;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px}
+.name-row{display:flex;justify-content:space-between;align-items:center}
+.name{color:#00ff88;font-weight:600;display:flex;align-items:center;flex-wrap:wrap;gap:4px;cursor:pointer;user-select:none;transition:opacity 0.15s}
+.name:hover{opacity:0.8}
+.mute-btn{background:transparent;border:none;color:#555;font-size:11px;cursor:pointer;padding:2px 4px;transition:color 0.15s}
+.mute-btn:hover{color:#ff4444}
+.msg{margin:8px 0;word-break:break-word;white-space:pre-wrap;line-height:1.4}
+.meta{color:#666;font-size:11px}
+.live-dot{width:7px;height:7px;background:#00ff88;border-radius:50%;box-shadow:0 0 8px #00ff88;animation:pulse 2s infinite}
+.live-dot.offline{background:#ff4444;box-shadow:0 0 8px #ff4444;animation:none}
+.sound-btn{background:transparent;border:1px solid rgba(255,255,255,0.12);color:#888;border-radius:20px;padding:3px 10px;font-size:11px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;transition:0.2s}
+.sound-btn.active{border-color:#00ff88;color:#00ff88}
+.room-code{background:#14261b;color:#00ff88;border:1px solid rgba(0,255,136,0.3);padding:1px 6px;border-radius:5px;font-weight:600;font-size:12px;cursor:pointer;display:inline-block;user-select:none;margin:0 2px;transition:0.15s}
+.room-code:hover{background:#00ff88;color:#000}
+.verified-badge{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;background:#1d9bf0;color:#fff;font-size:9px;font-weight:bold;border-radius:50%;margin-left:5px;vertical-align:middle}
+.new-pill{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#00ff88;color:#000;font-weight:700;font-size:12px;padding:8px 16px;border-radius:20px;border:none;box-shadow:0 4px 15px rgba(0,255,136,0.4);cursor:pointer;z-index:999;display:none}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(0.85)}}
+@keyframes cardFade{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.footer{margin-top:30px;padding:20px;text-align:center;border-top:1px solid rgba(255,255,255,0.06);background:#0a0a0a;border-radius:14px}
+.contact-btns{display:flex;gap:10px;justify-content:center;margin-top:12px;flex-wrap:wrap}
+.cbtn{padding:11px 18px;border-radius:25px;text-decoration:none;font-weight:bold;font-size:13px;transition:0.2s;border:none;cursor:pointer;display:inline-flex;align-items:center}
+.cbtn:hover{transform:translateY(-1px)}
+.ig{background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);color:#fff}
+.wa{background:#25D366;color:#fff}.ch{background:#0a0a0a;border:1px solid #333;color:#fff}.sh{background:#1d9bf0;color:#fff}
+</style>
+</head><body>
+<button id="newMsgPill" class="new-pill" onclick="scrollToTop()">↑ New Messages</button>
+<div class="head">
+  <h1>CPM WALL 3</h1>
+  <div style="display:flex; justify-content:center; align-items:center; gap:10px; margin-top:6px;">
+    <div style="display:flex; align-items:center; gap:6px;">
+      <span id="statusDot" class="live-dot"></span>
+      <span id="statusText" style="color:#888; font-size:12px;">Live Lobby Chat</span>
+    </div>
+    <button id="soundToggle" type="button" class="sound-btn" onclick="toggleSound()">🔇 Sound Off</button>
+  </div>
+</div>
+<div class="container">
+<div class="box">
+  <input id="name" maxlength="25" placeholder="Name max 25">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
+    <span style="font-size:11px; color:#666;">Message</span>
+    <button type="button" onclick="tagBot()" style="width:auto; padding:4px 10px; background:#1f1f1f; border:1px solid #333; color:#00ff88; font-size:11px; border-radius:6px; cursor:pointer;">+ Tag @Apex_Racer</button>
+  </div>
+  <div class="topic-chips">
+    <span class="chip" onclick="addTopic('#Gearbox')">#Gearbox</span>
+    <span class="chip" onclick="addTopic('#Drag')">#Drag</span>
+    <span class="chip" onclick="addTopic('#RoomCode')">#RoomCode</span>
+    <span class="chip" onclick="addTopic('#Trade')">#Trade</span>
+    <span class="chip" onclick="addTopic('#Drift')">#Drift</span>
+  </div>
+  <textarea id="msg" maxlength="150" placeholder="Type message or ask Apex..." rows="3"></textarea>
+  <div style="display:flex; justify-content:flex-end; font-size:11px; color:#555; margin-top:2px;">
+    <span id="charCount">0/150</span>
+  </div>
+  <button id="postBtn" onclick="sendMsg()">Post to Live Wall</button>
+</div>
+<div id="pinnedBox" style="display:none;"></div>
+<input id="searchInput" class="search-bar" placeholder="🔍 Filter feed (e.g. Supra, room code, tune)...">
+<div class="wall" id="wall">Loading...</div>
+<div class="footer">
+  <h3 style="color:#00ff88">Feedback & Contact</h3>
+  <p style="color:#888;font-size:12px;margin-top:6px">Join channel, report bugs, share with friends</p>
+  <div class="contact-btns">
+    <button type="button" onclick="shareSite()" class="cbtn sh">🔗 Share Wall</button>
+    <a href="https://www.instagram.com/4t_jagga" target="_blank" rel="noopener noreferrer" class="cbtn ig">📸 Profile</a>
+    <a href="https://www.instagram.com/channel/FMW8_rf52qWxlGoC/" target="_blank" rel="noopener noreferrer" class="cbtn ch">📢 Channel</a>
+    <a href="https://wa.me/923558182875?text=I%27m%20from%20cpm%20wall%203%20website" target="_blank" rel="noopener noreferrer" class="cbtn wa">💬 WhatsApp</a>
+  </div>
+  <p style="color:#555;font-size:10px;margin-top:14px">Not affiliated with Car Parking Multiplayer. Made by fans.</p>
+</div>
+</div>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, onSnapshot, query, orderBy, limit, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+const _k1="AIza"; const _k2="SyAOE8v7ANE6vvlHh2ZbiaJ6iHBN4voFcYM";
+const firebaseConfig={apiKey:_k1+_k2,authDomain:"cpm-wall-3.firebaseapp.com",projectId:"cpm-wall-3"};
+const app=initializeApp(firebaseConfig); const db=getFirestore(app);
+document.getElementById('name').value=localStorage.getItem('cpm_name')||'';
+let soundEnabled = localStorage.getItem('cpm_sound') === 'true';
+let audioCtx = null;
+let isInitialLoad = true;
+let lastPostedMsg = '';
+let lastPostTimestamp = 0;
+let mutedUsers = new Set(JSON.parse(localStorage.getItem('cpm_muted') || '[]'));
+function updateConnectionStatus() {
+  const dot = document.getElementById('statusDot');
+  const txt = document.getElementById('statusText');
+  if (navigator.onLine) {
+    dot.className = 'live-dot';
+    txt.textContent = 'Live Lobby Chat';
+    txt.style.color = '#888';
+  } else {
+    dot.className = 'live-dot offline';
+    txt.textContent = 'Offline (Reconnecting...)';
+    txt.style.color = '#ff4444';
+  }
+}
+window.addEventListener('online', updateConnectionStatus);
+window.addEventListener('offline', updateConnectionStatus);
+updateConnectionStatus();
+function initAudio() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+}
+function playPing() {
+  if (!soundEnabled) return;
+  initAudio();
+  if (audioCtx.state === 'suspended') { audioCtx.resume(); }
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(1000, audioCtx.currentTime + 0.08);
+  gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.08);
+}
+function updateSoundBtn() {
+  const btn = document.getElementById('soundToggle');
+  if (soundEnabled) { btn.className = 'sound-btn active'; btn.textContent = '🔊 Sound On'; }
+  else { btn.className = 'sound-btn'; btn.textContent = '🔇 Sound Off'; }
+}
+window.toggleSound = () => {
+  soundEnabled = !soundEnabled;
+  localStorage.setItem('cpm_sound', soundEnabled);
+  updateSoundBtn();
+  if (soundEnabled) { initAudio(); if (audioCtx.state === 'suspended') audioCtx.resume(); }
+};
+updateSoundBtn();
+window.addTopic = (tag) => {
+  const msgInput = document.getElementById('msg');
+  if (!msgInput.value.includes(tag)) { msgInput.value = (msgInput.value.trim() ? msgInput.value.trim() + ' ' : '') + tag + ' '; }
+  document.getElementById('charCount').textContent = `${msgInput.value.length}/150`;
+  msgInput.focus();
+};
+window.toggleMute = (username) => {
+  const normalized = username.toLowerCase();
+  if (mutedUsers.has(normalized)) { mutedUsers.delete(normalized); alert(`Unmuted ${username}`); }
+  else { if (!confirm(`Mute all messages from ${username}?`)) return; mutedUsers.add(normalized); }
+  localStorage.setItem('cpm_muted', JSON.stringify([...mutedUsers]));
+  document.querySelectorAll('#wall .card').forEach((card) => {
+    const author = (card.dataset.author || '').toLowerCase();
+    card.style.display = mutedUsers.has(author) ? 'none' : '';
+  });
+  applySearchFilter();
+};
+window.scrollToTop = () => { window.scrollTo({ top: 0, behavior: 'smooth' }); document.getElementById('newMsgPill').style.display = 'none'; };
+window.addEventListener('scroll', () => { if (window.scrollY < 120) { document.getElementById('newMsgPill').style.display = 'none'; } });
+function timeAgo(date) {
+  const seconds = Math.floor((new Date() - date) / 1000);
+  if (seconds < 45) return 'Just now';
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+  return date.toLocaleDateString();
+}
+function renderMessageText(container, text) {
+  container.innerHTML = '';
+  const parts = text.split(/\b(\d{6,8})\b/g);
+  parts.forEach((part) => {
+    if (/^\d{6,8}$/.test(part)) {
+      const chip = document.createElement('span');
+      chip.className = 'room-code'; chip.textContent = `${part} 📋`; chip.title = 'Click to copy code';
+      chip.onclick = (e) => { e.stopPropagation(); navigator.clipboard.writeText(part); const o=chip.textContent; chip.textContent='Copied!'; setTimeout(()=>{chip.textContent=o;},1200); };
+      container.appendChild(chip);
+    } else if (part) { container.appendChild(document.createTextNode(part)); }
+  });
+}
+function applySearchFilter() {
+  const term = document.getElementById('searchInput').value.toLowerCase().trim();
+  document.querySelectorAll('#wall .card').forEach((card) => {
+    const author = (card.dataset.author || '').toLowerCase();
+    if (mutedUsers.has(author)) { card.style.display = 'none'; return; }
+    const text = card.textContent.toLowerCase();
+    card.style.display = text.includes(term) ? '' : 'none';
+  });
+}
+document.getElementById('searchInput').addEventListener('input', applySearchFilter);
+function startCooldownTimer(seconds) {
+  const btn = document.getElementById('postBtn'); btn.disabled = true; let remaining = seconds; btn.textContent = `Wait ${remaining}s...`;
+  const interval = setInterval(() => {
+    remaining--;
+    if (remaining <= 0) { clearInterval(interval); btn.disabled = false; btn.textContent = 'Post to Live Wall'; }
+    else { btn.textContent = `Wait ${remaining}s...`; }
+  }, 1000);
+}
+const pinnedBox = document.getElementById('pinnedBox');
+onSnapshot(doc(db, "pinned", "current"), (snap) => {
+  pinnedBox.innerHTML = "";
+  if (snap.exists()) {
+    const data = snap.data();
+    if (data.active && data.text) {
+      const card = document.createElement('div'); card.className = 'pinned-card';
+      const badge = document.createElement('div'); badge.className = 'pinned-badge'; badge.textContent = '📌 Pinned Announcement';
+      const nameEl = document.createElement('div'); nameEl.className = 'name'; nameEl.style.color = '#ffaa00'; nameEl.textContent = data.name || 'Admin';
+      const msgEl = document.createElement('div'); msgEl.className = 'msg'; renderMessageText(msgEl, data.text);
+      card.appendChild(badge); card.appendChild(nameEl); card.appendChild(msgEl);
+      pinnedBox.appendChild(card); pinnedBox.style.display = 'block'; return;
+    }
+  }
+  pinnedBox.style.display = 'none';
+});
+const q=query(collection(db,"posts"),orderBy("createdAt","desc"),limit(50));
+onSnapshot(q, (snap) => {
+  const wall = document.getElementById('wall');
+  if (snap.empty) { wall.innerHTML = '<p style="text-align:center;color:#555">No messages yet. Be first!</p>'; isInitialLoad = false; return; }
+  const placeholder = wall.querySelector('p'); if (placeholder) placeholder.remove();
+  snap.docChanges().forEach((change) => {
+    if (change.type === 'added') {
+      const data = change.doc.data();
+      const card = document.createElement('div'); card.className = data.isBot ? 'card bot-card new-card' : 'card new-card'; card.id = `post-${change.doc.id}`; card.dataset.author = data.name || '';
+      if (mutedUsers.has((data.name || '').toLowerCase())) { card.style.display = 'none'; }
+      const nameRow = document.createElement('div'); nameRow.className = 'name-row';
+      const nameEl = document.createElement('div'); nameEl.className = 'name'; nameEl.textContent = data.name;
+      nameEl.title = 'Click to reply'; nameEl.onclick = () => { const msgInput=document.getElementById('msg'); const tag=`@${data.name} `; if(!msgInput.value.includes(tag)){msgInput.value=tag+msgInput.value;} document.getElementById('charCount').textContent=`${msgInput.value.length}/150`; msgInput.focus(); };
+      if (data.isVerified) { const tick=document.createElement('span'); tick.className='verified-badge'; tick.textContent='✓'; tick.title='Verified'; nameEl.appendChild(tick); }
+      if (data.isBot) { const badge=document.createElement('span'); badge.textContent=' AI BOT'; badge.style.fontSize='10px'; badge.style.background='#222'; badge.style.color='#00ff88'; badge.style.padding='2px 6px'; badge.style.borderRadius='4px'; badge.style.marginLeft='6px'; nameEl.appendChild(badge); }
+      nameRow.appendChild(nameEl);
+      if (!data.isBot) { const muteBtn=document.createElement('button'); muteBtn.className='mute-btn'; muteBtn.textContent='🚫 Mute'; muteBtn.onclick=(e)=>{e.stopPropagation(); toggleMute(data.name);}; nameRow.appendChild(muteBtn); }
+      const msgEl=document.createElement('div'); msgEl.className='msg'; renderMessageText(msgEl, data.message);
+      const meta=document.createElement('div'); meta.className='meta time-tracker'; let timeText='Just now'; let rawDate=new Date();
+      try{ const ts=data.createdAt; const sec=ts?(ts._seconds||ts.seconds):null; rawDate=sec?new Date(sec*1000):(ts?.toDate?ts.toDate():new Date()); timeText=timeAgo(rawDate);}catch(e){}
+      meta.dataset.time=rawDate.getTime(); meta.textContent=timeText;
+      card.appendChild(nameRow); card.appendChild(msgEl); card.appendChild(meta);
+      if (change.newIndex===0){ wall.prepend(card); if(!isInitialLoad){ playPing(); if(window.scrollY>150){ document.getElementById('newMsgPill').style.display='block'; } } } else { wall.appendChild(card); }
+      applySearchFilter();
+    }
+    if (change.type==='removed'){ const oldCard=document.getElementById(`post-${change.doc.id}`); if(oldCard) oldCard.remove(); }
+  });
+  while (wall.children.length>50){ wall.removeChild(wall.lastChild); }
+  isInitialLoad=false;
+});
+setInterval(()=>{ document.querySelectorAll('.time-tracker').forEach((el)=>{ const raw=Number(el.dataset.time); if(raw){ el.textContent=timeAgo(new Date(raw)); } }); },30000);
+document.getElementById('msg').addEventListener('input',(e)=>{ document.getElementById('charCount').textContent=`${e.target.value.length}/150`; });
+window.tagBot=()=>{ const msgInput=document.getElementById('msg'); if(!msgInput.value.includes('@Apex_Racer')){ msgInput.value='@Apex_Racer '+msgInput.value; } document.getElementById('charCount').textContent=`${msgInput.value.length}/150`; msgInput.focus(); };
+window.shareSite=async()=>{ const shareData={title:'CPM WALL 3', text:'Join the live anonymous chat wall for Car Parking Multiplayer players!', url:window.location.href}; if(navigator.share){ try{await navigator.share(shareData);}catch(err){} } else{ try{await navigator.clipboard.writeText(window.location.href); alert('Link copied!');}catch(err){ prompt('Copy this link:', window.location.href);} } };
+window.sendMsg=async()=>{
+  const nameInput=document.getElementById('name'); const msgInput=document.getElementById('msg'); const btn=document.getElementById('postBtn');
+  const name=nameInput.value.trim(); const msg=msgInput.value.trim();
+  if(name.length<2||!msg){ alert("Enter valid name and message"); return; }
+  if(msg===lastPostedMsg && Date.now()-lastPostTimestamp<60000){ alert("Duplicate message detected. Please wait."); return; }
+  localStorage.setItem('cpm_name', name); btn.disabled=true; btn.textContent="Posting...";
+  try{
+    const res=await fetch('/api/post',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name, message:msg})});
+    if(res.ok){ lastPostedMsg=msg; lastPostTimestamp=Date.now(); msgInput.value=""; document.getElementById('charCount').textContent="0/150"; window.scrollTo({top:0, behavior:'smooth'}); startCooldownTimer(15); }
+    else{ alert(await res.text()); btn.disabled=false; btn.textContent='Post to Live Wall'; }
+  }catch(err){ alert("Network error"); btn.disabled=false; btn.textContent='Post to Live Wall'; }
+};
+</script></body></html>

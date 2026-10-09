@@ -1,0 +1,74 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin - CPM WALL 3</title>
+<style>
+body{background:#000;color:#fff;font-family:sans-serif;padding:15px;max-width:700px;margin:auto}
+input,textarea{width:100%;padding:12px;background:#111;border:1px solid #333;color:#fff;border-radius:10px;margin:10px 0;box-sizing:border-box}
+button{padding:10px 14px;background:#00ff88;border:none;border-radius:8px;font-weight:bold;cursor:pointer;margin:5px}
+.btn-del{background:#ff4444;color:#fff}.btn-ban{background:#e0245e;color:#fff}.btn-verify{background:#1d9bf0;color:#fff}.btn-pin{background:#ffaa00;color:#000}
+.card{background:#111;border:1px solid #222;border-radius:12px;padding:12px;margin:10px 0;display:flex;justify-content:space-between;gap:10px}
+.meta{color:#888;font-size:11px;margin-top:6px}.box{background:#111;padding:14px;border-radius:10px;margin:15px 0;border:1px solid #222}
+.footer{margin-top:25px;text-align:center;border-top:1px solid #222;padding:15px}
+</style></head><body>
+<h2>Admin Panel - CPM WALL 3</h2>
+<input id="key" type="password" placeholder="Enter ADMIN_SECRET"><button onclick="loadData()">Unlock & Load</button>
+<div class="box">
+  <h3 style="color:#ffaa00">📌 Pinned Message Manager</h3>
+  <p style="color:#888;font-size:12px;margin:4px 0 8px">Set an announcement or click Pin on any message below.</p>
+  <input id="pinName" placeholder="Author name (e.g. Admin / Owner)" value="Admin">
+  <textarea id="pinText" placeholder="Write pinned announcement..." rows="2"></textarea>
+  <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <button onclick="savePinned()" class="btn-pin">Set / Update Pin</button>
+    <button onclick="clearPinned()" style="background:#333;color:#fff;">Unpin / Remove</button>
+  </div>
+</div>
+<div class="box">
+  <h3>Post as Verified Admin</h3>
+  <input id="adminName" placeholder="Admin Name (e.g. Owner)" value="Owner">
+  <textarea id="adminMsg" placeholder="Official announcement..." rows="2"></textarea>
+  <button onclick="sendAdminMsg()" style="background:#1d9bf0; color:#fff;">Post Verified</button>
+</div>
+<div id="list">Locked</div>
+<div class="footer"><a href="https://www.instagram.com/4t_jagga" target="_blank" rel="noopener noreferrer" style="color:#E1306C;margin-right:15px;text-decoration:none">📸 @4t_jagga</a><a href="https://wa.me/923558182875?text=I%27m%20from%20cpm%20wall%203%20website" target="_blank" rel="noopener noreferrer" style="color:#25D366;text-decoration:none">💬 WhatsApp</a></div>
+<script>
+let ADMIN_KEY=""; document.getElementById('key').value=sessionStorage.getItem('admin_key')||'';
+async function loadData(){
+ ADMIN_KEY=document.getElementById('key').value.trim(); if(!ADMIN_KEY) return alert('Enter key');
+ sessionStorage.setItem('admin_key', ADMIN_KEY);
+ const res=await fetch('/api/admin',{headers:{'x-admin-key':ADMIN_KEY}});
+ if(!res.ok) return alert(await res.text());
+ const data=await res.json();
+ const posts = data.posts || (Array.isArray(data)? data : []);
+ const pinned = data.pinned;
+ if (pinned && pinned.active) { document.getElementById('pinName').value = pinned.name || 'Admin'; document.getElementById('pinText').value = pinned.text || ''; }
+ const list=document.getElementById('list'); list.innerHTML="<b>Total: "+posts.length+"</b>";
+ posts.forEach(p=>{
+   const div=document.createElement('div'); div.className='card';
+   const left=document.createElement('div'); const name=document.createElement('div'); name.style.color='#00ff88'; name.style.fontWeight='bold'; name.textContent=p.name + (p.isVerified?' ✓':'');
+   const msg=document.createElement('div'); msg.style.whiteSpace='pre-wrap'; msg.textContent=p.message||'';
+   const sec = p.createdAt && (p.createdAt._seconds || p.createdAt.seconds); const timeText = sec? new Date(sec*1000).toLocaleString() : '';
+   const ip=document.createElement('div'); ip.className='meta'; ip.textContent='IP: '+(p.ip||'N/A')+' | '+timeText;
+   left.appendChild(name); left.appendChild(msg); left.appendChild(ip);
+   const actions=document.createElement('div'); actions.style.display='flex'; actions.style.flexDirection='column';
+   const del=document.createElement('button'); del.textContent='Delete'; del.className='btn-del'; del.onclick=async()=>{ if(!confirm('Delete?')) return; const r=await fetch('/api/admin',{method:'DELETE',headers:{'Content-Type':'application/json','x-admin-key':ADMIN_KEY},body:JSON.stringify({id:p.id})}); if(r.ok) div.remove(); else alert(await r.text()); };
+   const ban=document.createElement('button'); ban.textContent='Ban & Delete'; ban.className='btn-ban'; ban.onclick=async()=>{ if(!confirm('Ban '+p.ip+'?')) return; const r=await fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':ADMIN_KEY},body:JSON.stringify({action:'ban', ip:p.ip, id:p.id})}); if(r.ok){ alert('Banned '+p.ip); div.remove(); } else alert(await r.text()); };
+   const vBtn = document.createElement('button'); vBtn.textContent = p.isVerified? '✓ Verified' : 'Verify'; vBtn.className = 'btn-verify'; vBtn.style.background = p.isVerified? '#333' : '#1d9bf0'; vBtn.onclick = async () => { const r = await fetch('/api/admin', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-key': ADMIN_KEY }, body: JSON.stringify({ action: 'verify', id: p.id }) }); if (r.ok) { vBtn.textContent = '✓ Verified'; vBtn.style.background = '#333'; name.textContent = p.name + ' ✓'; } else { alert(await r.text() || 'Failed'); } };
+   const pinBtn = document.createElement('button'); pinBtn.textContent = '📌 Pin'; pinBtn.className = 'btn-pin'; pinBtn.onclick = async () => { if(!confirm('Pin this message to the top?')) return; const r = await fetch('/api/admin', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-key': ADMIN_KEY }, body: JSON.stringify({ action: 'set_pinned', name: p.name, text: p.message }) }); if (r.ok) { document.getElementById('pinName').value = p.name; document.getElementById('pinText').value = p.message; alert('Pinned!'); } else { alert(await r.text() || 'Failed to pin'); } };
+   actions.appendChild(del); if (p.ip && p.ip!== 'BOT' && p.ip!== 'N/A' && p.ip!== 'ADMIN') { actions.appendChild(ban); } actions.appendChild(vBtn); actions.appendChild(pinBtn);
+   div.appendChild(left); div.appendChild(actions); list.appendChild(div);
+ });
+}
+async function savePinned() {
+  const name = document.getElementById('pinName').value.trim(); const text = document.getElementById('pinText').value.trim();
+  if (!text) return alert('Enter text'); const r = await fetch('/api/admin', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-key': ADMIN_KEY }, body: JSON.stringify({ action: 'set_pinned', name: name || 'Admin', text }) });
+  if (r.ok) { alert('Pinned updated!'); } else { alert(await r.text()); }
+}
+async function clearPinned() {
+  if (!confirm('Remove pinned?')) return; const r = await fetch('/api/admin', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-key': ADMIN_KEY }, body: JSON.stringify({ action: 'clear_pinned' }) });
+  if (r.ok) { document.getElementById('pinText').value = ''; alert('Pinned removed.'); } else { alert(await r.text()); }
+}
+async function sendAdminMsg() {
+  const name = document.getElementById('adminName').value.trim(); const message = document.getElementById('adminMsg').value.trim();
+  if (!name ||!message) return alert('Enter name and message'); const r = await fetch('/api/admin', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-key': ADMIN_KEY }, body: JSON.stringify({ action: 'admin_post', name, message }) });
+  if (r.ok) { document.getElementById('adminMsg').value = ''; alert('Posted as Verified!'); loadData(); } else { alert(await r.text()); }
+}
+if(document.getElementById('key').value) loadData();
+</script></body></html>
