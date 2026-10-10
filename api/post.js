@@ -13,6 +13,7 @@ const db = admin.firestore();
 
 const RESERVED = ["admin", "apex_racer", "system", "moderator", "cpm_bot"];
 const LINK_REGEX = /(https?:\/\/|www\.|discord\.gg|t\.me|telegram\.me|chat\.whatsapp\.com|\.com|\.gg|\.xyz|\.top)/i;
+const ALLOWED_COLORS = ["#ef4444", "#f59e0b", "#a855f7", "#22c55e", "#00f0ff"];
 
 const STATIC_BLOCKED_WORDS = [
   "free coins", "hack cpm", "mod apk", "cpm hack", "coin generator",
@@ -226,7 +227,7 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   try {
-    const { action, postId, name, message, clientInfo, room, vipKey } = req.body || {};
+    const { action, postId, name, message, clientInfo, room, vipKey, nameColor } = req.body || {};
 
     const rawIp = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || "").split(',')[0].trim() || "unknown";
     const safeIp = rawIp.replace(/[^a-zA-Z0-9.:]/g, '_');
@@ -361,13 +362,19 @@ export default async function handler(req, res) {
     const verifiedSnap = await db.collection("verified_ips").doc(safeIp).get();
     const isIpVerified = verifiedSnap.exists;
 
+    // Rate limiting: 2 seconds for VIP room, 10 seconds for public wall
+    const cooldownWindow = isVipRoom ? 2 : 10;
     const rateRef = db.collection("rateLimits").doc(safeIp);
     const rateSnap = await rateRef.get();
     if (rateSnap.exists) {
       const last = rateSnap.data().lastPost?._seconds || rateSnap.data().lastPost?.seconds || 0;
       const now = Math.floor(Date.now() / 1000);
-      if (now - last < 10) return res.status(429).json({ error: `Slow down ${10 - (now - last)}s` });
+      if (now - last < cooldownWindow) {
+        return res.status(429).json({ error: `Slow down ${cooldownWindow - (now - last)}s` });
+      }
     }
+
+    const sanitizedColor = (isVipRoom && nameColor && ALLOWED_COLORS.includes(nameColor)) ? nameColor : null;
 
     const batch = db.batch();
     const postRef = db.collection("posts").doc();
@@ -382,7 +389,8 @@ export default async function handler(req, res) {
       likes: 0,
       isReported: false,
       reportCount: 0,
-      room: isVipRoom ? "vip" : "public"
+      room: isVipRoom ? "vip" : "public",
+      nameColor: sanitizedColor
     });
 
     batch.set(logRef, {
@@ -403,6 +411,7 @@ export default async function handler(req, res) {
       name: cleanName,
       message: cleanMsg,
       room: isVipRoom ? "vip" : "public",
+      nameColor: sanitizedColor,
       createdAt: admin.firestore.FieldValue.serverTimestamp()
     });
 

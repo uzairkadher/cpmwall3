@@ -210,13 +210,12 @@ body {
   background: #1e1628;
 }
 .bubble.vip-post {
-  border-color: rgba(245, 158, 11, 0.4);
-  background: #1c1917;
+  border-color: rgba(245, 158, 11, 0.45);
+  background: #181512;
 }
 .author-line { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 2px; }
 .author { font-weight: 700; font-size: 0.75rem; display: flex; gap: 5px; align-items: center; color: var(--accent); cursor: pointer; }
 .bubble.bot .author { color: var(--bot); }
-.bubble.me .author { color: #fff; }
 .meta { font-size: 10px; color: var(--muted); }
 .verified-badge {
   display: inline-flex;
@@ -290,6 +289,12 @@ body {
   display: inline-block;
   margin: 0 2px;
 }
+.room-code.vip-code {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fef08a;
+  border: 1px solid var(--gold);
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.45);
+}
 .jump-btn {
   position: absolute;
   bottom: 130px;
@@ -350,6 +355,19 @@ body {
   user-select: none;
   -webkit-user-select: none;
   flex-shrink: 0;
+}
+.color-swatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid #222;
+  cursor: pointer;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.color-swatch.active {
+  border-color: #fff;
+  transform: scale(1.15);
 }
 .typing-box { font-size: 0.7rem; color: var(--bot); min-height: 12px; padding-left: 4px; flex-shrink: 0; }
 .input-panel {
@@ -500,7 +518,6 @@ body {
   <div id="feed" class="feed">Connecting to wall...</div>
   <button id="jumpBtn" class="jump-btn" type="button" onclick="scrollToTop()">↓ New messages</button>
   <div id="typing" class="typing-box"></div>
-
   <div class="input-panel">
     <div class="chips-bar">
       <button type="button" class="chip" onclick="tagBot()">+ Tag @Apex_Racer</button>
@@ -508,6 +525,16 @@ body {
       <button type="button" class="chip" onclick="addTag('#Drag')">#Drag</button>
       <button type="button" class="chip" onclick="addTag('#RoomCode')">#RoomCode</button>
       <button type="button" class="chip" onclick="addTag('#Trade')">#Trade</button>
+    </div>
+
+    <!-- VIP Custom Driver Tag Color Selector -->
+    <div id="vipColorPicker" style="display:none; gap:8px; align-items:center; padding: 2px 4px;">
+      <span style="font-size:10px; color:#fef08a; font-weight:700;">VIP Tag Color:</span>
+      <span class="color-swatch active" style="background:#f59e0b;" onclick="setVipColor('#f59e0b', this)" title="Gold"></span>
+      <span class="color-swatch" style="background:#ef4444;" onclick="setVipColor('#ef4444', this)" title="Neon Red"></span>
+      <span class="color-swatch" style="background:#a855f7;" onclick="setVipColor('#a855f7', this)" title="Purple"></span>
+      <span class="color-swatch" style="background:#22c55e;" onclick="setVipColor('#22c55e', this)" title="Green"></span>
+      <span class="color-swatch" style="background:#00f0ff;" onclick="setVipColor('#00f0ff', this)" title="Cyan"></span>
     </div>
 
     <div class="emoji-row">
@@ -579,16 +606,16 @@ body {
         <span style="color:#38bdf8;">✓</span> <b>Verified Driver Badge:</b> Blue tick on your name site-wide
       </div>
       <div style="font-size: 0.73rem; color: #f1f5f9; display: flex; align-items: center; gap: 6px;">
-        <span style="color:#f59e0b;">✓</span> <b>Gold Chat Theme:</b> Exclusive gold styling in the VIP room
+        <span style="color:#f59e0b;">✓</span> <b>Custom Tag Colors:</b> Pick Gold, Red, Purple, or Green for your name
       </div>
       <div style="font-size: 0.73rem; color: #f1f5f9; display: flex; align-items: center; gap: 6px;">
-        <span style="color:#4ade80;">✓</span> <b>Livery Sharing:</b> Post direct screenshots of custom cars
+        <span style="color:#4ade80;">✓</span> <b>Zero Cooldown Chat:</b> Rapid 2s cooldown instead of 10s
       </div>
       <div style="font-size: 0.73rem; color: #f1f5f9; display: flex; align-items: center; gap: 6px;">
-        <span style="color:#f43f5e;">✓</span> <b>Engine Rev FX:</b> Custom exhaust audio alert on posts
+        <span style="color:#eab308;">✓</span> <b>Glowing Room Codes:</b> Gold highlighted lobby codes
       </div>
       <div style="font-size: 0.73rem; color: #f1f5f9; display: flex; align-items: center; gap: 6px;">
-        <span style="color:#a855f7;">✓</span> <b>Private Codes:</b> High-stakes drag rooms only for VIP racers
+        <span style="color:#f43f5e;">✓</span> <b>Private Codes:</b> High-stakes drag rooms only for VIP racers
       </div>
     </div>
 
@@ -599,6 +626,7 @@ body {
     <button type="button" class="close-modal-btn" onclick="cancelVipModal()">Cancel</button>
   </div>
 </div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, onSnapshot, query, orderBy, limit, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -629,6 +657,7 @@ const onlineCountEl = document.getElementById('onlineCount');
 const alertBtn = document.getElementById('alertBtn');
 const cooldownWrap = document.getElementById('cooldownWrap');
 const cooldownBar = document.getElementById('cooldownBar');
+const vipColorPicker = document.getElementById('vipColorPicker');
 
 const tabPublic = document.getElementById('tabPublic');
 const tabVip = document.getElementById('tabVip');
@@ -639,6 +668,7 @@ userNameInput.value = localStorage.getItem('cpm_name') || '';
 
 let currentRoom = 'public';
 let activeVipKey = localStorage.getItem('cpm_vip_key') || '';
+let currentVipColor = localStorage.getItem('cpm_vip_color') || '#f59e0b';
 let soundEnabled = localStorage.getItem('cpm_sound') === 'true';
 let alertsEnabled = localStorage.getItem('cpm_alerts') === 'true';
 let audioCtx = null;
@@ -661,6 +691,13 @@ window.copyTip = (num, btn) => {
   setTimeout(() => { btn.textContent = orig; }, 1200);
 };
 
+window.setVipColor = (color, el) => {
+  currentVipColor = color;
+  localStorage.setItem('cpm_vip_color', color);
+  document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+  if (el) el.classList.add('active');
+};
+
 window.switchRoom = (room) => {
   if (room === 'vip') {
     if (!activeVipKey) {
@@ -671,11 +708,13 @@ window.switchRoom = (room) => {
     tabPublic.classList.remove('active');
     tabVip.classList.add('active');
     document.getElementById('statusLabel').textContent = 'VIP Lounge';
+    if (vipColorPicker) vipColorPicker.style.display = 'flex';
   } else {
     currentRoom = 'public';
     tabVip.classList.remove('active');
     tabPublic.classList.add('active');
     document.getElementById('statusLabel').textContent = 'Lobby Chat';
+    if (vipColorPicker) vipColorPicker.style.display = 'none';
   }
   filterFeedByRoom();
 };
@@ -709,7 +748,7 @@ window.unlockVip = async () => {
       activeVipKey = entered;
       localStorage.setItem('cpm_vip_key', entered);
       vipModal.style.display = 'none';
-      alert('VIP Lounge unlocked! Verified Driver Badge granted to your profile.');
+      alert('VIP Lounge unlocked! Verified Driver Badge and Custom Colors granted.');
       switchRoom('vip');
     } else {
       alert(data.error || 'Failed to unlock VIP room.');
@@ -727,7 +766,6 @@ window.unlockVip = async () => {
 window.cancelVipModal = () => {
   vipModal.style.display = 'none';
 };
-
 function filterFeedByRoom() {
   const bubbles = feedEl.querySelectorAll('.bubble');
   let visibleCount = 0;
@@ -876,7 +914,7 @@ function timeAgo(date) {
   return date.toLocaleDateString();
 }
 
-function renderMessageText(container, text) {
+function renderMessageText(container, text, isVipPost) {
   container.innerHTML = '';
   const idRegex = /\b(\d{6,8}|[a-zA-Z]{2}\d{6}|[a-zA-Z]{3}\d{4})\b/g;
   const testRegex = /^(\d{6,8}|[a-zA-Z]{2}\d{6}|[a-zA-Z]{3}\d{4})$/;
@@ -885,7 +923,7 @@ function renderMessageText(container, text) {
   parts.forEach((part) => {
     if (testRegex.test(part)) {
       const chip = document.createElement('span');
-      chip.className = 'room-code';
+      chip.className = `room-code ${isVipPost ? 'vip-code' : ''}`;
       chip.textContent = `${part} 📋`;
       chip.title = 'Click to copy ID';
       chip.onclick = (e) => {
@@ -907,9 +945,10 @@ function buildBubble(id, data, isTemporary) {
   const isBot = Boolean(data.isBot || data.name === 'Apex_Racer');
   const isMe = Boolean(currentName && data.name === currentName);
   const postRoom = data.room || 'public';
+  const isVip = postRoom === 'vip';
 
   const bubble = document.createElement('div');
-  bubble.className = `bubble ${isBot ? 'bot' : isMe ? 'me' : ''} ${postRoom === 'vip' ? 'vip-post' : ''}`;
+  bubble.className = `bubble ${isBot ? 'bot' : isMe ? 'me' : ''} ${isVip ? 'vip-post' : ''}`;
   if (id) bubble.id = `post-${id}`;
   if (isTemporary) bubble.setAttribute('data-pending', `${data.name}-${data.message}`);
 
@@ -923,6 +962,11 @@ function buildBubble(id, data, isTemporary) {
   const author = document.createElement('div');
   author.className = 'author';
   author.textContent = data.name;
+
+  if (data.nameColor) {
+    author.style.color = data.nameColor;
+  }
+
   author.onclick = () => {
     const tag = `@${data.name} `;
     if (!msgInput.value.includes(tag)) msgInput.value = tag + msgInput.value;
@@ -936,7 +980,7 @@ function buildBubble(id, data, isTemporary) {
     tick.textContent = '✓';
     author.appendChild(tick);
   }
-  if (postRoom === 'vip') {
+  if (isVip) {
     const vipTag = document.createElement('span');
     vipTag.className = 'vip-badge';
     vipTag.textContent = 'VIP';
@@ -963,7 +1007,7 @@ function buildBubble(id, data, isTemporary) {
 
   const bodyEl = document.createElement('div');
   bodyEl.className = 'body';
-  renderMessageText(bodyEl, data.message || '');
+  renderMessageText(bodyEl, data.message || '', isVip);
 
   bubble.appendChild(authorLine);
   bubble.appendChild(bodyEl);
@@ -1217,7 +1261,7 @@ function startCooldown(seconds) {
 
   const interval = setInterval(() => {
     const elapsed = Date.now() - startMs;
-        const left = remainMs - elapsed;
+    const left = remainMs - elapsed;
     if (left <= 0) {
       clearInterval(interval);
       isCooldownActive = false;
@@ -1225,7 +1269,7 @@ function startCooldown(seconds) {
       cooldownBar.style.width = '100%';
       if (!isChatPaused) {
         sendBtn.disabled = false;
-        sendBtn.textContent = "Post to Wall";
+        sendBtn.textContent = 'Post to Wall';
       }
     } else {
       const pct = Math.max(0, (left / remainMs) * 100);
@@ -1254,7 +1298,8 @@ window.sendPost = async () => {
 
   localStorage.setItem('cpm_name', name);
 
-  const optimisticEl = buildBubble(null, { name, message, createdAt: new Date(), room: currentRoom }, true);
+  const chosenColor = currentRoom === 'vip' ? currentVipColor : null;
+  const optimisticEl = buildBubble(null, { name, message, createdAt: new Date(), room: currentRoom, nameColor: chosenColor }, true);
   const placeholder = document.getElementById('emptyRoomNotice');
   if (placeholder) placeholder.remove();
   feedEl.prepend(optimisticEl);
@@ -1273,7 +1318,8 @@ window.sendPost = async () => {
         message,
         clientInfo,
         room: currentRoom,
-        vipKey: currentRoom === 'vip' ? activeVipKey : ''
+        vipKey: currentRoom === 'vip' ? activeVipKey : '',
+        nameColor: chosenColor
       })
     });
     const data = await res.json().catch(() => ({}));
@@ -1284,7 +1330,10 @@ window.sendPost = async () => {
       msgInput.value = '';
       charCount.textContent = '0/150';
       charCount.style.color = 'var(--muted)';
-      startCooldown(10);
+
+      // 2 seconds cooldown for VIP room, 10 seconds for public wall
+      const cooldownTime = currentRoom === 'vip' ? 2 : 10;
+      startCooldown(cooldownTime);
 
       if (message.toLowerCase().includes('@apex')) {
         typingEl.textContent = 'Apex_Racer is typing...';
