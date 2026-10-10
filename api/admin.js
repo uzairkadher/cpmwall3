@@ -43,6 +43,11 @@ export default async function handler(req, res) {
         const snap = await db.collection("pinned").doc("current").get();
         return res.status(200).json(snap.exists ? snap.data() : null);
       }
+      if (action === "filters") {
+        const doc = await db.collection("settings").doc("filters").get();
+        const words = doc.exists ? (doc.data().words || []) : [];
+        return res.status(200).json({ words });
+      }
     }
 
     if (req.method === "DELETE") {
@@ -77,6 +82,47 @@ export default async function handler(req, res) {
         const { ip } = req.body;
         const safeIp = ip.replace(/[^a-zA-Z0-9.:]/g, "_");
         await db.collection("banned").doc(safeIp).delete();
+        return res.status(200).json({ success: true });
+      }
+
+      if (action === "purge_ip") {
+        const { ip } = req.body;
+        if (!ip) return res.status(400).json({ error: "Missing IP" });
+        const logsSnap = await db.collection("ip_logs").where("ip", "==", ip).get();
+        const batch = db.batch();
+        logsSnap.forEach(d => {
+          const lData = d.data();
+          if (lData.postId) {
+            batch.delete(db.collection("posts").doc(lData.postId));
+          }
+          batch.delete(d.ref);
+        });
+        await batch.commit();
+        return res.status(200).json({ success: true, count: logsSnap.size });
+      }
+
+      if (action === "dismiss_report") {
+        const { postId } = req.body;
+        if (!postId) return res.status(400).json({ error: "Missing postId" });
+        await db.collection("posts").doc(postId).update({ isReported: false, reportCount: 0 });
+        return res.status(200).json({ success: true });
+      }
+
+      if (action === "add_filter") {
+        const { word } = req.body;
+        if (!word) return res.status(400).json({ error: "Word required" });
+        await db.collection("settings").doc("filters").set({
+          words: admin.firestore.FieldValue.arrayUnion(word.trim().toLowerCase())
+        }, { merge: true });
+        return res.status(200).json({ success: true });
+      }
+
+      if (action === "remove_filter") {
+        const { word } = req.body;
+        if (!word) return res.status(400).json({ error: "Word required" });
+        await db.collection("settings").doc("filters").update({
+          words: admin.firestore.FieldValue.arrayRemove(word.trim().toLowerCase())
+        });
         return res.status(200).json({ success: true });
       }
 

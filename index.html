@@ -9,9 +9,9 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="[https://fonts.googleapis.com](https://fonts.googleapis.com)">
+<link rel="preconnect" href="[https://fonts.gstatic.com](https://fonts.gstatic.com)" crossorigin>
+<link href="[https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap](https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap)" rel="stylesheet">
 <style>
 :root {
   --bg: #080a12;
@@ -141,6 +141,7 @@ body {
   background: var(--card);
   border: 1px solid var(--border);
   align-self: flex-start;
+  position: relative;
 }
 .bubble.me {
   align-self: flex-end;
@@ -179,6 +180,36 @@ body {
   font-weight: 600;
 }
 .body { font-size: 0.85rem; line-height: 1.35; word-break: break-word; color: #f1f5f9; }
+.bubble-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  font-size: 11px;
+}
+.reaction-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 2px 7px;
+  color: var(--muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+}
+.reaction-btn:hover { color: #fff; border-color: #f97316; }
+.reaction-btn.liked { color: #f97316; border-color: #f97316; }
+.report-btn {
+  background: transparent;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  font-size: 11px;
+  padding: 2px;
+}
+.report-btn:hover { color: #ef4444; }
 .room-code {
   background: rgba(0, 240, 255, 0.15);
   color: var(--accent);
@@ -245,6 +276,20 @@ body {
   gap: 6px;
   flex-shrink: 0;
 }
+.cooldown-wrap {
+  width: 100%;
+  height: 4px;
+  background: #1e243b;
+  border-radius: 2px;
+  overflow: hidden;
+  display: none;
+}
+.cooldown-bar {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--bot));
+  transition: width 0.2s linear;
+}
 .input-row { display: flex; gap: 6px; }
 .input-panel input {
   background: #0d101d;
@@ -294,9 +339,9 @@ body {
 
   <div class="social">
     <button type="button" class="sbtn" style="background:#1d9bf0;" onclick="shareSite()">🔗 Share</button>
-    <a class="sbtn" style="background:linear-gradient(45deg,#f09433,#dc2743)" href="https://www.instagram.com/4t_jagga" target="_blank" rel="noopener noreferrer">IG Profile</a>
-    <a class="sbtn" style="background:#e1306c" href="https://www.instagram.com/channel/FMW8_rf52qWxlGoC/" target="_blank" rel="noopener noreferrer">IG Channel</a>
-    <a class="sbtn" style="background:#25d366" href="https://wa.me/923558182875?text=I%27m%20from%20cpm%20wall" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+    <a class="sbtn" style="background:linear-gradient(45deg,#f09433,#dc2743)" href="[https://www.instagram.com/4t_jagga](https://www.instagram.com/4t_jagga)" target="_blank" rel="noopener noreferrer">IG Profile</a>
+    <a class="sbtn" style="background:#e1306c" href="[https://www.instagram.com/channel/FMW8_rf52qWxlGoC/](https://www.instagram.com/channel/FMW8_rf52qWxlGoC/)" target="_blank" rel="noopener noreferrer">IG Channel</a>
+    <a class="sbtn" style="background:#25d366" href="[https://wa.me/923558182875?text=I%27m%20from%20cpm%20wall](https://wa.me/923558182875?text=I%27m%20from%20cpm%20wall)" target="_blank" rel="noopener noreferrer">WhatsApp</a>
   </div>
 
   <div class="filter-row">
@@ -329,6 +374,11 @@ body {
       <input id="userName" placeholder="Driver Tag" maxlength="20">
       <input id="msgInput" placeholder="Type message, room code, or ID..." maxlength="150" autocomplete="off">
     </div>
+
+    <div id="cooldownWrap" class="cooldown-wrap">
+      <div id="cooldownBar" class="cooldown-bar"></div>
+    </div>
+
     <div class="input-bottom">
       <span id="charCount" class="char-num">0/150</span>
       <button id="sendBtn" class="send-btn" onclick="sendPost()">Post to Wall</button>
@@ -336,8 +386,8 @@ body {
   </div>
 </div>
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, onSnapshot, query, orderBy, limit, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { initializeApp } from "[https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js](https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js)";
+import { getFirestore, collection, onSnapshot, query, orderBy, limit, doc } from "[https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js](https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js)";
 
 const _k1 = "AIza";
 const _k2 = "SyAOE8v7ANE6vvlHh2ZbiaJ6iHBN4voFcYM";
@@ -363,6 +413,8 @@ const wallSearchInput = document.getElementById('wallSearch');
 const clearSearchBtn = document.getElementById('clearSearch');
 const onlineCountEl = document.getElementById('onlineCount');
 const alertBtn = document.getElementById('alertBtn');
+const cooldownWrap = document.getElementById('cooldownWrap');
+const cooldownBar = document.getElementById('cooldownBar');
 
 userNameInput.value = localStorage.getItem('cpm_name') || '';
 
@@ -576,6 +628,54 @@ function buildBubble(id, data, isTemporary) {
   bubble.appendChild(authorLine);
   bubble.appendChild(bodyEl);
 
+  if (id && !isTemporary) {
+    const actionsEl = document.createElement('div');
+    actionsEl.className = 'bubble-actions';
+
+    const likedKey = `cpm_liked_${id}`;
+    const isLiked = localStorage.getItem(likedKey) === 'true';
+
+    const likeBtn = document.createElement('button');
+    likeBtn.type = 'button';
+    likeBtn.className = `reaction-btn ${isLiked ? 'liked' : ''}`;
+    likeBtn.innerHTML = `🔥 <span id="like-${id}">${data.likes || 0}</span>`;
+    likeBtn.onclick = async () => {
+      if (localStorage.getItem(likedKey) === 'true') return;
+      likeBtn.classList.add('liked');
+      localStorage.setItem(likedKey, 'true');
+      const countEl = document.getElementById(`like-${id}`);
+      if (countEl) countEl.textContent = (data.likes || 0) + 1;
+      await fetch('/api/post', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'like', postId: id })
+      }).catch(() => {});
+    };
+    actionsEl.appendChild(likeBtn);
+
+    if (!isBot) {
+      const reportBtn = document.createElement('button');
+      reportBtn.type = 'button';
+      reportBtn.className = 'report-btn';
+      reportBtn.textContent = '🚩';
+      reportBtn.title = 'Report message to admin';
+      reportBtn.onclick = async () => {
+        if (!confirm('Report this message for inappropriate content?')) return;
+        reportBtn.style.opacity = '0.3';
+        reportBtn.disabled = true;
+        await fetch('/api/post', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'report', postId: id })
+        }).catch(() => {});
+        alert('Message reported to administration.');
+      };
+      actionsEl.appendChild(reportBtn);
+    }
+
+    bubble.appendChild(actionsEl);
+  }
+
   if (activeSearchQuery) {
     const query = activeSearchQuery.toLowerCase();
     const match = (data.name || '').toLowerCase().includes(query) || (data.message || '').toLowerCase().includes(query);
@@ -630,7 +730,7 @@ onSnapshot(doc(db, "pinned", "current"), (snap) => {
         try {
           new Notification(`Lobby Alert: ${d.name || 'Admin'}`, {
             body: d.text,
-            icon: "https://cdn-icons-png.flaticon.com/512/3202/3202926.png"
+            icon: "[https://cdn-icons-png.flaticon.com/512/3202/3202926.png](https://cdn-icons-png.flaticon.com/512/3202/3202926.png)"
           });
         } catch {}
       }
@@ -682,6 +782,12 @@ onSnapshot(q, (snap) => {
         jumpBtn.style.display = 'block';
       }
     }
+    if (change.type === 'modified') {
+      const id = change.doc.id;
+      const data = change.doc.data();
+      const countEl = document.getElementById(`like-${id}`);
+      if (countEl) countEl.textContent = data.likes || 0;
+    }
     if (change.type === 'removed') {
       const el = document.getElementById(`post-${change.doc.id}`);
       if (el) el.remove();
@@ -696,7 +802,15 @@ onSnapshot(q, (snap) => {
 });
 
 msgInput.addEventListener('input', (e) => {
-  charCount.textContent = `${e.target.value.length}/150`;
+  const len = e.target.value.length;
+  charCount.textContent = `${len}/150`;
+  if (len > 140) {
+    charCount.style.color = '#ef4444';
+  } else if (len > 115) {
+    charCount.style.color = '#f97316';
+  } else {
+    charCount.style.color = 'var(--muted)';
+  }
 });
 
 window.addTag = (tag) => {
@@ -723,18 +837,28 @@ window.addEmoji = (emoji) => {
 
 function startCooldown(seconds) {
   sendBtn.disabled = true;
-  let remain = seconds;
-  sendBtn.textContent = `Wait ${remain}s`;
-  const t = setInterval(() => {
-    remain--;
-    if (remain <= 0) {
-      clearInterval(t);
+  cooldownWrap.style.display = 'block';
+  cooldownBar.style.width = '100%';
+
+  let remainMs = seconds * 1000;
+  const startMs = Date.now();
+  sendBtn.textContent = `Wait ${seconds}s`;
+
+  const interval = setInterval(() => {
+    const elapsed = Date.now() - startMs;
+    const left = remainMs - elapsed;
+    if (left <= 0) {
+      clearInterval(interval);
       sendBtn.disabled = false;
       sendBtn.textContent = 'Post to Wall';
+      cooldownWrap.style.display = 'none';
+      cooldownBar.style.width = '100%';
     } else {
-      sendBtn.textContent = `Wait ${remain}s`;
+      const pct = Math.max(0, (left / remainMs) * 100);
+      cooldownBar.style.width = `${pct}%`;
+      sendBtn.textContent = `Wait ${Math.ceil(left / 1000)}s`;
     }
-  }, 1000);
+  }, 100);
 }
 
 window.sendPost = async () => {
@@ -775,6 +899,7 @@ window.sendPost = async () => {
       lastPostTimestamp = Date.now();
       msgInput.value = '';
       charCount.textContent = '0/150';
+      charCount.style.color = 'var(--muted)';
       startCooldown(10);
 
       if (message.toLowerCase().includes('@apex')) {

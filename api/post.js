@@ -14,17 +14,27 @@ const db = admin.firestore();
 const RESERVED = ["admin", "apex_racer", "system", "moderator", "cpm_bot"];
 const LINK_REGEX = /(https?:\/\/|www\.|discord\.gg|t\.me|telegram\.me|chat\.whatsapp\.com|\.com|\.gg|\.xyz|\.top)/i;
 
-const BLOCKED_WORDS = [
+const BASE_BLOCKED_WORDS = [
   "free coins", "hack cpm", "mod apk", "cpm hack", "coin generator",
   "buy followers", "free w16", "cpm unlimited", "bit.ly", "tinyurl",
   "chutiya", "madarchod", "gandu", "bhenchod", "harami", "bitch",
   "nigger", "faggot", "scam"
 ];
 
-function containsBlockedContent(text) {
+async function isContentBlocked(text) {
   const lower = text.toLowerCase();
   if (LINK_REGEX.test(lower)) return true;
-  return BLOCKED_WORDS.some(word => lower.includes(word));
+  if (BASE_BLOCKED_WORDS.some(word => lower.includes(word))) return true;
+
+  try {
+    const filterSnap = await db.collection("config").doc("filters").get();
+    if (filterSnap.exists) {
+      const customList = filterSnap.data().words || [];
+      if (customList.some(w => lower.includes(w.toLowerCase()))) return true;
+    }
+  } catch {}
+
+  return false;
 }
 
 function parseUserAgent(ua = "") {
@@ -205,15 +215,33 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "POST only" });
 
   try {
-    const { name, message, clientInfo } = req.body || {};
+    const { action, postId, name, message, clientInfo } = req.body || {};
+
+    if (action === "like") {
+      if (!postId) return res.status(400).json({ error: "Missing postId" });
+      await db.collection("posts").doc(postId).update({
+        likes: admin.firestore.FieldValue.increment(1)
+      });
+      return res.status(200).json({ success: true });
+    }
+
+    if (action === "report") {
+      if (!postId) return res.status(400).json({ error: "Missing postId" });
+      await db.collection("posts").doc(postId).update({
+        reportCount: admin.firestore.FieldValue.increment(1)
+      });
+      return res.status(200).json({ success: true });
+    }
+
     if (!name || !message) return res.status(400).json({ error: "Name and message required" });
     const cleanName = name.trim().substring(0, 20);
     const cleanMsg = message.trim().substring(0, 150);
     if (cleanName.length < 2) return res.status(400).json({ error: "Name too short" });
     if (RESERVED.includes(cleanName.toLowerCase())) return res.status(400).json({ error: "Name reserved" });
 
-    if (containsBlockedContent(cleanMsg)) {
-      return res.status(400).json({ error: "Message blocked: abusive words, links, or scam phrases are prohibited." });
+    const blocked = await isContentBlocked(cleanMsg);
+    if (blocked) {
+      return res.status(400).json({ error: "Message blocked: words, links, or scam phrases are prohibited." });
     }
 
     const rawIp = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || "").split(',')[0].trim() || "unknown";
@@ -267,7 +295,9 @@ export default async function handler(req, res) {
       message: cleanMsg,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
       isVerified: isIpVerified,
-      isBot: false
+      isBot: false,
+      likes: 0,
+      reportCount: 0
     });
 
     batch.set(logRef, {
@@ -307,7 +337,9 @@ export default async function handler(req, res) {
         message: botText,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
         isBot: true,
-        isVerified: true
+        isVerified: true,
+        likes: 0,
+        reportCount: 0
       });
       botBatch.set(db.collection("ip_logs").doc(botRef.id), {
         postId: botRef.id,
