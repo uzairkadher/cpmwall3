@@ -2,25 +2,59 @@
 <html>
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="robots" content="noindex, nofollow">
 <title>CPM Admin Panel</title>
 <style>
-body { background: #0a0a0a; color: #fff; font-family: system-ui, sans-serif; padding: 14px; margin: 0; }
-.card { background: #111; border: 1px solid #222; border-radius: 12px; padding: 14px; margin-bottom: 12px; }
-input, textarea { width: 100%; box-sizing: border-box; padding: 10px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 8px; margin: 6px 0; }
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+body {
+  background: #0a0a0a;
+  color: #fff;
+  font-family: system-ui, sans-serif;
+  padding: 14px;
+  margin: 0;
+  -webkit-touch-callout: none;
+}
+.card {
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+input, textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  color: #fff;
+  border-radius: 8px;
+  margin: 6px 0;
+  font-size: 14px;
+}
 button {
   background: #3b82f6;
   color: #fff;
   border: 0;
-  padding: 8px 14px;
+  padding: 10px 16px;
   border-radius: 8px;
   margin: 3px;
   font-weight: 700;
+  font-size: 13px;
   cursor: pointer;
+  touch-action: manipulation;
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
+  transition: transform 0.08s ease, filter 0.08s ease;
+}
+button:active {
+  transform: scale(0.94);
+  filter: brightness(0.8);
 }
 button.danger { background: #dc2626; }
 button.green { background: #16a34a; }
@@ -40,7 +74,7 @@ mark { background: #facc15; color: #000; padding: 0 2px; border-radius: 3px; fon
 .stat-box { background: #18181b; border: 1px solid #27272a; border-radius: 8px; padding: 10px; text-align: center; }
 .stat-val { font-size: 1.25rem; font-weight: 700; color: #38bdf8; }
 .stat-label { font-size: 0.75rem; color: #a1a1aa; margin-top: 2px; }
-.controls-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.controls-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
 .toggle-label {
   display: flex;
   align-items: center;
@@ -65,7 +99,12 @@ mark { background: #facc15; color: #000; padding: 0 2px; border-radius: 3px; fon
   gap: 6px;
 }
 .filter-tag span { cursor: pointer; color: #fff; font-weight: 700; }
-
+.status-msg {
+  display: block;
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
 .modal-overlay {
   display: none;
   position: fixed;
@@ -103,23 +142,23 @@ mark { background: #facc15; color: #000; padding: 0 2px; border-radius: 3px; fon
 .preset-btn:hover { background: #3f3f46; }
 </style>
 </head>
-<body>
+<body ontouchstart="">
 <h3>CPM Admin Panel</h3>
 
 <div class="card">
-  <input id="adminKey" type="password" placeholder="Enter ADMIN_KEY">
+  <input id="adminKey" type="password" placeholder="Enter ADMIN_KEY" autocomplete="current-password">
   <div class="controls-row">
     <div>
-      <button type="button" onclick="loadAll()">Load Data</button>
+      <button id="loadBtn" type="button" onclick="loadAll()">Load Data</button>
       <button type="button" class="green" onclick="exportBackup()">Export JSON</button>
       <button id="lockToggleBtn" type="button" class="danger" onclick="toggleChatLock()">Lock Chat</button>
-      <span id="status" style="margin-left: 8px; font-size: 13px; color: #94a3b8;"></span>
     </div>
     <label class="toggle-label">
       <input type="checkbox" id="autoRefreshCheck" onchange="toggleAutoRefresh(this.checked)">
       Auto-refresh (10s)
     </label>
   </div>
+  <div id="status" class="status-msg" style="color: #94a3b8;"></div>
 </div>
 
 <div class="card" id="statsCard" style="display:none;">
@@ -143,7 +182,7 @@ mark { background: #facc15; color: #000; padding: 0 2px; border-radius: 3px; fon
     <input id="newFilterInput" placeholder="Add word, telegram handle, or scam term..." style="margin: 0;">
     <button type="button" class="green" style="white-space: nowrap;" onclick="addFilterWord()">Add Word</button>
   </div>
-  <div id="filterTagsList" class="filter-tags">Loading custom filters...</div>
+  <div id="filterTagsList" class="filter-tags">No custom words yet. Static scam list is still active.</div>
 </div>
 
 <div class="card">
@@ -206,6 +245,14 @@ let refreshTimer = null;
 let activeBanIp = '';
 let isChatCurrentlyLocked = false;
 
+function setStatus(text, isError = false) {
+  const el = document.getElementById('status');
+  if (el) {
+    el.textContent = text;
+    el.style.color = isError ? '#ef4444' : '#38bdf8';
+  }
+}
+
 function headers() {
   return { 'Content-Type': 'application/json', 'x-admin-key': ADMIN_KEY };
 }
@@ -230,11 +277,13 @@ function setFilterBadge(term) {
 function toggleAutoRefresh(enabled) {
   if (refreshTimer) clearInterval(refreshTimer);
   if (enabled) {
-    if (!ADMIN_KEY) {
-      alert('Enter admin key and load data first');
+    const key = document.getElementById('adminKey').value.trim();
+    if (!key) {
+      setStatus('Enter admin key and tap Load Data first', true);
       document.getElementById('autoRefreshCheck').checked = false;
       return;
     }
+    ADMIN_KEY = key;
     refreshTimer = setInterval(() => { loadAll(true); }, 10000);
   }
 }
@@ -252,31 +301,49 @@ function updateLockBtnUI(locked) {
 }
 
 async function toggleChatLock() {
-  if (!ADMIN_KEY) return alert('Enter admin key first');
+  const key = document.getElementById('adminKey').value.trim();
+  if (!key) return setStatus('Enter admin key first', true);
+  ADMIN_KEY = key;
+
   const targetState = !isChatCurrentlyLocked;
   const promptText = targetState
     ? 'Lock the chat? Visitors will not be able to post messages.'
     : 'Unlock the chat? Visitors will be able to post again.';
   if (!confirm(promptText)) return;
 
-  const r = await fetch('/api/admin', {
-    method: 'POST',
-    headers: headers(),
-    body: JSON.stringify({ action: 'toggle_chat_lock', locked: targetState })
-  });
-  const d = await r.json();
-  if (d.success) {
-    updateLockBtnUI(d.chatLocked);
-    alert(targetState ? 'Chat has been locked.' : 'Chat has been unlocked.');
-  } else {
-    alert(d.error || 'Failed to toggle lock');
+  try {
+    const r = await fetch('/api/admin', {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify({ action: 'toggle_chat_lock', locked: targetState })
+    });
+    const d = await r.json();
+    if (d.success) {
+      updateLockBtnUI(d.chatLocked);
+      setStatus(targetState ? 'Chat locked successfully' : 'Chat unlocked successfully');
+    } else {
+      setStatus(d.error || 'Failed to toggle lock', true);
+    }
+  } catch (err) {
+    setStatus('Network error toggling lock: ' + err.message, true);
   }
 }
 
 async function loadAll(isBackground = false) {
-  ADMIN_KEY = document.getElementById('adminKey').value.trim();
-  if (!ADMIN_KEY) return alert('Enter key');
-  if (!isBackground) document.getElementById('status').textContent = 'Loading...';
+  const keyInput = document.getElementById('adminKey');
+  const loadBtn = document.getElementById('loadBtn');
+  ADMIN_KEY = keyInput.value.trim();
+
+  if (!ADMIN_KEY) {
+    setStatus('Please enter your ADMIN_KEY in the box above', true);
+    return;
+  }
+
+  if (!isBackground) {
+    loadBtn.textContent = 'Loading...';
+    loadBtn.disabled = true;
+    setStatus('Contacting server...');
+  }
 
   try {
     const [pR, bR, lR, vR, pinR, visR, fR] = await Promise.all([
@@ -289,6 +356,13 @@ async function loadAll(isBackground = false) {
       fetch(`/api/admin?action=filters&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() })
     ]);
 
+    if (pR.status === 401) {
+      setStatus('Invalid Admin Key. Check your password in Vercel.', true);
+      loadBtn.textContent = 'Load Data';
+      loadBtn.disabled = false;
+      return;
+    }
+
     const posts = await pR.json();
     const banned = await bR.json();
     const logs = await lR.json();
@@ -297,7 +371,12 @@ async function loadAll(isBackground = false) {
     const visitors = await visR.json();
     const filters = await fR.json();
 
-    if (posts.error) return alert(posts.error);
+    if (posts && posts.error) {
+      setStatus('Error: ' + posts.error, true);
+      loadBtn.textContent = 'Load Data';
+      loadBtn.disabled = false;
+      return;
+    }
 
     cachedPosts = Array.isArray(posts) ? posts : [];
     cachedBanned = Array.isArray(banned) ? banned : [];
@@ -313,13 +392,13 @@ async function loadAll(isBackground = false) {
     updateLockBtnUI(pinned && pinned.chatLocked);
 
     document.getElementById('currentPin').textContent = pinned && pinned.active ? `${pinned.name}: ${pinned.text}` : 'No active pin';
-    document.getElementById('status').textContent = `Updated ${new Date().toLocaleTimeString()}`;
     document.getElementById('statsCard').style.display = 'block';
+    setStatus(`Updated successfully at ${new Date().toLocaleTimeString()}`);
   } catch (err) {
-    if (!isBackground) {
-      document.getElementById('status').textContent = 'Error loading data';
-      alert(err.message);
-    }
+    setStatus('Connection failed: ' + err.message, true);
+  } finally {
+    loadBtn.textContent = 'Load Data';
+    loadBtn.disabled = false;
   }
 }
 
@@ -348,36 +427,43 @@ function renderFilters() {
 async function addFilterWord() {
   const input = document.getElementById('newFilterInput');
   const word = input.value.trim().toLowerCase();
-  if (!word) return alert('Enter a word to block');
-  const r = await fetch('/api/admin', {
-    method: 'POST',
-    headers: headers(),
-    body: JSON.stringify({ action: 'add_filter', word })
-  });
-  const d = await r.json();
-  if (d.success) {
-    input.value = '';
-    loadAll(true);
-  } else {
-    alert(d.error);
+  if (!word) return setStatus('Enter a word to block', true);
+  try {
+    const r = await fetch('/api/admin', {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify({ action: 'add_filter', word })
+    });
+    const d = await r.json();
+    if (d.success) {
+      input.value = '';
+      loadAll(true);
+    } else {
+      setStatus(d.error || 'Failed to add word', true);
+    }
+  } catch (err) {
+    setStatus('Failed to add word: ' + err.message, true);
   }
 }
 
 async function removeFilterWord(word) {
   if (!confirm(`Remove "${word}" from blocked list?`)) return;
-  const r = await fetch('/api/admin', {
-    method: 'POST',
-    headers: headers(),
-    body: JSON.stringify({ action: 'remove_filter', word })
-  });
-  const d = await r.json();
-  if (d.success) loadAll(true); else alert(d.error);
+  try {
+    const r = await fetch('/api/admin', {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify({ action: 'remove_filter', word })
+    });
+    const d = await r.json();
+    if (d.success) loadAll(true); else setStatus(d.error || 'Failed to remove', true);
+  } catch (err) {
+    setStatus('Failed to remove: ' + err.message, true);
+  }
 }
 
 function exportBackup() {
   if (!cachedPosts.length && !cachedLogs.length && !cachedVisitors.length && !cachedBanned.length) {
-    alert('No data to export. Click Load Data first.');
-    return;
+    return setStatus('No data loaded yet. Tap Load Data first.', true);
   }
   const backup = {
     exportedAt: new Date().toISOString(),
@@ -406,28 +492,36 @@ function exportBackup() {
 
 async function purgeIp(ip) {
   if (!confirm(`Delete ALL messages posted by IP ${ip}?`)) return;
-  const r = await fetch('/api/admin', {
-    method: 'POST',
-    headers: headers(),
-    body: JSON.stringify({ action: 'purge_ip', ip })
-  });
-  const d = await r.json();
-  if (d.success) {
-    alert(`Purged ${d.count} messages from ${ip}`);
-    loadAll();
-  } else {
-    alert(d.error);
+  try {
+    const r = await fetch('/api/admin', {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify({ action: 'purge_ip', ip })
+    });
+    const d = await r.json();
+    if (d.success) {
+      setStatus(`Purged ${d.count} messages from ${ip}`);
+      loadAll();
+    } else {
+      setStatus(d.error || 'Failed to purge', true);
+    }
+  } catch (err) {
+    setStatus('Purge failed: ' + err.message, true);
   }
 }
 
 async function dismissReport(postId) {
-  const r = await fetch('/api/admin', {
-    method: 'POST',
-    headers: headers(),
-    body: JSON.stringify({ action: 'dismiss_report', postId })
-  });
-  const d = await r.json();
-  if (d.success) loadAll(); else alert(d.error);
+  try {
+    const r = await fetch('/api/admin', {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify({ action: 'dismiss_report', postId })
+    });
+    const d = await r.json();
+    if (d.success) loadAll(); else setStatus(d.error || 'Failed to dismiss', true);
+  } catch (err) {
+    setStatus('Dismiss failed: ' + err.message, true);
+  }
 }
 
 function applyFilter() {
@@ -519,8 +613,7 @@ function applyFilter() {
         <small style="color:#64748b;">postId: ${highlight(l.postId || l.id, query)}</small><br>
         ${l.ip !== 'BOT' ? `
           <button type="button" class="danger" onclick="openBanModal('${esc(l.ip)}')">Ban ${esc(l.ip)}</button>
-          <button type="button" class="danger" style="background:#991b1b;" onclick="purgeIp('${esc(l.ip)}')">Purge All (${postCount})</button>
-          ${isVerified ? `
+          <button type="button" class="danger" style="background:#991b1b;" onclick="purgeIp('${esc(l.ip)}')">Purge All (${postCount})</button>${isVerified ? `
             <button type="button" class="orange" onclick="unverifyIp('${esc(l.ip)}')">Unverify IP</button>
           ` : `
             <button type="button" class="green" onclick="verifyIp('${esc(l.ip)}')">Verify IP</button>
@@ -583,13 +676,17 @@ async function executeBanPreset(reason, hours) {
   if (!activeBanIp) return;
   const ip = activeBanIp;
   closeBanModal();
-  const r = await fetch('/api/admin', {
-    method: 'POST',
-    headers: headers(),
-    body: JSON.stringify({ action: 'ban', ip, reason, hours })
-  });
-  const d = await r.json();
-  if (d.success) loadAll(); else alert(d.error);
+  try {
+    const r = await fetch('/api/admin', {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify({ action: 'ban', ip, reason, hours })
+    });
+    const d = await r.json();
+    if (d.success) loadAll(); else setStatus(d.error || 'Ban failed', true);
+  } catch (err) {
+    setStatus('Ban failed: ' + err.message, true);
+  }
 }
 
 function promptCustomBan() {
@@ -606,67 +703,99 @@ function promptCustomBan() {
     headers: headers(),
     body: JSON.stringify({ action: 'ban', ip, reason, hours })
   }).then(r => r.json()).then(d => {
-    if (d.success) loadAll(); else alert(d.error);
+    if (d.success) loadAll(); else setStatus(d.error || 'Ban failed', true);
+  }).catch(err => {
+    setStatus('Ban failed: ' + err.message, true);
   });
 }
 
 async function delPost(id) {
   if (!confirm('Delete post ' + id + '?')) return;
-  const r = await fetch(`/api/admin?id=${id}`, { method: 'DELETE', headers: headers() });
-  const d = await r.json();
-  if (d.success) loadAll(); else alert(d.error);
+  try {
+    const r = await fetch(`/api/admin?id=${id}`, { method: 'DELETE', headers: headers() });
+    const d = await r.json();
+    if (d.success) loadAll(); else setStatus(d.error || 'Delete failed', true);
+  } catch (err) {
+    setStatus('Delete failed: ' + err.message, true);
+  }
 }
 
 function banFromPost(postId) {
   const log = cachedLogs.find(l => l.postId === postId || l.id === postId);
-  if (!log) return alert('Log not found for post ' + postId);
-  if (log.ip === 'BOT') return alert('Cannot ban BOT');
-  openBanModal(log.ip);
+  if (!log) return setStatus('Log not found for post ' + postId, true);
+  if (log.ip === 'BOT') return setStatus('Cannot ban BOT', true);
+    openBanModal(log.ip);
 }
 
 async function unban(ip) {
   if (!confirm('Unban ' + ip + '?')) return;
-  const r = await fetch('/api/admin', { method: 'POST', headers: headers(), body: JSON.stringify({ action: 'unban', ip }) });
-  const d = await r.json();
-  if (d.success) loadAll(); else alert(d.error);
+  try {
+    const r = await fetch('/api/admin', { method: 'POST', headers: headers(), body: JSON.stringify({ action: 'unban', ip }) });
+    const d = await r.json();
+    if (d.success) loadAll(); else setStatus(d.error || 'Unban failed', true);
+  } catch (err) {
+    setStatus('Unban failed: ' + err.message, true);
+  }
 }
 
 function verifyIpFromPost(postId) {
   const log = cachedLogs.find(l => l.postId === postId || l.id === postId);
-  if (!log) return alert('Log not found for post ' + postId);
-  if (log.ip === 'BOT') return alert('Cannot verify BOT IP');
+  if (!log) return setStatus('Log not found for post ' + postId, true);
+  if (log.ip === 'BOT') return setStatus('Cannot verify BOT IP', true);
   verifyIp(log.ip, postId);
 }
 
 async function verifyIp(ip, postId) {
   if (!confirm('Verify IP ' + ip + '? All future messages will have the verified badge.')) return;
-  const r = await fetch('/api/admin', { method: 'POST', headers: headers(), body: JSON.stringify({ action: 'verify_ip', ip }) });
-  const d = await r.json();
-  if (d.success) {
-    if (postId) {
-      await fetch('/api/admin', { method: 'POST', headers: headers(), body: JSON.stringify({ action: 'verify', postId, isVerified: true }) });
+  try {
+    const r = await fetch('/api/admin', { method: 'POST', headers: headers(), body: JSON.stringify({ action: 'verify_ip', ip }) });
+    const d = await r.json();
+    if (d.success) {
+      if (postId) {
+        await fetch('/api/admin', { method: 'POST', headers: headers(), body: JSON.stringify({ action: 'verify', postId, isVerified: true }) });
+      }
+      loadAll();
+    } else {
+      setStatus(d.error || 'Verification failed', true);
     }
-    loadAll();
-  } else {
-    alert(d.error);
+  } catch (err) {
+    setStatus('Verification failed: ' + err.message, true);
   }
 }
 
 async function unverifyIp(ip) {
   if (!confirm('Remove verification for IP ' + ip + '?')) return;
-  const r = await fetch('/api/admin', { method: 'POST', headers: headers(), body: JSON.stringify({ action: 'unverify_ip', ip }) });
-  const d = await r.json();
-  if (d.success) loadAll(); else alert(d.error);
+  try {
+    const r = await fetch('/api/admin', { method: 'POST', headers: headers(), body: JSON.stringify({ action: 'unverify_ip', ip }) });
+    const d = await r.json();
+    if (d.success) loadAll(); else setStatus(d.error || 'Unverify failed', true);
+  } catch (err) {
+    setStatus('Unverify failed: ' + err.message, true);
+  }
 }
 
 async function verifyPost(postId, isVerified) {
-  const r = await fetch('/api/admin', { method: 'POST', headers: headers(), body: JSON.stringify({ action: 'verify', postId, isVerified }) });
-  const d = await r.json();
-  if (d.success) loadAll(); else alert(d.error);
+  try {
+    const r = await fetch('/api/admin', { method: 'POST', headers: headers(), body: JSON.stringify({ action: 'verify', postId, isVerified }) });
+    const d = await r.json();
+    if (d.success) loadAll(); else setStatus(d.error || 'Verify post failed', true);
+  } catch (err) {
+    setStatus('Verify post failed: ' + err.message, true);
+  }
 }
 
 async function pin(active) {
   const text = document.getElementById('pinText').value;
   const name = document.getElementById('pinName').value || 'Admin';
-  if (active && !text) return alert('Enter announcement text');
-  const r = await fetch('/api/admin'
+  if (active && !text) return setStatus('Enter announcement text before saving pin', true);
+  try {
+    const r = await fetch('/api/admin', { method: 'POST', headers: headers(), body: JSON.stringify({ action: 'pin', text, name, active }) });
+    const d = await r.json();
+    if (d.success) loadAll(); else setStatus(d.error || 'Pin failed', true);
+  } catch (err) {
+    setStatus('Pin failed: ' + err.message, true);
+  }
+}
+</script>
+</body>
+</html>
