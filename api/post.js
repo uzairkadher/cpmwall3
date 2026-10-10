@@ -66,6 +66,16 @@ function parseUserAgent(ua = "") {
   return { os, browser, device };
 }
 
+function checkVpnIndicators(req) {
+  const headers = req.headers || {};
+  const cfConnectingIp = headers["cf-connecting-ip"];
+  const xForwardedFor = headers["x-forwarded-for"];
+  const proxyHeaders = ["x-real-ip", "via", "forwarded", "x-cluster-client-ip"];
+  const hasMultipleIps = xForwardedFor && xForwardedFor.includes(",");
+  const hasProxyHeader = proxyHeaders.some(h => Boolean(headers[h]));
+  return Boolean(hasMultipleIps || hasProxyHeader || headers["cf-ray"]?.includes("TOR"));
+}
+
 function getHumanFallback(cleanMsg) {
   const t = cleanMsg.toLowerCase();
 
@@ -231,6 +241,7 @@ export default async function handler(req, res) {
 
     const rawIp = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || "").split(',')[0].trim() || "unknown";
     const safeIp = rawIp.replace(/[^a-zA-Z0-9.:]/g, '_');
+    const isVpnDetected = checkVpnIndicators(req);
 
     if (action === "unlock_vip") {
       const siteBan = await db.collection("banned").doc(safeIp).get();
@@ -274,7 +285,9 @@ export default async function handler(req, res) {
         os,
         browser,
         country: countryName,
+        countryCode: countryCode || 'UN',
         city: city || 'Unknown City',
+        isVpn: isVpnDetected,
         unlockedAt: admin.firestore.FieldValue.serverTimestamp()
       }, { merge: true });
 
@@ -364,7 +377,9 @@ export default async function handler(req, res) {
     const verifiedSnap = await db.collection("verified_ips").doc(safeIp).get();
     const isIpVerified = verifiedSnap.exists || isVipUser;
 
-    const cooldownWindow = isVipUser ? 2 : 10;
+    const dynamicSlowMode = pinDoc.exists && pinDoc.data().slowModeSeconds ? Number(pinDoc.data().slowModeSeconds) : 10;
+    const cooldownWindow = isVipUser ? 2 : dynamicSlowMode;
+
     const rateRef = db.collection("rateLimits").doc(safeIp);
     const rateSnap = await rateRef.get();
     if (rateSnap.exists) {
@@ -399,11 +414,13 @@ export default async function handler(req, res) {
       postId: postRef.id,
       ip: rawIp,
       country: countryName,
+      countryCode: countryCode || 'UN',
       city: city || 'Unknown City',
       region: region,
       device: device,
       os: os,
       browser: browser,
+      isVpn: isVpnDetected,
       battery: client.battery || 'N/A',
       ram: client.ram || 'N/A',
       cores: client.cores || 'N/A',
@@ -447,10 +464,12 @@ export default async function handler(req, res) {
         message: botText,
         ip: "BOT",
         country: "Server",
+        countryCode: "UN",
         city: "Cloud",
         device: "Server Bot",
         os: "Node.js",
         browser: "AI Engine",
+        isVpn: false,
         room: isVipRoom ? "vip" : "public",
         createdAt: admin.firestore.FieldValue.serverTimestamp()
       });

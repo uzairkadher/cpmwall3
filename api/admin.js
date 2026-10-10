@@ -56,6 +56,10 @@ export default async function handler(req, res) {
         const words = doc.exists ? (doc.data().words || []) : [];
         return res.status(200).json({ words });
       }
+      if (action === "payments") {
+        const snap = await db.collection("payments").orderBy("createdAt", "desc").limit(100).get();
+        return res.status(200).json(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      }
     }
 
     if (req.method === "DELETE") {
@@ -68,6 +72,56 @@ export default async function handler(req, res) {
 
     if (req.method === "POST") {
       const { action } = req.body;
+
+      if (action === "set_slow_mode") {
+        const seconds = Math.max(1, Math.min(60, Number(req.body.seconds) || 10));
+        await db.collection("pinned").doc("current").set({
+          slowModeSeconds: seconds
+        }, { merge: true });
+        return res.status(200).json({ success: true, slowModeSeconds: seconds });
+      }
+
+      if (action === "edit_post") {
+        const { postId, message } = req.body;
+        if (!postId || !message) return res.status(400).json({ error: "Missing postId or message" });
+        const cleanMsg = String(message).trim().substring(0, 250);
+        await db.collection("posts").doc(postId).update({ message: cleanMsg });
+        await db.collection("ip_logs").doc(postId).update({ message: cleanMsg }).catch(() => {});
+        return res.status(200).json({ success: true, message: cleanMsg });
+      }
+
+      if (action === "flush_lobby") {
+        const count = Math.min(100, Math.max(10, Number(req.body.count) || 50));
+        const snap = await db.collection("posts").orderBy("createdAt", "desc").limit(count).get();
+        const batch = db.batch();
+        snap.forEach(d => {
+          batch.delete(d.ref);
+          batch.delete(db.collection("ip_logs").doc(d.id));
+        });
+        await batch.commit();
+        return res.status(200).json({ success: true, deleted: snap.size });
+      }
+
+      if (action === "save_payment") {
+        const { driverTag, method, amount, txId, notes } = req.body;
+        if (!driverTag || !amount) return res.status(400).json({ error: "Driver Tag and Amount required" });
+        await db.collection("payments").add({
+          driverTag: String(driverTag).trim(),
+          method: method || "JazzCash",
+          amount: Number(amount) || 0,
+          txId: String(txId || "N/A").trim(),
+          notes: String(notes || "").trim(),
+          createdAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+        return res.status(200).json({ success: true });
+      }
+
+      if (action === "delete_payment") {
+        const { paymentId } = req.body;
+        if (!paymentId) return res.status(400).json({ error: "Missing paymentId" });
+        await db.collection("payments").doc(paymentId).delete();
+        return res.status(200).json({ success: true });
+      }
 
       if (action === "set_vip_key") {
         const { vipKey } = req.body;

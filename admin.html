@@ -25,7 +25,7 @@ body {
   padding: 14px;
   margin-bottom: 12px;
 }
-input, textarea {
+input, textarea, select {
   width: 100%;
   box-sizing: border-box;
   padding: 10px;
@@ -70,8 +70,9 @@ mark { background: #facc15; color: #000; padding: 0 2px; border-radius: 3px; fon
 .badge-batt { background: #713f12; color: #fde047; }
 .badge-count { background: #0284c7; color: #fff; font-weight: 700; }
 .badge-vip { background: #854d0e; color: #fef08a; font-weight: 700; }
+.badge-vpn { background: #991b1b; color: #fecaca; font-weight: 700; }
 .detail-grid { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0; }
-.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; margin-top: 8px; }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; margin-top: 8px; }
 .stat-box { background: #18181b; border: 1px solid #27272a; border-radius: 8px; padding: 10px; text-align: center; }
 .stat-val { font-size: 1.25rem; font-weight: 700; color: #38bdf8; }
 .stat-label { font-size: 0.75rem; color: #a1a1aa; margin-top: 2px; }
@@ -141,6 +142,16 @@ mark { background: #facc15; color: #000; padding: 0 2px; border-radius: 3px; fon
   -webkit-user-select: none;
 }
 .preset-btn:hover { background: #3f3f46; }
+.slider-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 6px;
+}
+.slider-wrap input[type=range] {
+  flex: 1;
+  margin: 0;
+}
 </style>
 </head>
 <body ontouchstart="">
@@ -166,11 +177,45 @@ mark { background: #facc15; color: #000; padding: 0 2px; border-radius: 3px; fon
   <h4>Wall Statistics</h4>
   <div class="stats-grid">
     <div class="stat-box"><div id="statPosts" class="stat-val">0</div><div class="stat-label">Total Posts</div></div>
-    <div class="stat-box"><div id="statVisitors" class="stat-val">0</div><div class="stat-label">Tracked Visitors</div></div>
+    <div class="stat-box"><div id="statVisitors" class="stat-val">0</div><div class="stat-label">Visitors</div></div>
     <div class="stat-box"><div id="statVip" class="stat-val" style="color:#f59e0b;">0</div><div class="stat-label">VIP Racers</div></div>
-    <div class="stat-box"><div id="statReports" class="stat-val" style="color:#ef4444;">0</div><div class="stat-label">Reports Queue</div></div>
-    <div class="stat-box"><div id="statBanned" class="stat-val">0</div><div class="stat-label">Active Bans</div></div>
+    <div class="stat-box"><div id="statRevenue" class="stat-val" style="color:#22c55e;">0</div><div class="stat-label">Revenue PKR</div></div>
+    <div class="stat-box"><div id="statReports" class="stat-val" style="color:#ef4444;">0</div><div class="stat-label">Reports</div></div>
+    <div class="stat-box"><div id="statBanned" class="stat-val">0</div><div class="stat-label">Bans</div></div>
   </div>
+</div>
+
+<div class="card">
+  <h4>⏱️ Dynamic Slow-Mode Cooldown</h4>
+  <div class="slider-wrap">
+    <input type="range" id="slowSlider" min="1" max="60" value="10" oninput="updateSliderLabel(this.value)">
+    <span id="sliderVal" style="font-weight:700; color:#38bdf8; min-width:35px;">10s</span>
+    <button type="button" class="green" onclick="saveSlowMode()">Save Cooldown</button>
+  </div>
+</div>
+
+<div class="card">
+  <h4 style="color:#ef4444;">🚨 Emergency Lobby Flush</h4>
+  <p style="font-size:12px; color:#94a3b8; margin: 4px 0 8px 0;">Instantly wipe latest posts during bot floods or spam raids.</p>
+  <button type="button" class="danger" onclick="flushLobby(50)">Wipe Last 50 Posts</button>
+  <button type="button" class="danger" style="background:#7f1d1d;" onclick="flushLobby(100)">Wipe Last 100 Posts</button>
+</div>
+
+<div class="card">
+  <h4 style="color:#22c55e;">💵 Payment & Transaction Ledger</h4>
+  <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
+    <input id="payDriverTag" placeholder="Driver Tag (e.g. Uzair77)" style="margin:0;">
+    <input id="payAmount" type="number" placeholder="Amount (PKR, e.g. 300)" style="margin:0;">
+    <select id="payMethod" style="margin:0;">
+      <option value="JazzCash">JazzCash</option>
+      <option value="NayaPay">NayaPay</option>
+      <option value="Easypaisa">Easypaisa</option>
+      <option value="Other">Other</option>
+    </select>
+    <input id="payTxId" placeholder="Tx ID / Ref No." style="margin:0;">
+  </div>
+  <button type="button" class="green" style="margin-top:8px;" onclick="addPayment()">Record Payment</button>
+  <div id="paymentHistoryList" style="margin-top:10px;">Login to load payments</div>
 </div>
 
 <div class="card" id="reportedCard">
@@ -224,12 +269,12 @@ mark { background: #facc15; color: #000; padding: 0 2px; border-radius: 3px; fon
 </div>
 
 <div class="card">
-  <h4>IP Logs (Posts with Details)</h4>
+  <h4>IP Logs (Posts with Details & Country Flags)</h4>
   <div id="logs">Login to load logs</div>
 </div>
 
 <div class="card">
-  <h4>Posts</h4>
+  <h4>Posts (With Direct Edit)</h4>
   <div id="posts">Login to load posts</div>
 </div>
 
@@ -260,10 +305,16 @@ mark { background: #facc15; color: #000; padding: 0 2px; border-radius: 3px; fon
 <script>
 let ADMIN_KEY = '';
 let cachedPosts = [], cachedLogs = [], cachedVisitors = [], cachedBanned = [], cachedVerified = [], cachedFilters = [];
-let cachedVipMembers = [], cachedVipBanned = [];
+let cachedVipMembers = [], cachedVipBanned = [], cachedPayments = [];
 let refreshTimer = null;
 let activeBanIp = '';
 let isChatCurrentlyLocked = false;
+
+function getFlagEmoji(cc) {
+  if (!cc || cc.length !== 2 || cc === 'UN') return '🌐';
+  const codePoints = cc.toUpperCase().split('').map(c => 127397 + c.charCodeAt());
+  return String.fromCodePoint(...codePoints);
+}
 
 function setStatus(text, isError = false) {
   const el = document.getElementById('status');
@@ -292,6 +343,129 @@ function setFilterBadge(term) {
   const input = document.getElementById('searchInput');
   input.value = term;
   applyFilter();
+}
+
+function updateSliderLabel(val) {
+  document.getElementById('sliderVal').textContent = `${val}s`;
+}
+
+async function saveSlowMode() {
+  const key = document.getElementById('adminKey').value.trim();
+  if (!key) return setStatus('Enter admin key first', true);
+  ADMIN_KEY = key;
+
+  const seconds = Number(document.getElementById('slowSlider').value) || 10;
+  try {
+    const r = await fetch('/api/admin', {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify({ action: 'set_slow_mode', seconds })
+    });
+    const d = await r.json();
+    if (d.success) setStatus(`Chat slow mode set to ${d.slowModeSeconds} seconds`);
+    else setStatus(d.error || 'Failed to set slow mode', true);
+  } catch (err) {
+    setStatus('Network error: ' + err.message, true);
+  }
+}
+
+async function flushLobby(count) {
+  if (!confirm(`Are you sure you want to delete the last ${count} messages from the lobby?`)) return;
+  const key = document.getElementById('adminKey').value.trim();
+  if (!key) return setStatus('Enter admin key first', true);
+  ADMIN_KEY = key;
+
+  try {
+    const r = await fetch('/api/admin', {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify({ action: 'flush_lobby', count })
+    });
+    const d = await r.json();
+    if (d.success) {
+      setStatus(`Successfully flushed ${d.deleted} messages.`);
+      loadAll(true);
+    } else {
+      setStatus(d.error || 'Flush failed', true);
+    }
+  } catch (err) {
+    setStatus('Flush error: ' + err.message, true);
+  }
+}
+
+async function editPostDirect(postId, currentText) {
+  const updated = prompt('Edit post message:', currentText);
+  if (updated === null || updated.trim() === currentText.trim()) return;
+
+  const key = document.getElementById('adminKey').value.trim();
+  if (!key) return setStatus('Enter admin key first', true);
+  ADMIN_KEY = key;
+
+  try {
+    const r = await fetch('/api/admin', {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify({ action: 'edit_post', postId, message: updated.trim() })
+    });
+    const d = await r.json();
+    if (d.success) {
+      setStatus('Post updated successfully');
+      loadAll(true);
+    } else {
+      setStatus(d.error || 'Edit failed', true);
+    }
+  } catch (err) {
+    setStatus('Edit error: ' + err.message, true);
+  }
+}
+
+async function addPayment() {
+  const driverTag = (document.getElementById('payDriverTag').value || '').trim();
+  const amount = Number(document.getElementById('payAmount').value) || 0;
+  const method = document.getElementById('payMethod').value;
+  const txId = (document.getElementById('payTxId').value || '').trim();
+
+  if (!driverTag || !amount) return setStatus('Enter driver tag and amount', true);
+
+  const key = document.getElementById('adminKey').value.trim();
+  if (!key) return setStatus('Enter admin key first', true);
+  ADMIN_KEY = key;
+
+  try {
+    const r = await fetch('/api/admin', {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify({ action: 'save_payment', driverTag, amount, method, txId })
+    });
+    const d = await r.json();
+    if (d.success) {
+      document.getElementById('payDriverTag').value = '';
+      document.getElementById('payAmount').value = '';
+      document.getElementById('payTxId').value = '';
+      setStatus('Payment logged successfully');
+      loadAll(true);
+    } else {
+      setStatus(d.error || 'Failed to save payment', true);
+    }
+  } catch (err) {
+    setStatus('Payment save error: ' + err.message, true);
+  }
+}
+
+async function deletePayment(paymentId) {
+  if (!confirm('Delete this payment record?')) return;
+  try {
+    const r = await fetch('/api/admin', {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify({ action: 'delete_payment', paymentId })
+    });
+    const d = await r.json();
+    if (d.success) loadAll(true);
+    else setStatus(d.error || 'Failed to delete payment', true);
+  } catch (err) {
+    setStatus('Delete error: ' + err.message, true);
+  }
 }
 
 function toggleAutoRefresh(enabled) {
@@ -432,7 +606,7 @@ async function loadAll(isBackground = false) {
   }
 
   try {
-    const [pR, bR, lR, vR, pinR, visR, fR, vipR, vipBanR] = await Promise.all([
+    const [pR, bR, lR, vR, pinR, visR, fR, vipR, vipBanR, payR] = await Promise.all([
       fetch(`/api/admin?action=posts&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
       fetch(`/api/admin?action=banned&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
       fetch(`/api/admin?action=logs&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
@@ -441,7 +615,8 @@ async function loadAll(isBackground = false) {
       fetch(`/api/admin?action=visitors&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
       fetch(`/api/admin?action=filters&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
       fetch(`/api/admin?action=vip_members&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
-      fetch(`/api/admin?action=vip_banned&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() })
+      fetch(`/api/admin?action=vip_banned&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
+      fetch(`/api/admin?action=payments&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() })
     ]);
 
     if (pR.status === 401) {
@@ -460,6 +635,7 @@ async function loadAll(isBackground = false) {
     const filters = await fR.json();
     const vipMembers = await vipR.json();
     const vipBanned = await vipBanR.json();
+    const payments = await payR.json();
 
     if (posts && posts.error) {
       setStatus('Error: ' + posts.error, true);
@@ -476,12 +652,19 @@ async function loadAll(isBackground = false) {
     cachedFilters = (filters && Array.isArray(filters.words)) ? filters.words : [];
     cachedVipMembers = Array.isArray(vipMembers) ? vipMembers : [];
     cachedVipBanned = Array.isArray(vipBanned) ? vipBanned : [];
+    cachedPayments = Array.isArray(payments) ? payments : [];
 
     updateStats();
     renderFilters();
+    renderPayments();
     applyFilter();
 
     updateLockBtnUI(pinned && pinned.chatLocked);
+
+    if (pinned && pinned.slowModeSeconds) {
+      document.getElementById('slowSlider').value = pinned.slowModeSeconds;
+      updateSliderLabel(pinned.slowModeSeconds);
+    }
 
     document.getElementById('currentPin').textContent = pinned && pinned.active ? `${pinned.name}: ${pinned.text}` : 'No active pin';
     document.getElementById('currentVipKey').textContent = `Active VIP Passcode: ${pinned && pinned.vipKey ? pinned.vipKey : 'VIP777'}`;
@@ -499,9 +682,27 @@ function updateStats() {
   document.getElementById('statPosts').textContent = cachedPosts.length;
   document.getElementById('statVisitors').textContent = cachedVisitors.length;
   document.getElementById('statVip').textContent = cachedVipMembers.length;
+  const totalRev = cachedPayments.reduce((acc, p) => acc + (Number(p.amount) || 0), 0);
+  document.getElementById('statRevenue').textContent = totalRev;
   const reportedCount = cachedPosts.filter(p => p.isReported).length;
   document.getElementById('statReports').textContent = reportedCount;
   document.getElementById('statBanned').textContent = cachedBanned.length;
+}
+
+function renderPayments() {
+  const container = document.getElementById('paymentHistoryList');
+  if (!cachedPayments.length) {
+    container.innerHTML = '<div style="font-size:12px; color:#94a3b8;">No payments logged yet.</div>';
+    return;
+  }
+  container.innerHTML = cachedPayments.map(p => `
+    <div class="post">
+      <b>${esc(p.driverTag)}</b> - <span style="color:#22c55e; font-weight:700;">${esc(p.amount)} PKR</span>
+      <span class="badge" style="background:#2563eb;">${esc(p.method)}</span><br>
+      <small style="color:#94a3b8;">TxID: <code>${esc(p.txId)}</code></small>
+      <button type="button" class="danger" style="padding:4px 8px; font-size:11px;" onclick="deletePayment('${p.id}')">Delete</button>
+    </div>
+  `).join('');
 }
 
 function renderFilters() {
@@ -571,6 +772,7 @@ function exportBackup() {
     vipMembers: cachedVipMembers,
     vipBanned: cachedVipBanned,
     visitors: cachedVisitors,
+    payments: cachedPayments,
     ipLogs: cachedLogs,
     verifiedIps: cachedVerified,
     bannedIps: cachedBanned,
@@ -651,12 +853,13 @@ function applyFilter() {
       <b>${highlight(m.name, query)}</b> <span class="badge badge-vip">VIP MEMBER</span><br>
       IP: <code>${highlight(m.ip, query)}</code>
       <div class="detail-grid">
-        ${m.country ? `<span class="badge badge-loc">📍 ${esc(m.city ? m.city + ', ' + m.country : m.country)}</span>` : ''}
+        <span class="badge badge-loc">${getFlagEmoji(m.countryCode)} ${esc(m.city ? m.city + ', ' + m.country : m.country)}</span>
+        ${m.isVpn ? '<span class="badge badge-vpn">⚠️ PROXY / VPN</span>' : ''}
         ${m.device ? `<span class="badge badge-dev">📱 ${esc(m.device)}</span>` : ''}
         ${m.os ? `<span class="badge badge-dev">${esc(m.os)}</span>` : ''}
       </div>
       <button type="button" class="danger" onclick="banVip('${esc(m.ip)}')">Block from VIP</button>
-      <button type="button" class="danger" style="background:#991b1b;" onclick="openBanModal('${esc(m.ip)}')">Ban Whole Site</button>
+            <button type="button" class="danger" style="background:#991b1b;" onclick="openBanModal('${esc(m.ip)}')">Ban Whole Site</button>
     </div>
   `).join('') || '<div style="color:#94a3b8; font-size:12px;">No VIP members unlocked yet.</div>';
 
@@ -693,7 +896,7 @@ function applyFilter() {
       <div class="post">
         IP: <code>${highlight(v.ip, query)}</code> ${isVerified ? '<span class="badge" style="background:#16a34a;">VERIFIED IP</span>' : ''}
         <div class="detail-grid">
-          ${locText ? `<span class="badge badge-loc" onclick="setFilterBadge('${esc(v.country)}')">📍 ${highlight(locText, query)}</span>` : ''}
+          ${locText ? `<span class="badge badge-loc" onclick="setFilterBadge('${esc(v.country)}')">${getFlagEmoji(v.countryCode)}${highlight(locText, query)}</span>` : ''}
           ${v.device ? `<span class="badge badge-dev" onclick="setFilterBadge('${esc(v.device)}')">📱 ${highlight(v.device, query)}</span>` : ''}
           ${v.os ? `<span class="badge badge-dev" onclick="setFilterBadge('${esc(v.os)}')">${highlight(v.os, query)}</span>` : ''}
           ${v.browser ? `<span class="badge badge-dev" onclick="setFilterBadge('${esc(v.browser)}')">${highlight(v.browser, query)}</span>` : ''}
@@ -725,7 +928,8 @@ function applyFilter() {
         ${isVerified ? '<span class="badge" style="background:#16a34a;">VERIFIED IP</span>' : ''}
         <span class="badge" style="background:${l.room === 'vip' ? '#ca8a04' : '#2563eb'};">${(l.room || 'public').toUpperCase()}</span>
         <div class="detail-grid">
-          ${locText && l.ip !== 'BOT' ? `<span class="badge badge-loc" onclick="setFilterBadge('${esc(l.country)}')">📍 ${highlight(locText, query)}</span>` : ''}
+          ${locText && l.ip !== 'BOT' ? `<span class="badge badge-loc" onclick="setFilterBadge('${esc(l.country)}')">${getFlagEmoji(l.countryCode)}${highlight(locText, query)}</span>` : ''}
+          ${l.isVpn ? '<span class="badge badge-vpn">⚠️ PROXY / VPN</span>' : ''}
           ${l.device ? `<span class="badge badge-dev" onclick="setFilterBadge('${esc(l.device)}')">📱 ${highlight(l.device, query)}</span>` : ''}
           ${l.os ? `<span class="badge badge-dev" onclick="setFilterBadge('${esc(l.os)}')">${highlight(l.os, query)}</span>` : ''}
           ${l.browser ? `<span class="badge badge-dev" onclick="setFilterBadge('${esc(l.browser)}')">${highlight(l.browser, query)}</span>` : ''}
@@ -735,7 +939,7 @@ function applyFilter() {
           ${l.network && l.network !== 'N/A' ? `<span class="badge badge-spec">📶 ${esc(l.network.toUpperCase())}</span>` : ''}
         </div>
         Message: ${highlight(l.message, query)}<br>
-                <small style="color:#64748b;">postId: ${highlight(l.postId || l.id, query)}</small><br>
+        <small style="color:#64748b;">postId: ${highlight(l.postId || l.id, query)}</small><br>
         ${l.ip !== 'BOT' ? `
           <button type="button" class="danger" onclick="openBanModal('${esc(l.ip)}')">Ban ${esc(l.ip)}</button>
           <button type="button" class="danger" style="background:#991b1b;" onclick="purgeIp('${esc(l.ip)}')">Purge All (${postCount})</button>${isVerified ? `
@@ -758,6 +962,7 @@ function applyFilter() {
       ${p.isReported ? '<span class="badge" style="background:#ef4444;">REPORTED</span>' : ''}
       <br>${highlight(p.message, query)}
       <br><small style="color:#64748b;">ID: ${highlight(p.id, query)}</small><br>
+      <button type="button" style="background:#0284c7;" onclick="editPostDirect('${p.id}', '${esc(p.message)}')">✏️ Edit</button>
       <button type="button" class="danger" onclick="delPost('${p.id}')">Delete</button>
       <button type="button" onclick="banFromPost('${p.id}')">Ban IP</button>
       <button type="button" class="green" onclick="verifyIpFromPost('${p.id}')">Verify IP</button>
