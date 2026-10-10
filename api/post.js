@@ -15,59 +15,106 @@ const RESERVED = ["admin", "apex_racer", "system", "moderator", "cpm_bot"];
 const LINK_REGEX = /(https?:\/\/|www\.|discord\.gg|t\.me|telegram\.me|\.com|\.gg)/i;
 
 function getHumanFallback(cleanMsg) {
-  const text = cleanMsg.toLowerCase();
+  const t = cleanMsg.toLowerCase();
 
-  if (text.includes("supra") || text.includes("gearbox") || text.includes("gear")) {
-    const gearboxTunes = [
-      "For Supra set Final Drive 3.12, 1st 2.66, 2nd 1.90. Shifts fast and clean.",
-      "Run Final Drive 2.80 with AWD on Supra, easy sub-6 on the strip.",
-      "Keep 1st gear long around 2.70 so you do not spin tires off the line."
+  // Identity: "what are you", "who are you"
+  if (t.includes("who are you") || t.includes("what are you") || t.includes("are you a bot") || t.includes("are you bot")) {
+    const replies = [
+      "I'm Apex bro, just a CPM racer hanging out in the lobby.",
+      "Just a regular player tuning cars and testing drag setups.",
+      "A CPM driver who spends way too much time in the garage haha."
     ];
-    return gearboxTunes[Math.floor(Math.random() * gearboxTunes.length)];
+    return replies[Math.floor(Math.random() * replies.length)];
   }
 
-  if (text.includes("drag") || text.includes("speed") || text.includes("fast")) {
-    const dragTips = [
-      "Drop tire pressure to 1.2 bar and launch in 2nd gear bro.",
-      "Turn off TCS and ESP before staging, thank me later.",
-      "Max out torque, run AWD, and shift right at the redline."
+  // Flex / Skill: "why are you best", "are you good"
+  if (t.includes("why are you best") || t.includes("best") || t.includes("fastest") || t.includes("pro")) {
+    const replies = [
+      "Because my gearbox ratios on the 400m strip do not miss bro.",
+      "Not the best, just got hundreds of dyno hours on the drag strip.",
+      "Lots of practice and testing AWD launch tunes bro, nothing crazy."
     ];
-    return dragTips[Math.floor(Math.random() * dragTips.length)];
+    return replies[Math.floor(Math.random() * replies.length)];
   }
 
-  if (text.includes("drift")) {
-    const driftTips = [
-      "RWD mode, steer angle at 60, 0% front camber, and stiff rear suspension.",
-      "Lock steering angle to 58 and pump the handbrake into the corner."
+  // Greetings
+  if (t === "hi" || t === "hello" || t === "hey" || t.includes("what's up") || t.includes("whats up") || t === "yo") {
+    const replies = [
+      "Yo what's up bro! You running drag or cruising today?",
+      "Sup man! Ready to jump into the lobby whenever.",
+      "Hey bro, good to see you. What car you driving right now?"
     ];
-    return driftTips[Math.floor(Math.random() * driftTips.length)];
+    return replies[Math.floor(Math.random() * replies.length)];
   }
 
-  if (text.includes("trade") || text.includes("sell") || text.includes("buy")) {
-    const tradeReplies = [
-      "What you got to trade bro? Got any clean liveries or w16?",
-      "Looking for a clean M8 or 350z livery if anyone is selling.",
-      "Drop the car and specs, let me see what you have."
+  // Status: "how are you"
+  if (t.includes("how are you") || t.includes("how r u")) {
+    const replies = [
+      "Chilling bro, just dialing in a new drift angle setup. How about you?",
+      "Doing good man, just testing launch control on the strip.",
+      "Pretty good bro, looking for clean rooms to join."
     ];
-    return tradeReplies[Math.floor(Math.random() * tradeReplies.length)];
+    return replies[Math.floor(Math.random() * replies.length)];
   }
 
-  if (text.includes("room") || text.includes("code") || /\b\d{6,8}\b/.test(text)) {
-    const roomReplies = [
-      "Send the lobby code bro, hopping in right now.",
-      "Is the room full or are you starting a new lobby?",
-      "Drop the code, pulling up with the drag tune."
+  // Supra / Gearbox
+  if (t.includes("supra") || t.includes("gearbox") || t.includes("gear") || t.includes("ratio")) {
+    const replies = [
+      "For Supra set Final Drive 3.12, 1st 2.66, 2nd 1.90. Fast shifts and no wheel spin.",
+      "Run Final Drive 2.80 with AWD on Supra, easy sub-6 second run on the strip.",
+      "Keep 1st gear long around 2.70 so you don't burn rubber off the starting line."
     ];
-    return roomReplies[Math.floor(Math.random() * roomReplies.length)];
+    return replies[Math.floor(Math.random() * replies.length)];
   }
 
-  const generalReplies = [
-    "What car are you building right now bro?",
-    "Yo, you hitting the drag strip or cruising city?",
-    "What tune do you need help with?",
-    "Sup bro, ready to run on the strip whenever."
+  // Drag / Speed
+  if (t.includes("drag") || t.includes("speed") || t.includes("fast") || t.includes("launch")) {
+    const replies = [
+      "Drop your tire pressure to 1.2 bar and launch in 2nd gear bro.",
+      "Turn off TCS and ESP before staging at the line, thank me later.",
+      "Max out torque, switch to AWD, and shift right as the needle touches red."
+    ];
+    return replies[Math.floor(Math.random() * replies.length)];
+  }
+
+  // Drift
+  if (t.includes("drift")) {
+    const replies = [
+      "RWD mode, steer angle at 60, zero front camber, and stiff rear suspension.",
+      "Lock steering angle to 58 and tap the handbrake into the corners."
+    ];
+    return replies[Math.floor(Math.random() * replies.length)];
+  }
+
+  // Trading
+  if (t.includes("trade") || t.includes("sell") || t.includes("buy")) {
+    const replies = [
+      "What you got to trade bro? Any clean custom liveries or W16 builds?",
+      "Looking for a clean M8 or 350z livery if anyone has one for sale.",
+      "Drop the car name and specs, let me see what you're working with."
+    ];
+    return replies[Math.floor(Math.random() * replies.length)];
+  }
+
+  // Room codes
+  if (t.includes("room") || t.includes("code") || /\b\d{6,8}\b/.test(t)) {
+    const replies = [
+      "Drop the lobby code bro, hopping in right now.",
+      "Is the room open or full? Drop the code.",
+      "Send the room ID, pulling up with my drag tune."
+    ];
+    return replies[Math.floor(Math.random() * replies.length)];
+  }
+
+  // Natural diverse chat
+  const dynamicReplies = [
+    "Fair enough bro, tell me what car you're working on today.",
+    "Haha for real man. You hitting the city map or highway?",
+    "That makes sense bro, have you tested that build on the strip yet?",
+    "Nice one. Let me know if you need any gearbox numbers for that.",
+    "I feel you bro. The competition in these lobbies has been crazy lately."
   ];
-  return generalReplies[Math.floor(Math.random() * generalReplies.length)];
+  return dynamicReplies[Math.floor(Math.random() * dynamicReplies.length)];
 }
 
 async function getBotReply(cleanName, cleanMsg) {
@@ -76,13 +123,13 @@ async function getBotReply(cleanName, cleanMsg) {
 
   if (rawKey) {
     try {
-      const prompt = `You are Apex_Racer, a real human player in Car Parking Multiplayer lobby chat. You talk like a real teenage car gamer (chill, direct, gamer slang, no AI tone). Reply in 1 short sentence under 20 words directly answering this message from ${cleanName}: "${stripped}". Never say you are an AI or bot.`;
-      
+      const prompt = `You are Apex_Racer, a real human player chatting in the Car Parking Multiplayer game lobby. Talk like a real, chill car gamer buddy using simple slang. Answer this exact question from user ${cleanName}: "${stripped}". Keep it under 20 words, 1 short sentence, completely natural, direct, and friendly. Never mention AI, models, or bots.`;
+
       const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${rawKey}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
-        signal: AbortSignal.timeout(4500)
+        signal: AbortSignal.timeout(8000)
       });
 
       if (resp.ok) {
@@ -91,9 +138,12 @@ async function getBotReply(cleanName, cleanMsg) {
         if (reply && reply.length <= 150) {
           return reply.replace(/["*]/g, "");
         }
+      } else {
+        const err = await resp.text().catch(() => "");
+        console.error("Gemini API error:", resp.status, err);
       }
     } catch (err) {
-      console.error("Gemini fetch exception:", err.message);
+      console.error("Gemini fetch error:", err.message);
     }
   }
 
@@ -142,7 +192,7 @@ export default async function handler(req, res) {
     const rawIp = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || "").split(',')[0].trim() || "unknown";
     const safeIp = rawIp.replace(/[^a-zA-Z0-9.:]/g, '_');
 
-    // BAN CHECK (with timed ban expiration)
+    // 1. BAN CHECK (with timed ban expiration)
     const banSnap = await db.collection("banned").doc(safeIp).get();
     if (banSnap.exists) {
       const banData = banSnap.data();
@@ -155,11 +205,11 @@ export default async function handler(req, res) {
       }
     }
 
-    // VERIFIED IP CHECK
+    // 2. VERIFIED IP CHECK
     const verifiedSnap = await db.collection("verified_ips").doc(safeIp).get();
     const isIpVerified = verifiedSnap.exists;
 
-    // RATE LIMIT (10s)
+    // 3. RATE LIMIT (10s)
     const rateRef = db.collection("rateLimits").doc(safeIp);
     const rateSnap = await rateRef.get();
     if (rateSnap.exists) {
@@ -168,6 +218,7 @@ export default async function handler(req, res) {
       if (now - last < 10) return res.status(429).json({ error: `Slow down ${10 - (now - last)}s` });
     }
 
+    // 4. WRITE USER POST AND LOG
     const batch = db.batch();
     const postRef = db.collection("posts").doc();
     const logRef = db.collection("ip_logs").doc(postRef.id);
@@ -193,6 +244,7 @@ export default async function handler(req, res) {
 
     await batch.commit();
 
+    // 5. BOT REPLY
     if (cleanMsg.toLowerCase().includes("@apex")) {
       const botText = await getBotReply(cleanName, cleanMsg);
       const botRef = db.collection("posts").doc();
