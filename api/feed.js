@@ -1,29 +1,20 @@
 import admin from 'firebase-admin';
-let sk=null; 
-try{ if(process.env.FIREBASE_SERVICE_KEY) sk=JSON.parse(process.env.FIREBASE_SERVICE_KEY); }catch(e){}
-if(!admin.apps.length){
-  admin.initializeApp({credential: admin.credential.cert(sk)});
+function initFirebase(){
+  if(!admin.apps.length){
+    let sk=null; try{ if(process.env.FIREBASE_SERVICE_KEY){ sk=JSON.parse(process.env.FIREBASE_SERVICE_KEY); if(sk?.private_key) sk.private_key=sk.private_key.replace(/\\n/g,'\n'); } }catch(e){}
+    if(sk) admin.initializeApp({credential: admin.credential.cert(sk)}); else admin.initializeApp();
+  }
+  return admin.firestore();
 }
-const db=admin.firestore();
-
 export default async function handler(req,res){
   res.setHeader('Access-Control-Allow-Origin','*');
+  res.setHeader('Access-Control-Allow-Methods','GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers','Content-Type');
+  if(req.method==='OPTIONS') return res.status(200).end();
   try{
-    const snap = await db.collection('posts').limit(100).get();
-    let posts = snap.docs.map(d=>{
-      const data=d.data();
-      return {
-        id: d.id,
-        name: data.name||'Anonymous',
-        message: data.message||'',
-        isBot: data.isBot||false,
-        createdAt: data.createdAt?.toMillis?.() || data.createdAt || Date.now()
-      };
-    });
-    // Sort in JS, not Firebase (so no index needed)
-    posts.sort((a,b)=> b.createdAt - a.createdAt);
-    res.json({posts: posts.slice(0,80)});
-  }catch(e){
-    res.status(500).json({error: e.message, posts: []});
-  }
+    const db = initFirebase();
+    const snap = await db.collection('posts').orderBy('createdAtNum','desc').limit(50).get();
+    const posts = snap.docs.map(d=>({id:d.id,...d.data()}));
+    return res.json(posts.reverse());
+  }catch(e){ return res.status(500).json({error:e.message}); }
 }

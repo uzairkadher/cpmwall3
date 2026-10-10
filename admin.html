@@ -1,36 +1,18 @@
-<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin - CPM WALL 3</title>
-<style>body{background:#0f0f0f;color:#fff;font-family:Arial;padding:20px}input,button{padding:12px;width:100%;margin:8px 0;border-radius:8px;border:none}input{background:#222;color:#fff}button{background:#00ff88;color:#000;font-weight:bold;cursor:pointer}.post{background:#1a1a1a;padding:12px;margin:10px 0;border-radius:8px;display:flex;justify-content:space-between}</style></head><body>
-<h2>Admin Panel - CPM WALL 3</h2>
-<input id="keyInput" type="password" placeholder="Enter ADMIN_KEY">
-<button onclick="loadData()">Unlock & Load</button>
-<div id="posts"></div>
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Admin - CPM Wall</title>
+<style>body{background:#0f172a;color:#fff;font-family:sans-serif;padding:20px}.post{background:#1e293b;padding:10px;margin:10px 0;border-radius:6px} button{background:#ef4444;color:#fff;border:none;padding:5px 10px;border-radius:4px;cursor:pointer}</style>
+</head><body>
+<h2>Admin Panel</h2><input id="pass" type="password" placeholder="Admin Password" style="padding:8px;width:200px"><button onclick="load()">Load Posts</button><div id="list"></div>
 <script>
-let ADMIN_KEY=localStorage.getItem('admin_key')||'';
-document.getElementById('keyInput').value=ADMIN_KEY;
-async function loadData(){
- ADMIN_KEY=document.getElementById('keyInput').value.trim();
- if(!ADMIN_KEY) return alert('Enter key');
- localStorage.setItem('admin_key',ADMIN_KEY);
- try{
-   const r=await fetch(`/api/admin?key=${encodeURIComponent(ADMIN_KEY)}`,{headers:{'x-admin-key':ADMIN_KEY}});
-   const data=await r.json();
-   if(!r.ok) throw new Error(data.error||'Unauthorized');
-   const div=document.getElementById('posts');
-   div.innerHTML='';
-   data.posts.forEach(p=>{
-     div.innerHTML+=`<div class="post"><span><b>${p.name}</b>: ${p.message} <small>(${p.ip||''})</small></span><span><button onclick="del('${p.id}')">Del</button> <button onclick="ban('${(data.logs.find(l=>l.postId===p.id)?.ip)||''}')">Ban IP</button></span></div>`;
-   });
- }catch(e){ alert(e.message); }
+async function load(){
+  const res=await fetch('/api/feed'); const posts=await res.json();
+  document.getElementById('list').innerHTML=posts.map(p=>`<div class="post"><b>${p.name}</b>: ${p.message} <button onclick="del('${p.id}')">Delete</button></div>`).join('');
 }
 async function del(id){
- if(!confirm('Delete?')) return;
- await fetch('/api/admin',{method:'DELETE',headers:{'Content-Type':'application/json','x-admin-key':ADMIN_KEY},body:JSON.stringify({id,key:ADMIN_KEY})});
- loadData();
+  const pass=document.getElementById('pass').value;
+  const res=await fetch(`/api/admin?id=${id}&pass=${pass}`,{method:'DELETE'});
+  const j=await res.json(); if(j.ok){alert('Deleted'); load()} else alert(j.error);
 }
-async function ban(ip){
- if(!ip) return alert('No IP found for this post');
- if(!confirm('Ban '+ip+'?')) return;
- await fetch('/api/admin',{method:'DELETE',headers:{'Content-Type':'application/json','x-admin-key':ADMIN_KEY},body:JSON.stringify({ip,key:ADMIN_KEY})});
- alert('Banned');
-}
-</script></body></html>
+load();
+</script>
+</body></html>

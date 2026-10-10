@@ -1,174 +1,73 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>CPM WALL 3 - Live Lobby Chat</title>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CPM Community Wall</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,Arial}
-body{background:#0e0e0e;color:#fff;min-height:100vh;padding:16px}
-h1{text-align:center;font-size:32px;font-weight:900;margin:14px 0 8px;letter-spacing:1px}
-.top{display:flex;justify-content:center;gap:10px;margin-bottom:16px}
-.badge{background:#1a1a1a;border:1px solid #2a2a2a;padding:6px 12px;border-radius:20px;font-size:12px;display:flex;align-items:center;gap:6px}
-.dot{width:8px;height:8px;background:#00ff88;border-radius:50%;box-shadow:0 0 8px #00ff88;animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.card{background:#171717;border:1px solid #242424;border-radius:16px;padding:16px;margin:0 auto 16px;max-width:600px}
-input,textarea{width:100%;background:#232323;border:1px solid #2e2e2e;color:#fff;padding:14px;border-radius:12px;outline:none;font-size:15px}
-textarea{resize:vertical;min-height:90px;margin-top:10px}
-.row{display:flex;justify-content:space-between;align-items:center;margin:8px 0;flex-wrap:wrap;gap:8px}
-.tags{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
-.tag{background:#232323;border:1px solid #2e2e2e;padding:6px 12px;border-radius:20px;font-size:12px;cursor:pointer}
-.tag:hover{background:#2e2e2e}
-.btnTag{background:#00ff88;color:#000;font-weight:700;border:none;padding:6px 12px;border-radius:20px;font-size:12px;cursor:pointer}
-.btnPost{width:100%;background:#00ff88;color:#000;border:none;padding:14px;border-radius:12px;font-weight:900;font-size:16px;cursor:pointer;margin-top:8px;transition:.2s}
-.btnPost:disabled{opacity:.5;cursor:not-allowed}
-.count{font-size:12px;color:#777;text-align:right;margin-top:4px}
-.filter{max-width:600px;margin:0 auto 14px}
-.filter input{background:#171717}
-.feed{max-width:600px;margin:0 auto}
-.post{background:#171717;border:1px solid #242424;border-radius:12px;padding:12px;margin-bottom:10px;animation:slide .3s}
-@keyframes slide{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-.postHead{font-size:13px;color:#00ff88;font-weight:700;margin-bottom:4px;display:flex;justify-content:space-between}
-.postMsg{font-size:14px;line-height:1.4;word-break:break-word}
-.bot{border-color:#00ff8866}
-.footer{text-align:center;margin-top:30px}
-.footer h2{color:#00ff88}
-.links{display:flex;justify-content:center;gap:10px;margin-top:12px}
-.links a{padding:10px 18px;border-radius:20px;text-decoration:none;font-weight:700;font-size:14px}
-.blue{background:#1e90ff;color:#fff}
-.pink{background:#e84393;color:#fff}
-.empty{text-align:center;color:#555;margin:20px 0}
+:root{--bg:#0f172a;--card:#1e293b;--border:#334155;--accent:#38bdf8;--bot:#ec4899;--text:#f8fafc;--muted:#94a3b8;--wa:#25d366;--ig:#e1306c}
+*{box-sizing:border-box;margin:0;padding:0;font-family:sans-serif}
+body{background:var(--bg);color:var(--text);display:flex;justify-content:center;min-height:100vh;padding:16px}
+.container{width:100%;max-width:600px;display:flex;flex-direction:column;gap:16px}
+header{text-align:center}header h1{color:var(--accent);text-transform:uppercase;letter-spacing:1px;font-size:1.5rem}header p{color:var(--muted);font-size:.85rem;margin-top:4px}
+.social-bar{display:flex;gap:8px;flex-wrap:wrap}
+.social-btn{flex:1 1 calc(33% - 8px);min-width:120px;padding:10px;border-radius:8px;color:#fff;text-decoration:none;font-size:.8rem;font-weight:600;text-align:center;display:flex;justify-content:center}
+.btn-ig-profile{background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)}
+.btn-ig-channel{background:var(--ig)}.btn-whatsapp{background:var(--wa)}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px}
+input,textarea{width:100%;background:#0b1329;border:1px solid var(--border);border-radius:6px;padding:10px 12px;color:var(--text);outline:none}
+textarea{min-height:70px;resize:vertical}.action-row{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
+button{padding:9px 16px;border:none;border-radius:6px;font-weight:600;cursor:pointer}
+.btn-tag{background:#334155;color:#e2e8f0}.btn-submit{background:var(--accent);color:#0f172a}
+.feed{display:flex;flex-direction:column;gap:10px;max-height:520px;overflow-y:auto}
+.post{background:#111c35;border:1px solid var(--border);border-radius:8px;padding:12px}
+.post.bot{border-color:var(--bot);background:#1a162b}
+.author{font-weight:700;color:var(--accent);font-size:.85rem}.bot.author{color:var(--bot)}
+.body{font-size:.9rem;margin-top:4px;word-break:break-word}
 </style>
 </head>
 <body>
-<h1>CPM WALL 3</h1>
-<div class="top">
-<div class="badge"><span class="dot"></span>Live Lobby Chat</div>
-<div class="badge" id="soundBtn" onclick="toggleSound()" style="cursor:pointer">🔇 Sound Off</div>
+<div class="container">
+<header><h1>CPM Community Wall</h1><p>Car Parking Multiplayer Online Hub</p></header>
+<nav class="social-bar">
+<a href="https://www.instagram.com/4t_jagga?cplk=Z3IyZ3Y0YWgwc3pi" target="_blank" class="social-btn btn-ig-profile">Instagram Profile</a>
+<a href="https://www.instagram.com/channel/FMW8_rf52qWxlGoC/" target="_blank" class="social-btn btn-ig-channel">Instagram Channel</a>
+<a href="https://wa.me/923558182875?text=hi%20I%27m%20from%20your%20website." target="_blank" class="social-btn btn-whatsapp">WhatsApp Direct</a>
+</nav>
+<section class="panel">
+<input type="text" id="usernameInput" placeholder="Driver Tag" maxlength="25">
+<textarea id="messageInput" placeholder="Share room codes or tag @Apex_Racer..." maxlength="150" style="margin-top:10px"></textarea>
+<div class="action-row"><button id="tagApexBtn" class="btn-tag">@Apex_Racer</button><button id="submitBtn" class="btn-submit">Post to Wall</button></div>
+</section>
+<main class="panel"><div id="feedContainer" class="feed"><p style="text-align:center;color:var(--muted);font-size:.85rem">Loading...</p></div></main>
 </div>
-
-<div class="card">
-<input id="nameInput" placeholder="Your CPM name (e.g. Cpmpanjabi)" maxlength="25" value="">
-<div class="row">
-<small style="color:#777">Message</small>
-<button class="btnTag" onclick="tagApex()">+ Tag @Apex_Racer</button>
-</div>
-<div class="tags">
-<span class="tag" onclick="addTag('#Gearbox')">#Gearbox</span>
-<span class="tag" onclick="addTag('#Drag')">#Drag</span>
-<span class="tag" onclick="addTag('#RoomCode')">#RoomCode</span>
-<span class="tag" onclick="addTag('#Trade')">#Trade</span>
-<span class="tag" onclick="addTag('#Drift')">#Drift</span>
-</div>
-<textarea id="msgInput" placeholder="Hi what's up..." maxlength="150"></textarea>
-<div class="count"><span id="charCount">0</span>/150</div>
-<button id="postBtn" class="btnPost" onclick="sendPost()">Post to Wall 🚀</button>
-</div>
-
-<div class="filter card" style="padding:10px 16px">
-<input id="filterInput" placeholder="🔍 Filter feed (e.g. Supra, room code, tune)..." oninput="renderFeed()">
-</div>
-
-<div class="feed" id="feed"></div>
-<div class="empty" id="empty">Loading feed...</div>
-
-<div class="footer card">
-<h2>Feedback & Contact</h2>
-<p style="color:#777;font-size:13px;margin-top:6px">Join channel, report bugs, share with friends</p>
-<div class="links">
-<a class="blue" href="#" onclick="shareWall()">🔗 Share Wall</a>
-<a class="pink" href="#">📸 Profile</a>
-</div>
-</div>
-
 <script>
-let posts = [];
-let soundOn = false;
-const nameInput = document.getElementById('nameInput');
-const msgInput = document.getElementById('msgInput');
-const charCount = document.getElementById('charCount');
-const feedEl = document.getElementById('feed');
-const emptyEl = document.getElementById('empty');
-const postBtn = document.getElementById('postBtn');
-const filterInput = document.getElementById('filterInput');
-
-// Load saved name
-nameInput.value = localStorage.getItem('cpm_name')||'';
-
-msgInput.addEventListener('input', ()=>{ charCount.textContent = msgInput.value.length; });
-
-function addTag(t){ msgInput.value = (msgInput.value+' '+t).trim()+' '; msgInput.focus(); charCount.textContent = msgInput.value.length; }
-function tagApex(){ msgInput.value = (msgInput.value+' @Apex_Racer ').trim()+' '; msgInput.focus(); }
-
-function toggleSound(){ soundOn=!soundOn; document.getElementById('soundBtn').textContent = soundOn?'🔊 Sound On':'🔇 Sound Off'; }
-
+function esc(s){return s? s.toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'):''}
 async function loadFeed(){
- try{
-   const r = await fetch('/api/feed', {cache:'no-store'});
-   const data = await r.json();
-   posts = data.posts || [];
-   renderFeed();
- }catch(e){ emptyEl.textContent='Failed to load. Refresh.'; }
+  try{
+    const r=await fetch('/api/feed'); const posts=await r.json();
+    const c=document.getElementById('feedContainer');
+    if(!posts.length){c.innerHTML='<p style="text-align:center;color:var(--muted)">No posts yet.</p>';return}
+    c.innerHTML=posts.map(p=>`<div class="post ${p.isBot?'bot':''}"><div class="author">${esc(p.name)}</div><div class="body">${esc(p.message)}</div></div>`).join('');
+  }catch(e){console.log(e)}
 }
-
-function renderFeed(){
- const q = (filterInput.value||'').toLowerCase();
- const filtered = posts.filter(p=> !q || p.name.toLowerCase().includes(q) || p.message.toLowerCase().includes(q) );
- if(filtered.length===0){ feedEl.innerHTML=''; emptyEl.style.display='block'; emptyEl.textContent = posts.length===0?'No messages yet. Be first!':'No results for "'+filterInput.value+'"'; return; }
- emptyEl.style.display='none';
- feedEl.innerHTML = filtered.map(p=>`
-   <div class="post ${p.isBot?'bot':''}">
-     <div class="postHead"><span>${escapeHtml(p.name)} ${p.isBot?'🤖':''}</span><span style="color:#555;font-size:11px">${timeAgo(p.createdAt)}</span></div>
-     <div class="postMsg">${escapeHtml(p.message)}</div>
-   </div>
- `).join('');
-}
-
-function escapeHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function timeAgo(t){ if(!t) return ''; const d=Date.now()-t; if(d<60000) return 'just now'; if(d<3600000) return Math.floor(d/60000)+'m ago'; if(d<86400000) return Math.floor(d/3600000)+'h ago'; return Math.floor(d/86400000)+'d ago'; }
-
 async function sendPost(){
- const name = nameInput.value.trim();
- const message = msgInput.value.trim();
- if(!name || name.length<2){ alert('Enter your name'); return; }
- if(!message){ alert('Enter message'); return; }
- if(message.length>150){ alert('Too long'); return; }
- 
- localStorage.setItem('cpm_name', name);
- postBtn.disabled=true;
- postBtn.textContent='Posting...';
-
- try{
-   const res = await fetch('/api/post',{
-     method:'POST',
-     headers:{'Content-Type':'application/json'},
-     body: JSON.stringify({name, message})
-   });
-   const text = await res.text();
-   if(!res.ok) throw new Error(text);
-
-   // Instant success - NO COOLDOWN
-   msgInput.value='';
-   charCount.textContent='0';
-   postBtn.textContent='Posted! ✅';
-   if(soundOn){ new Audio('https://cdn.pixabay.com/audio/2022/03/15/audio_4c8c9a4f7b.mp3').play().catch(()=>{}); }
-   
-   // Reload feed instantly
-   setTimeout(loadFeed, 500);
-   setTimeout(()=>{ postBtn.disabled=false; postBtn.textContent='Post to Wall 🚀'; }, 1000);
-
- }catch(err){
-   alert('Error: '+err.message);
-   postBtn.disabled=false;
-   postBtn.textContent='Post to Wall 🚀';
- }
+  const name=document.getElementById('usernameInput').value.trim()||'Anonymous';
+  const msg=document.getElementById('messageInput').value.trim();
+  if(!msg) return;
+  const btn=document.getElementById('submitBtn'); btn.disabled=true;
+  try{
+    const res=await fetch('/api/post',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,message:msg})});
+    if(!res.ok){const err=await res.json().catch(()=>({})); alert(err.error||'Failed')}
+    else{
+      document.getElementById('messageInput').value='';
+      await loadFeed();
+      if(msg.toLowerCase().includes('@apex')){setTimeout(loadFeed,2000);setTimeout(loadFeed,4500);}
+    }
+  }catch(e){alert('Network failed')} finally{btn.disabled=false}
 }
-
-function shareWall(){ navigator.clipboard.writeText(location.href); alert('Link copied!'); }
-
-// Auto refresh feed every 4 sec - fast
-loadFeed();
-setInterval(loadFeed, 4000);
+document.getElementById('submitBtn').addEventListener('click',sendPost);
+document.getElementById('tagApexBtn').addEventListener('click',()=>{const i=document.getElementById('messageInput'); if(!i.value.includes('@Apex_Racer')) i.value='@Apex_Racer '+i.value; i.focus()});
+loadFeed(); setInterval(loadFeed,10000);
 </script>
 </body>
 </html>
