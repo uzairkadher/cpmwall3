@@ -210,7 +210,7 @@ body {
     <a class="sbtn" style="background:#25d366" href="https://wa.me/923558182875?text=I%27m%20from%20cpm%20wall" target="_blank" rel="noopener noreferrer">WhatsApp</a>
   </div>
 
-  <div id="feed" class="feed">Loading messages...</div>
+  <div id="feed" class="feed">Connecting to wall...</div>
   <div id="typing" class="typing-box"></div>
 
   <div class="input-panel">
@@ -238,10 +238,12 @@ import { getFirestore, collection, onSnapshot, query, orderBy, limit, doc } from
 
 const _k1 = "AIza";
 const _k2 = "SyAOE8v7ANE6vvlHh2ZbiaJ6iHBN4voFcYM";
+const EXPECTED_PROJECT = "cpm-wall-3";
+
 const firebaseConfig = {
   apiKey: _k1 + _k2,
-  authDomain: "cpm-wall-3.firebaseapp.com",
-  projectId: "cpm-wall-3"
+  authDomain: `${EXPECTED_PROJECT}.firebaseapp.com`,
+  projectId: EXPECTED_PROJECT
 };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
@@ -547,6 +549,10 @@ window.sendPost = async () => {
     const data = await res.json().catch(() => ({}));
 
     if (res.ok) {
+      if (data.projectId && data.projectId !== EXPECTED_PROJECT && data.projectId !== "unknown") {
+        alert(`CRITICAL PROJECT MISMATCH:\nBackend is saving to "${data.projectId}", but frontend is watching "${EXPECTED_PROJECT}".\nUpdate FIREBASE_SERVICE_KEY in Vercel to match "${EXPECTED_PROJECT}"!`);
+      }
+
       lastPostedMsg = message;
       lastPostTimestamp = Date.now();
       msgInput.value = '';

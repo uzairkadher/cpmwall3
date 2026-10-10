@@ -1,9 +1,13 @@
 import admin from "firebase-admin";
 
+let serviceAccount = null;
 if (!admin.apps.length) {
+  serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_KEY);
   admin.initializeApp({
-    credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_KEY))
+    credential: admin.credential.cert(serviceAccount)
   });
+} else {
+  serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_KEY || "{}");
 }
 const db = admin.firestore();
 
@@ -136,7 +140,10 @@ export default async function handler(req, res) {
 
     await pruneOldMessages();
 
-    return res.status(200).json({ success: true });
+    return res.status(200).json({
+      success: true,
+      projectId: serviceAccount?.project_id || "unknown"
+    });
   } catch (e) {
     console.error(e);
     return res.status(500).json({ error: e.message || "Server error" });
