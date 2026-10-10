@@ -112,6 +112,7 @@ mark { background: #facc15; color: #000; padding: 0 2px; border-radius: 3px; fon
     <div>
       <button type="button" onclick="loadAll()">Load Data</button>
       <button type="button" class="green" onclick="exportBackup()">Export JSON</button>
+      <button id="lockToggleBtn" type="button" class="danger" onclick="toggleChatLock()">Lock Chat</button>
       <span id="status" style="margin-left: 8px; font-size: 13px; color: #94a3b8;"></span>
     </div>
     <label class="toggle-label">
@@ -203,6 +204,7 @@ let ADMIN_KEY = '';
 let cachedPosts = [], cachedLogs = [], cachedVisitors = [], cachedBanned = [], cachedVerified = [], cachedFilters = [];
 let refreshTimer = null;
 let activeBanIp = '';
+let isChatCurrentlyLocked = false;
 
 function headers() {
   return { 'Content-Type': 'application/json', 'x-admin-key': ADMIN_KEY };
@@ -234,6 +236,40 @@ function toggleAutoRefresh(enabled) {
       return;
     }
     refreshTimer = setInterval(() => { loadAll(true); }, 10000);
+  }
+}
+
+function updateLockBtnUI(locked) {
+  isChatCurrentlyLocked = Boolean(locked);
+  const btn = document.getElementById('lockToggleBtn');
+  if (isChatCurrentlyLocked) {
+    btn.className = 'green';
+    btn.textContent = 'Unlock Chat (Paused)';
+  } else {
+    btn.className = 'danger';
+    btn.textContent = 'Lock Chat (Active)';
+  }
+}
+
+async function toggleChatLock() {
+  if (!ADMIN_KEY) return alert('Enter admin key first');
+  const targetState = !isChatCurrentlyLocked;
+  const promptText = targetState
+    ? 'Lock the chat? Visitors will not be able to post messages.'
+    : 'Unlock the chat? Visitors will be able to post again.';
+  if (!confirm(promptText)) return;
+
+  const r = await fetch('/api/admin', {
+    method: 'POST',
+    headers: headers(),
+    body: JSON.stringify({ action: 'toggle_chat_lock', locked: targetState })
+  });
+  const d = await r.json();
+  if (d.success) {
+    updateLockBtnUI(d.chatLocked);
+    alert(targetState ? 'Chat has been locked.' : 'Chat has been unlocked.');
+  } else {
+    alert(d.error || 'Failed to toggle lock');
   }
 }
 
@@ -273,6 +309,8 @@ async function loadAll(isBackground = false) {
     updateStats();
     renderFilters();
     applyFilter();
+
+    updateLockBtnUI(pinned && pinned.chatLocked);
 
     document.getElementById('currentPin').textContent = pinned && pinned.active ? `${pinned.name}: ${pinned.text}` : 'No active pin';
     document.getElementById('status').textContent = `Updated ${new Date().toLocaleTimeString()}`;
@@ -481,7 +519,8 @@ function applyFilter() {
         <small style="color:#64748b;">postId: ${highlight(l.postId || l.id, query)}</small><br>
         ${l.ip !== 'BOT' ? `
           <button type="button" class="danger" onclick="openBanModal('${esc(l.ip)}')">Ban ${esc(l.ip)}</button>
-          <button type="button" class="danger" style="background:#991b1b;" onclick="purgeIp('${esc(l.ip)}')">Purge All (${postCount})</button>${isVerified ? `
+          <button type="button" class="danger" style="background:#991b1b;" onclick="purgeIp('${esc(l.ip)}')">Purge All (${postCount})</button>
+          ${isVerified ? `
             <button type="button" class="orange" onclick="unverifyIp('${esc(l.ip)}')">Unverify IP</button>
           ` : `
             <button type="button" class="green" onclick="verifyIp('${esc(l.ip)}')">Verify IP</button>
@@ -630,10 +669,4 @@ async function pin(active) {
   const text = document.getElementById('pinText').value;
   const name = document.getElementById('pinName').value || 'Admin';
   if (active && !text) return alert('Enter announcement text');
-  const r = await fetch('/api/admin', { method: 'POST', headers: headers(), body: JSON.stringify({ action: 'pin', text, name, active }) });
-  const d = await r.json();
-  if (d.success) loadAll(); else alert(d.error);
-}
-</script>
-</body>
-</html>
+  const r = await fetch('/api/admin'

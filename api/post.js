@@ -213,7 +213,6 @@ export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, x-admin-key");
   if (req.method === "OPTIONS") return res.status(200).end();
 
-  // Instant server-side feed for mobile connections
   if (req.method === "GET") {
     try {
       const snap = await db.collection("posts").orderBy("createdAt", "desc").limit(100).get();
@@ -244,6 +243,11 @@ export default async function handler(req, res) {
         reportCount: admin.firestore.FieldValue.increment(1)
       });
       return res.status(200).json({ success: true });
+    }
+
+    const pinDoc = await db.collection("pinned").doc("current").get();
+    if (pinDoc.exists && pinDoc.data().chatLocked) {
+      return res.status(403).json({ error: "Chat is temporarily paused by admin." });
     }
 
     if (!name || !message) return res.status(400).json({ error: "Name and message required" });

@@ -61,6 +61,14 @@ export default async function handler(req, res) {
     if (req.method === "POST") {
       const { action } = req.body;
 
+      if (action === "toggle_chat_lock") {
+        const { locked } = req.body;
+        await db.collection("pinned").doc("current").set({
+          chatLocked: Boolean(locked)
+        }, { merge: true });
+        return res.status(200).json({ success: true, chatLocked: Boolean(locked) });
+      }
+
       if (action === "ban") {
         const { ip, reason, hours } = req.body;
         if (!ip) return res.status(400).json({ error: "Missing IP" });
@@ -158,7 +166,7 @@ export default async function handler(req, res) {
           name: name || "Admin",
           active: Boolean(active),
           updatedAt: admin.firestore.FieldValue.serverTimestamp()
-        });
+        }, { merge: true });
         return res.status(200).json({ success: true });
       }
     }
