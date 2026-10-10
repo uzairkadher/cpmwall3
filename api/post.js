@@ -17,7 +17,6 @@ const LINK_REGEX = /(https?:\/\/|www\.|discord\.gg|t\.me|telegram\.me|\.com|\.gg
 function getHumanFallback(cleanMsg) {
   const t = cleanMsg.toLowerCase();
 
-  // Identity: "what are you", "who are you"
   if (t.includes("who are you") || t.includes("what are you") || t.includes("are you a bot") || t.includes("are you bot")) {
     const replies = [
       "I'm Apex bro, just a CPM racer hanging out in the lobby.",
@@ -27,7 +26,6 @@ function getHumanFallback(cleanMsg) {
     return replies[Math.floor(Math.random() * replies.length)];
   }
 
-  // Flex / Skill: "why are you best", "are you good"
   if (t.includes("why are you best") || t.includes("best") || t.includes("fastest") || t.includes("pro")) {
     const replies = [
       "Because my gearbox ratios on the 400m strip do not miss bro.",
@@ -37,7 +35,6 @@ function getHumanFallback(cleanMsg) {
     return replies[Math.floor(Math.random() * replies.length)];
   }
 
-  // Greetings
   if (t === "hi" || t === "hello" || t === "hey" || t.includes("what's up") || t.includes("whats up") || t === "yo") {
     const replies = [
       "Yo what's up bro! You running drag or cruising today?",
@@ -47,7 +44,6 @@ function getHumanFallback(cleanMsg) {
     return replies[Math.floor(Math.random() * replies.length)];
   }
 
-  // Status: "how are you"
   if (t.includes("how are you") || t.includes("how r u")) {
     const replies = [
       "Chilling bro, just dialing in a new drift angle setup. How about you?",
@@ -57,7 +53,6 @@ function getHumanFallback(cleanMsg) {
     return replies[Math.floor(Math.random() * replies.length)];
   }
 
-  // Supra / Gearbox
   if (t.includes("supra") || t.includes("gearbox") || t.includes("gear") || t.includes("ratio")) {
     const replies = [
       "For Supra set Final Drive 3.12, 1st 2.66, 2nd 1.90. Fast shifts and no wheel spin.",
@@ -67,7 +62,6 @@ function getHumanFallback(cleanMsg) {
     return replies[Math.floor(Math.random() * replies.length)];
   }
 
-  // Drag / Speed
   if (t.includes("drag") || t.includes("speed") || t.includes("fast") || t.includes("launch")) {
     const replies = [
       "Drop your tire pressure to 1.2 bar and launch in 2nd gear bro.",
@@ -77,7 +71,6 @@ function getHumanFallback(cleanMsg) {
     return replies[Math.floor(Math.random() * replies.length)];
   }
 
-  // Drift
   if (t.includes("drift")) {
     const replies = [
       "RWD mode, steer angle at 60, zero front camber, and stiff rear suspension.",
@@ -86,7 +79,6 @@ function getHumanFallback(cleanMsg) {
     return replies[Math.floor(Math.random() * replies.length)];
   }
 
-  // Trading
   if (t.includes("trade") || t.includes("sell") || t.includes("buy")) {
     const replies = [
       "What you got to trade bro? Any clean custom liveries or W16 builds?",
@@ -96,7 +88,6 @@ function getHumanFallback(cleanMsg) {
     return replies[Math.floor(Math.random() * replies.length)];
   }
 
-  // Room codes
   if (t.includes("room") || t.includes("code") || /\b\d{6,8}\b/.test(t)) {
     const replies = [
       "Drop the lobby code bro, hopping in right now.",
@@ -106,7 +97,6 @@ function getHumanFallback(cleanMsg) {
     return replies[Math.floor(Math.random() * replies.length)];
   }
 
-  // Natural diverse chat
   const dynamicReplies = [
     "Fair enough bro, tell me what car you're working on today.",
     "Haha for real man. You hitting the city map or highway?",
@@ -192,6 +182,17 @@ export default async function handler(req, res) {
     const rawIp = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || "").split(',')[0].trim() || "unknown";
     const safeIp = rawIp.replace(/[^a-zA-Z0-9.:]/g, '_');
 
+    // Auto country detection from Vercel header
+    const countryCode = (req.headers['x-vercel-ip-country'] || req.headers['cf-ipcountry'] || '').toUpperCase();
+    let countryName = 'Unknown';
+    if (countryCode && countryCode.length === 2) {
+      try {
+        countryName = new Intl.DisplayNames(['en'], { type: 'region' }).of(countryCode) || countryCode;
+      } catch {
+        countryName = countryCode;
+      }
+    }
+
     // 1. BAN CHECK (with timed ban expiration)
     const banSnap = await db.collection("banned").doc(safeIp).get();
     if (banSnap.exists) {
@@ -218,7 +219,7 @@ export default async function handler(req, res) {
       if (now - last < 10) return res.status(429).json({ error: `Slow down ${10 - (now - last)}s` });
     }
 
-    // 4. WRITE USER POST AND LOG
+    // 4. WRITE USER POST (Public collection gets NO country or IP data)
     const batch = db.batch();
     const postRef = db.collection("posts").doc();
     const logRef = db.collection("ip_logs").doc(postRef.id);
@@ -230,13 +231,18 @@ export default async function handler(req, res) {
       isVerified: isIpVerified,
       isBot: false
     });
+
+    // 5. WRITE PRIVATE IP LOG (Contains IP and detected Country for admin panel only)
     batch.set(logRef, {
       postId: postRef.id,
       ip: rawIp,
+      country: countryName,
+      countryCode: countryCode,
       name: cleanName,
       message: cleanMsg,
       createdAt: admin.firestore.FieldValue.serverTimestamp()
     });
+
     batch.set(rateRef, {
       lastPost: admin.firestore.FieldValue.serverTimestamp(),
       ip: rawIp
@@ -244,7 +250,7 @@ export default async function handler(req, res) {
 
     await batch.commit();
 
-    // 5. BOT REPLY
+    // 6. BOT REPLY
     if (cleanMsg.toLowerCase().includes("@apex")) {
       const botText = await getBotReply(cleanName, cleanMsg);
       const botRef = db.collection("posts").doc();
@@ -262,6 +268,8 @@ export default async function handler(req, res) {
         name: "Apex_Racer",
         message: botText,
         ip: "BOT",
+        country: "Server",
+        countryCode: "BOT",
         createdAt: admin.firestore.FieldValue.serverTimestamp()
       });
       await botBatch.commit();
