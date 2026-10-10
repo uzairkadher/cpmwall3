@@ -283,7 +283,7 @@ function playPing() {
     osc.start();
     osc.stop(audioCtx.currentTime + 0.2);
     if (navigator.vibrate) navigator.vibrate(80);
-  } catch (e) {}
+  } catch {}
 }
 
 document.addEventListener('click', () => { initAudio(); }, { once: true });
@@ -357,6 +357,63 @@ function renderMessageText(container, text) {
   });
 }
 
+function buildBubble(id, data, isTemporary) {
+  const currentName = (userNameInput.value || '').trim();
+  const isBot = Boolean(data.isBot || data.name === 'Apex_Racer');
+  const isMe = Boolean(currentName && data.name === currentName);
+
+  const bubble = document.createElement('div');
+  bubble.className = `bubble ${isBot ? 'bot' : isMe ? 'me' : ''}`;
+  if (id) bubble.id = `post-${id}`;
+  if (isTemporary) bubble.setAttribute('data-pending', `${data.name}-${data.message}`);
+
+  const authorLine = document.createElement('div');
+  authorLine.className = 'author-line';
+
+  const author = document.createElement('div');
+  author.className = 'author';
+  author.textContent = data.name;
+  author.onclick = () => {
+    const tag = `@${data.name} `;
+    if (!msgInput.value.includes(tag)) msgInput.value = tag + msgInput.value;
+    charCount.textContent = `${msgInput.value.length}/150`;
+    msgInput.focus();
+  };
+
+  if (data.isVerified) {
+    const tick = document.createElement('span');
+    tick.className = 'verified-badge';
+    tick.textContent = '✓';
+    author.appendChild(tick);
+  }
+  if (isBot) {
+    const botTag = document.createElement('span');
+    botTag.className = 'bot-badge';
+    botTag.textContent = 'BOT';
+    author.appendChild(botTag);
+  }
+  authorLine.appendChild(author);
+
+  const meta = document.createElement('div');
+  meta.className = 'meta';
+  let rawDate = new Date();
+  try {
+    const ts = data.createdAt;
+    const sec = ts ? (ts._seconds || ts.seconds) : null;
+    rawDate = sec ? new Date(sec * 1000) : (ts?.toDate ? ts.toDate() : new Date());
+  } catch {}
+  meta.textContent = isTemporary ? 'Just now' : timeAgo(rawDate);
+  authorLine.appendChild(meta);
+
+  const bodyEl = document.createElement('div');
+  bodyEl.className = 'body';
+  renderMessageText(bodyEl, data.message || '');
+
+  bubble.appendChild(authorLine);
+  bubble.appendChild(bodyEl);
+  return bubble;
+}
+
 onSnapshot(doc(db, "pinned", "current"), (snap) => {
   if (snap.exists()) {
     const d = snap.data();
@@ -369,81 +426,43 @@ onSnapshot(doc(db, "pinned", "current"), (snap) => {
   pinnedBox.style.display = 'none';
 });
 
-const q = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(50));
+const q = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(500));
 onSnapshot(q, (snap) => {
-  if (snap.empty && isInitialLoad) {
+  if (snap.empty) {
     feedEl.innerHTML = '<p style="text-align:center;color:var(--muted);font-size:0.85rem;margin-top:20px;">No messages yet. Be first!</p>';
     isInitialLoad = false;
     return;
   }
+
   const placeholder = feedEl.querySelector('p');
   if (placeholder) placeholder.remove();
 
+  if (isInitialLoad) {
+    feedEl.innerHTML = '';
+    snap.docs.forEach((docSnap) => {
+      feedEl.appendChild(buildBubble(docSnap.id, docSnap.data(), false));
+    });
+    isInitialLoad = false;
+    return;
+  }
+
   snap.docChanges().forEach((change) => {
     if (change.type === 'added') {
-      const existing = document.getElementById(`post-${change.doc.id}`);
+      const id = change.doc.id;
+      const data = change.doc.data();
+
+      const existing = document.getElementById(`post-${id}`);
       if (existing) return;
 
-      const data = change.doc.data();
-      const currentName = (userNameInput.value || '').trim();
-      const isBot = Boolean(data.isBot || data.name === 'Apex_Racer');
-      const isMe = Boolean(currentName && data.name === currentName);
-
-      const bubble = document.createElement('div');
-      bubble.className = `bubble ${isBot ? 'bot' : isMe ? 'me' : ''}`;
-      bubble.id = `post-${change.doc.id}`;
-
-      const authorLine = document.createElement('div');
-      authorLine.className = 'author-line';
-
-      const author = document.createElement('div');
-      author.className = 'author';
-      author.textContent = data.name;
-      author.onclick = () => {
-        const tag = `@${data.name} `;
-        if (!msgInput.value.includes(tag)) msgInput.value = tag + msgInput.value;
-        charCount.textContent = `${msgInput.value.length}/150`;
-        msgInput.focus();
-      };
-
-      if (data.isVerified) {
-        const tick = document.createElement('span');
-        tick.className = 'verified-badge';
-        tick.textContent = '✓';
-        author.appendChild(tick);
+      const optimistic = document.querySelector(`[data-pending="${data.name}-${data.message}"]`);
+      if (optimistic) {
+        optimistic.id = `post-${id}`;
+        optimistic.removeAttribute('data-pending');
+        return;
       }
-      if (isBot) {
-        const botTag = document.createElement('span');
-        botTag.className = 'bot-badge';
-        botTag.textContent = 'BOT';
-        author.appendChild(botTag);
-      }
-      authorLine.appendChild(author);
 
-      const meta = document.createElement('div');
-      meta.className = 'meta';
-      let rawDate = new Date();
-      try {
-        const ts = data.createdAt;
-        const sec = ts ? (ts._seconds || ts.seconds) : null;
-        rawDate = sec ? new Date(sec * 1000) : (ts?.toDate ? ts.toDate() : new Date());
-      } catch (e) {}
-      meta.textContent = timeAgo(rawDate);
-      authorLine.appendChild(meta);
-
-      const bodyEl = document.createElement('div');
-      bodyEl.className = 'body';
-      renderMessageText(bodyEl, data.message || '');
-
-      bubble.appendChild(authorLine);
-      bubble.appendChild(bodyEl);
-
-      if (change.newIndex === 0) {
-        feedEl.prepend(bubble);
-        if (!isInitialLoad) playPing();
-      } else {
-        feedEl.appendChild(bubble);
-      }
+      feedEl.prepend(buildBubble(id, data, false));
+      playPing();
     }
     if (change.type === 'removed') {
       const el = document.getElementById(`post-${change.doc.id}`);
@@ -451,10 +470,12 @@ onSnapshot(q, (snap) => {
     }
   });
 
-  while (feedEl.children.length > 50) {
+  while (feedEl.children.length > 500) {
     feedEl.removeChild(feedEl.lastChild);
   }
-  isInitialLoad = false;
+}, (err) => {
+  console.error("Firestore error:", err);
+  feedEl.innerHTML = `<p style="text-align:center;color:#ef4444;font-size:0.85rem;margin-top:20px;">Connection failed: ${err.message}</p>`;
 });
 
 msgInput.addEventListener('input', (e) => {
@@ -508,30 +529,10 @@ window.sendPost = async () => {
 
   localStorage.setItem('cpm_name', name);
 
-  // Instantly render bubble on screen
-  const tempId = 'temp-' + Date.now();
-  const tempBubble = document.createElement('div');
-  tempBubble.className = 'bubble me';
-  tempBubble.id = tempId;
-  const tempAuthorLine = document.createElement('div');
-  tempAuthorLine.className = 'author-line';
-  const tempAuthor = document.createElement('div');
-  tempAuthor.className = 'author';
-  tempAuthor.textContent = name;
-  const tempMeta = document.createElement('div');
-  tempMeta.className = 'meta';
-  tempMeta.textContent = 'Just now';
-  tempAuthorLine.appendChild(tempAuthor);
-  tempAuthorLine.appendChild(tempMeta);
-  const tempBody = document.createElement('div');
-  tempBody.className = 'body';
-  renderMessageText(tempBody, message);
-  tempBubble.appendChild(tempAuthorLine);
-  tempBubble.appendChild(tempBody);
-
+  const optimisticEl = buildBubble(null, { name, message, createdAt: new Date() }, true);
   const placeholder = feedEl.querySelector('p');
   if (placeholder) placeholder.remove();
-  feedEl.prepend(tempBubble);
+  feedEl.prepend(optimisticEl);
   playPing();
 
   sendBtn.disabled = true;
@@ -550,20 +551,20 @@ window.sendPost = async () => {
       lastPostTimestamp = Date.now();
       msgInput.value = '';
       charCount.textContent = '0/150';
-      startCooldown(15);
+      startCooldown(10);
 
       if (message.toLowerCase().includes('@apex')) {
         typingEl.textContent = 'Apex_Racer is typing...';
         setTimeout(() => { typingEl.textContent = ''; }, 3500);
       }
     } else {
-      tempBubble.remove();
+      optimisticEl.remove();
       alert(data.error || "Failed to post");
       sendBtn.disabled = false;
       sendBtn.textContent = "Post to Wall";
     }
-  } catch (err) {
-    tempBubble.remove();
+  } catch {
+    optimisticEl.remove();
     alert("Network error");
     sendBtn.disabled = false;
     sendBtn.textContent = "Post to Wall";
@@ -581,12 +582,12 @@ window.shareSite = async () => {
     url: window.location.href
   };
   if (navigator.share) {
-    try { await navigator.share(shareData); } catch (e) {}
+    try { await navigator.share(shareData); } catch {}
   } else {
     try {
       await navigator.clipboard.writeText(window.location.href);
       alert('Link copied to clipboard!');
-    } catch (e) {
+    } catch {
       prompt('Copy link:', window.location.href);
     }
   }
