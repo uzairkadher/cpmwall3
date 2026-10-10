@@ -25,7 +25,7 @@ export default async function handler(req,res){
 
     // --- AI BOT IN BACKGROUND (does not slow posting) ---
     const GEMINI_KEY = process.env.GEMINI_API_KEY;
-    if(!GEMINI_KEY) return; // if key not set, stop
+    if(!GEMINI_KEY) return;
 
     const shouldReply = message.toLowerCase().includes('@apex') || message.toLowerCase().includes('apex_racer') || message.includes('?');
     if(!shouldReply) return;
@@ -33,12 +33,17 @@ export default async function handler(req,res){
     try{
       const prompt = `You are Apex_Racer, a pro Car Parking Multiplayer player from Pakistan. Reply in short funny English/Urdu mix, max 18 words. Player ${name} said: "${message}". If they ask tune, give short tune. If they ask room code, say join fast. Be friendly.`;
 
-      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,{
+      // FIXED FOR AQ. KEYS
+      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent`,{
         method:'POST',
-        headers:{'Content-Type':'application/json'},
+        headers:{
+          'Content-Type':'application/json',
+          'x-goog-api-key': GEMINI_KEY.trim()
+        },
         body: JSON.stringify({contents:[{parts:[{text: prompt}]}]})
       });
       const j = await r.json();
+      console.log('Gemini response:', JSON.stringify(j).slice(0,500));
       const reply = j?.candidates?.[0]?.content?.parts?.[0]?.text?.trim().slice(0,150);
       if(reply){
         await db.collection('posts').add({
