@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <title>CPM Community Wall</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#080a12">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -38,6 +43,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  position: relative;
 }
 .header {
   background: linear-gradient(135deg, #1e2240, #151830);
@@ -154,6 +160,23 @@ body {
   margin: 0 2px;
 }
 .room-code:hover { background: var(--accent); color: #000; }
+.jump-btn {
+  position: absolute;
+  bottom: 140px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--accent);
+  color: #000;
+  font-weight: 700;
+  font-size: 11px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 240, 255, 0.35);
+  display: none;
+  z-index: 10;
+}
 .chips-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 2px; }
 .chip {
   background: #111424;
@@ -165,6 +188,25 @@ body {
   cursor: pointer;
 }
 .chip:hover { border-color: var(--accent); color: var(--accent); }
+.emoji-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+.emoji-btn {
+  background: #111424;
+  border: 1px solid var(--border);
+  font-size: 14px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  line-height: 1.2;
+}
+.emoji-btn:active {
+  transform: scale(0.9);
+}
 .typing-box { font-size: 0.72rem; color: var(--bot); min-height: 14px; padding-left: 4px; flex-shrink: 0; }
 .input-panel {
   background: var(--card);
@@ -227,6 +269,7 @@ body {
   </div>
 
   <div id="feed" class="feed">Connecting to wall...</div>
+  <button id="jumpBtn" class="jump-btn" type="button" onclick="scrollToTop()">↓ New messages</button>
   <div id="typing" class="typing-box"></div>
 
   <div class="input-panel">
@@ -237,6 +280,15 @@ body {
       <span class="chip" onclick="addTag('#RoomCode')">#RoomCode</span>
       <span class="chip" onclick="addTag('#Trade')">#Trade</span>
     </div>
+
+    <div class="emoji-row">
+      <button type="button" class="emoji-btn" onclick="addEmoji('🏎️')">🏎️</button>
+      <button type="button" class="emoji-btn" onclick="addEmoji('🔥')">🔥</button>
+      <button type="button" class="emoji-btn" onclick="addEmoji('💨')">💨</button>
+      <button type="button" class="emoji-btn" onclick="addEmoji('🤝')">🤝</button>
+      <button type="button" class="emoji-btn" onclick="addEmoji('💀')">💀</button>
+    </div>
+
     <div class="input-row">
       <input id="userName" placeholder="Driver Tag" maxlength="20">
       <input id="msgInput" placeholder="Type message, room code, or ID..." maxlength="150" autocomplete="off">
@@ -247,7 +299,6 @@ body {
     </div>
   </div>
 </div>
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, onSnapshot, query, orderBy, limit, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -265,6 +316,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const feedEl = document.getElementById('feed');
+const jumpBtn = document.getElementById('jumpBtn');
 const typingEl = document.getElementById('typing');
 const pinnedBox = document.getElementById('pinnedBox');
 const userNameInput = document.getElementById('userName');
@@ -432,6 +484,17 @@ function buildBubble(id, data, isTemporary) {
   return bubble;
 }
 
+window.scrollToTop = () => {
+  feedEl.scrollTo({ top: 0, behavior: 'smooth' });
+  jumpBtn.style.display = 'none';
+};
+
+feedEl.addEventListener('scroll', () => {
+  if (feedEl.scrollTop < 60) {
+    jumpBtn.style.display = 'none';
+  }
+});
+
 onSnapshot(doc(db, "pinned", "current"), (snap) => {
   if (snap.exists()) {
     const d = snap.data();
@@ -481,6 +544,10 @@ onSnapshot(q, (snap) => {
 
       feedEl.prepend(buildBubble(id, data, false));
       playPing();
+
+      if (feedEl.scrollTop > 80) {
+        jumpBtn.style.display = 'block';
+      }
     }
     if (change.type === 'removed') {
       const el = document.getElementById(`post-${change.doc.id}`);
@@ -512,6 +579,12 @@ window.tagBot = () => {
   if (!msgInput.value.includes('@Apex_Racer')) {
     msgInput.value = '@Apex_Racer ' + msgInput.value;
   }
+  charCount.textContent = `${msgInput.value.length}/150`;
+  msgInput.focus();
+};
+
+window.addEmoji = (emoji) => {
+  msgInput.value = (msgInput.value + emoji).substring(0, 150);
   charCount.textContent = `${msgInput.value.length}/150`;
   msgInput.focus();
 };
