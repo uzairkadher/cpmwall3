@@ -1,3 +1,13 @@
 {
-  "functions": { "api/*.js": { "runtime": "nodejs22.x" } }
+  "version": 2,
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "POST, GET, DELETE, OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, x-admin-key" }
+      ]
+    }
+  ]
 }
