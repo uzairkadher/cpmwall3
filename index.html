@@ -191,12 +191,16 @@ body {
 }
 .bubble {
   max-width: 85%;
-  padding: 7px 11px;
+  padding: 8px 12px;
   border-radius: 14px 14px 14px 4px;
   background: var(--card);
   border: 1px solid var(--border);
   align-self: flex-start;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  box-sizing: border-box;
 }
 .bubble.me {
   align-self: flex-end;
@@ -213,9 +217,40 @@ body {
   border-color: rgba(245, 158, 11, 0.45);
   background: #181512;
 }
-.author-line { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 2px; }
-.author { font-weight: 700; font-size: 0.75rem; display: flex; gap: 5px; align-items: center; color: var(--accent); cursor: pointer; }
+.author-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+.author {
+  font-weight: 700;
+  font-size: 0.75rem;
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  color: var(--accent);
+  cursor: pointer;
+}
 .bubble.bot .author { color: var(--bot); }
+
+@keyframes vipGlowPulse {
+  0%, 100% {
+    text-shadow: 0 0 3px currentColor, 0 0 8px currentColor;
+    filter: drop-shadow(0 0 2px rgba(245, 158, 11, 0.4));
+  }
+  50% {
+    text-shadow: 0 0 6px currentColor, 0 0 14px currentColor, 0 0 20px #f59e0b;
+    filter: drop-shadow(0 0 4px rgba(245, 158, 11, 0.8));
+  }
+}
+.author.vip-glow {
+  animation: vipGlowPulse 1.8s infinite ease-in-out;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+}
+
 .meta { font-size: 10px; color: var(--muted); }
 .verified-badge {
   display: inline-flex;
@@ -236,6 +271,7 @@ body {
   padding: 1px 4px;
   border-radius: 4px;
   font-weight: 700;
+  box-shadow: 0 0 6px rgba(202, 138, 4, 0.6);
 }
 .bot-badge {
   background: var(--bot);
@@ -245,13 +281,21 @@ body {
   border-radius: 4px;
   font-weight: 600;
 }
-.body { font-size: 0.83rem; line-height: 1.3; word-break: break-word; color: #f1f5f9; }
+.body {
+  font-size: 0.85rem;
+  line-height: 1.4;
+  word-break: break-word;
+  color: #f1f5f9;
+  width: 100%;
+  display: block;
+}
 .bubble-actions {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-top: 5px;
+  margin-top: 4px;
   font-size: 11px;
+  width: 100%;
 }
 .reaction-btn {
   background: rgba(255, 255, 255, 0.05);
@@ -293,7 +337,7 @@ body {
   background: rgba(245, 158, 11, 0.2);
   color: #fef08a;
   border: 1px solid var(--gold);
-  box-shadow: 0 0 8px rgba(245, 158, 11, 0.45);
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
 }
 .jump-btn {
   position: absolute;
@@ -364,10 +408,11 @@ body {
   cursor: pointer;
   display: inline-block;
   flex-shrink: 0;
+  transition: transform 0.1s ease;
 }
 .color-swatch.active {
   border-color: #fff;
-  transform: scale(1.15);
+  transform: scale(1.2);
 }
 .typing-box { font-size: 0.7rem; color: var(--bot); min-height: 12px; padding-left: 4px; flex-shrink: 0; }
 .input-panel {
@@ -518,6 +563,7 @@ body {
   <div id="feed" class="feed">Connecting to wall...</div>
   <button id="jumpBtn" class="jump-btn" type="button" onclick="scrollToTop()">↓ New messages</button>
   <div id="typing" class="typing-box"></div>
+
   <div class="input-panel">
     <div class="chips-bar">
       <button type="button" class="chip" onclick="tagBot()">+ Tag @Apex_Racer</button>
@@ -527,7 +573,6 @@ body {
       <button type="button" class="chip" onclick="addTag('#Trade')">#Trade</button>
     </div>
 
-    <!-- VIP Custom Driver Tag Color Selector -->
     <div id="vipColorPicker" style="display:none; gap:8px; align-items:center; padding: 2px 4px;">
       <span style="font-size:10px; color:#fef08a; font-weight:700;">VIP Tag Color:</span>
       <span class="color-swatch active" style="background:#f59e0b;" onclick="setVipColor('#f59e0b', this)" title="Gold"></span>
@@ -603,19 +648,19 @@ body {
     <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 6px;">
       <div style="font-size: 0.72rem; font-weight: 700; color: #fef08a; margin-bottom: 2px;">⭐ VIP Member Perks:</div>
       <div style="font-size: 0.73rem; color: #f1f5f9; display: flex; align-items: center; gap: 6px;">
-        <span style="color:#38bdf8;">✓</span> <b>Verified Driver Badge:</b> Blue tick on your name site-wide
+        <span style="color:#38bdf8;">✓</span> <b>Site-Wide VIP Badge:</b> Displays VIP tag on public wall and lounge
       </div>
       <div style="font-size: 0.73rem; color: #f1f5f9; display: flex; align-items: center; gap: 6px;">
-        <span style="color:#f59e0b;">✓</span> <b>Custom Tag Colors:</b> Pick Gold, Red, Purple, or Green for your name
+        <span style="color:#f59e0b;">✓</span> <b>Animated Neon Tag Glow:</b> Pulsing glow on your driver name
       </div>
       <div style="font-size: 0.73rem; color: #f1f5f9; display: flex; align-items: center; gap: 6px;">
-        <span style="color:#4ade80;">✓</span> <b>Zero Cooldown Chat:</b> Rapid 2s cooldown instead of 10s
+        <span style="color:#4ade80;">✓</span> <b>250 Characters:</b> Write longer specs and car trade descriptions
       </div>
       <div style="font-size: 0.73rem; color: #f1f5f9; display: flex; align-items: center; gap: 6px;">
-        <span style="color:#eab308;">✓</span> <b>Glowing Room Codes:</b> Gold highlighted lobby codes
+        <span style="color:#eab308;">✓</span> <b>Zero Cooldown Chat:</b> Rapid 2s cooldown instead of 10s
       </div>
       <div style="font-size: 0.73rem; color: #f1f5f9; display: flex; align-items: center; gap: 6px;">
-        <span style="color:#f43f5e;">✓</span> <b>Private Codes:</b> High-stakes drag rooms only for VIP racers
+        <span style="color:#f43f5e;">✓</span> <b>Gold Glowing Codes:</b> Highlighted room codes in chat
       </div>
     </div>
 
@@ -626,7 +671,6 @@ body {
     <button type="button" class="close-modal-btn" onclick="cancelVipModal()">Cancel</button>
   </div>
 </div>
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, onSnapshot, query, orderBy, limit, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -681,6 +725,33 @@ let lastPostTimestamp = 0;
 let lastPinnedText = '';
 let activeSearchQuery = '';
 
+function updateVipUIState() {
+  const isVip = Boolean(activeVipKey);
+  if (isVip) {
+    msgInput.maxLength = 250;
+    if (vipColorPicker) vipColorPicker.style.display = 'flex';
+  } else {
+    msgInput.maxLength = 150;
+    if (vipColorPicker) vipColorPicker.style.display = 'none';
+  }
+  updateCharCounterDisplay();
+}
+
+function updateCharCounterDisplay() {
+  const max = activeVipKey ? 250 : 150;
+  const len = msgInput.value.length;
+  charCount.textContent = `${len}/${max}`;
+  if (len > max - 10) {
+    charCount.style.color = '#ef4444';
+  } else if (len > max - 35) {
+    charCount.style.color = '#f97316';
+  } else {
+    charCount.style.color = 'var(--muted)';
+  }
+}
+
+updateVipUIState();
+
 window.openTipModal = () => { tipModal.style.display = 'flex'; };
 window.closeTipModal = () => { tipModal.style.display = 'none'; };
 
@@ -708,13 +779,11 @@ window.switchRoom = (room) => {
     tabPublic.classList.remove('active');
     tabVip.classList.add('active');
     document.getElementById('statusLabel').textContent = 'VIP Lounge';
-    if (vipColorPicker) vipColorPicker.style.display = 'flex';
   } else {
     currentRoom = 'public';
     tabVip.classList.remove('active');
     tabPublic.classList.add('active');
     document.getElementById('statusLabel').textContent = 'Lobby Chat';
-    if (vipColorPicker) vipColorPicker.style.display = 'none';
   }
   filterFeedByRoom();
 };
@@ -748,7 +817,8 @@ window.unlockVip = async () => {
       activeVipKey = entered;
       localStorage.setItem('cpm_vip_key', entered);
       vipModal.style.display = 'none';
-      alert('VIP Lounge unlocked! Verified Driver Badge and Custom Colors granted.');
+      updateVipUIState();
+      alert('VIP Lounge unlocked! Verified Driver Badge, 250 chars limit, and Glowing Tag granted.');
       switchRoom('vip');
     } else {
       alert(data.error || 'Failed to unlock VIP room.');
@@ -766,6 +836,7 @@ window.unlockVip = async () => {
 window.cancelVipModal = () => {
   vipModal.style.display = 'none';
 };
+
 function filterFeedByRoom() {
   const bubbles = feedEl.querySelectorAll('.bubble');
   let visibleCount = 0;
@@ -913,7 +984,6 @@ function timeAgo(date) {
   if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
   return date.toLocaleDateString();
 }
-
 function renderMessageText(container, text, isVipPost) {
   container.innerHTML = '';
   const idRegex = /\b(\d{6,8}|[a-zA-Z]{2}\d{6}|[a-zA-Z]{3}\d{4})\b/g;
@@ -945,7 +1015,7 @@ function buildBubble(id, data, isTemporary) {
   const isBot = Boolean(data.isBot || data.name === 'Apex_Racer');
   const isMe = Boolean(currentName && data.name === currentName);
   const postRoom = data.room || 'public';
-  const isVip = postRoom === 'vip';
+  const isVip = Boolean(data.isVip || postRoom === 'vip');
 
   const bubble = document.createElement('div');
   bubble.className = `bubble ${isBot ? 'bot' : isMe ? 'me' : ''} ${isVip ? 'vip-post' : ''}`;
@@ -960,17 +1030,19 @@ function buildBubble(id, data, isTemporary) {
   authorLine.className = 'author-line';
 
   const author = document.createElement('div');
-  author.className = 'author';
+  author.className = `author ${isVip ? 'vip-glow' : ''}`;
   author.textContent = data.name;
 
   if (data.nameColor) {
     author.style.color = data.nameColor;
+  } else if (isVip) {
+    author.style.color = '#f59e0b';
   }
 
   author.onclick = () => {
     const tag = `@${data.name} `;
     if (!msgInput.value.includes(tag)) msgInput.value = tag + msgInput.value;
-    charCount.textContent = `${msgInput.value.length}/150`;
+    updateCharCounterDisplay();
     msgInput.focus();
   };
 
@@ -1212,16 +1284,8 @@ onSnapshot(q, (snap) => {
   }
 }, () => {});
 
-msgInput.addEventListener('input', (e) => {
-  const len = e.target.value.length;
-  charCount.textContent = `${len}/150`;
-  if (len > 140) {
-    charCount.style.color = '#ef4444';
-  } else if (len > 115) {
-    charCount.style.color = '#f97316';
-  } else {
-    charCount.style.color = 'var(--muted)';
-  }
+msgInput.addEventListener('input', () => {
+  updateCharCounterDisplay();
 });
 
 window.addTag = (tag) => {
@@ -1229,7 +1293,7 @@ window.addTag = (tag) => {
   if (!msgInput.value.includes(tag)) {
     msgInput.value = (msgInput.value.trim() ? msgInput.value.trim() + ' ' : '') + tag + ' ';
   }
-  charCount.textContent = `${msgInput.value.length}/150`;
+  updateCharCounterDisplay();
   msgInput.focus();
 };
 
@@ -1238,14 +1302,15 @@ window.tagBot = () => {
   if (!msgInput.value.includes('@Apex_Racer')) {
     msgInput.value = '@Apex_Racer ' + msgInput.value;
   }
-  charCount.textContent = `${msgInput.value.length}/150`;
+  updateCharCounterDisplay();
   msgInput.focus();
 };
 
 window.addEmoji = (emoji) => {
   if (isChatPaused) return;
-  msgInput.value = (msgInput.value + emoji).substring(0, 150);
-  charCount.textContent = `${msgInput.value.length}/150`;
+  const max = activeVipKey ? 250 : 150;
+  msgInput.value = (msgInput.value + emoji).substring(0, max);
+  updateCharCounterDisplay();
   msgInput.focus();
 };
 
@@ -1298,8 +1363,17 @@ window.sendPost = async () => {
 
   localStorage.setItem('cpm_name', name);
 
-  const chosenColor = currentRoom === 'vip' ? currentVipColor : null;
-  const optimisticEl = buildBubble(null, { name, message, createdAt: new Date(), room: currentRoom, nameColor: chosenColor }, true);
+  const isVip = Boolean(activeVipKey);
+  const chosenColor = isVip ? currentVipColor : null;
+  const optimisticEl = buildBubble(null, {
+    name,
+    message,
+    createdAt: new Date(),
+    room: currentRoom,
+    isVip,
+    nameColor: chosenColor
+  }, true);
+
   const placeholder = document.getElementById('emptyRoomNotice');
   if (placeholder) placeholder.remove();
   feedEl.prepend(optimisticEl);
@@ -1318,7 +1392,7 @@ window.sendPost = async () => {
         message,
         clientInfo,
         room: currentRoom,
-        vipKey: currentRoom === 'vip' ? activeVipKey : '',
+        vipKey: activeVipKey || '',
         nameColor: chosenColor
       })
     });
@@ -1328,11 +1402,9 @@ window.sendPost = async () => {
       lastPostedMsg = message;
       lastPostTimestamp = Date.now();
       msgInput.value = '';
-      charCount.textContent = '0/150';
-      charCount.style.color = 'var(--muted)';
+      updateCharCounterDisplay();
 
-      // 2 seconds cooldown for VIP room, 10 seconds for public wall
-      const cooldownTime = currentRoom === 'vip' ? 2 : 10;
+      const cooldownTime = isVip ? 2 : 10;
       startCooldown(cooldownTime);
 
       if (message.toLowerCase().includes('@apex')) {
@@ -1345,6 +1417,7 @@ window.sendPost = async () => {
         alert(data.error);
         localStorage.removeItem('cpm_vip_key');
         activeVipKey = '';
+        updateVipUIState();
         vipModal.style.display = 'flex';
       } else {
         alert(data.error || "Failed to post");

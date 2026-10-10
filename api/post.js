@@ -304,25 +304,27 @@ export default async function handler(req, res) {
       return res.status(403).json({ error: "Chat is temporarily paused by admin." });
     }
 
+    const validVipKey = pinDoc.exists && pinDoc.data().vipKey ? pinDoc.data().vipKey : "VIP777";
+    const memberDoc = await db.collection("vip_members").doc(safeIp).get();
+    const hasValidKey = vipKey && String(vipKey).trim() === String(validVipKey).trim();
+    const isVipUser = memberDoc.exists || hasValidKey;
+
     const isVipRoom = room === "vip";
     if (isVipRoom) {
       const vipBan = await db.collection("vip_banned").doc(safeIp).get();
       if (vipBan.exists) {
         return res.status(403).json({ error: "You are blocked from the VIP Lounge." });
       }
-
-      const validVipKey = pinDoc.exists && pinDoc.data().vipKey ? pinDoc.data().vipKey : "VIP777";
-      const memberDoc = await db.collection("vip_members").doc(safeIp).get();
-      const hasValidKey = vipKey && String(vipKey).trim() === String(validVipKey).trim();
-
-      if (!memberDoc.exists && !hasValidKey) {
+      if (!isVipUser) {
         return res.status(403).json({ error: "Invalid VIP Access Passcode." });
       }
     }
 
     if (!name || !message) return res.status(400).json({ error: "Name and message required" });
     const cleanName = name.trim().substring(0, 20);
-    const cleanMsg = message.trim().substring(0, 150);
+    const maxChars = isVipUser ? 250 : 150;
+    const cleanMsg = message.trim().substring(0, maxChars);
+
     if (cleanName.length < 2) return res.status(400).json({ error: "Name too short" });
     if (RESERVED.includes(cleanName.toLowerCase())) return res.status(400).json({ error: "Name reserved" });
 
@@ -360,10 +362,9 @@ export default async function handler(req, res) {
     }
 
     const verifiedSnap = await db.collection("verified_ips").doc(safeIp).get();
-    const isIpVerified = verifiedSnap.exists;
+    const isIpVerified = verifiedSnap.exists || isVipUser;
 
-    // Rate limiting: 2 seconds for VIP room, 10 seconds for public wall
-    const cooldownWindow = isVipRoom ? 2 : 10;
+    const cooldownWindow = isVipUser ? 2 : 10;
     const rateRef = db.collection("rateLimits").doc(safeIp);
     const rateSnap = await rateRef.get();
     if (rateSnap.exists) {
@@ -374,7 +375,7 @@ export default async function handler(req, res) {
       }
     }
 
-    const sanitizedColor = (isVipRoom && nameColor && ALLOWED_COLORS.includes(nameColor)) ? nameColor : null;
+    const sanitizedColor = (isVipUser && nameColor && ALLOWED_COLORS.includes(nameColor)) ? nameColor : null;
 
     const batch = db.batch();
     const postRef = db.collection("posts").doc();
@@ -385,6 +386,7 @@ export default async function handler(req, res) {
       message: cleanMsg,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
       isVerified: isIpVerified,
+      isVip: isVipUser,
       isBot: false,
       likes: 0,
       isReported: false,
@@ -412,6 +414,7 @@ export default async function handler(req, res) {
       message: cleanMsg,
       room: isVipRoom ? "vip" : "public",
       nameColor: sanitizedColor,
+      isVip: isVipUser,
       createdAt: admin.firestore.FieldValue.serverTimestamp()
     });
 
