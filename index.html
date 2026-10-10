@@ -352,6 +352,155 @@ body {
   flex-shrink: 0;
 }
 .typing-box { font-size: 0.7rem; color: var(--bot); min-height: 12px; padding-left: 4px; flex-shrink: 0; }
+.input-panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex-shrink: 0;
+}
+.cooldown-wrap {
+  width: 100%;
+  height: 3px;
+  background: #1e243b;
+  border-radius: 2px;
+  overflow: hidden;
+  display: none;
+}
+.cooldown-bar {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--bot));
+  transition: width 0.2s linear;
+}
+.input-row { display: flex; gap: 6px; }
+.input-panel input {
+  background: #0d101d;
+  border: 1px solid var(--border);
+  color: #fff;
+  padding: 7px 9px;
+  border-radius: 8px;
+  outline: none;
+  font-size: 0.82rem;
+}
+.input-panel input:focus { border-color: var(--accent); }
+.input-panel input:disabled { opacity: 0.5; cursor: not-allowed; }
+#userName { width: 95px; flex-shrink: 0; }
+#msgInput { flex: 1; min-width: 0; }
+.input-bottom { display: flex; justify-content: space-between; align-items: center; }
+.char-num { font-size: 10px; color: var(--muted); }
+.send-btn {
+  background: linear-gradient(135deg, var(--accent), var(--bot));
+  border: none;
+  color: #05070e;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.modal-back {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 60;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+}
+.modal-window {
+  background: #131726;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  max-width: 360px;
+  width: 100%;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.modal-window h3 { font-size: 1rem; color: #fff; }
+.tip-card {
+  background: #1a2035;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.tip-info b { font-size: 0.82rem; }
+.copy-pill {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.close-modal-btn {
+  background: #27272a;
+  border: 1px solid #3f3f46;
+  color: #fff;
+  padding: 8px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div>
+      <h1>Car Parking Multiplayer</h1>
+      <div class="status-sub">
+        <span id="liveDot" class="dot"></span>
+        <span id="statusLabel">Lobby Chat</span>
+        <span id="onlineCount" class="online-pill">1 Online</span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button id="alertBtn" type="button" class="top-btn" onclick="toggleAlerts()">🔔 Alerts</button>
+      <button id="soundToggle" type="button" class="top-btn" onclick="toggleSound()">🔇 Sound</button>
+    </div>
+  </div>
+
+  <div class="room-bar">
+    <button id="tabPublic" type="button" class="room-tab active" onclick="switchRoom('public')">🌐 Public Wall</button>
+    <button id="tabVip" type="button" class="room-tab vip" onclick="switchRoom('vip')">🔒 VIP Lounge</button>
+  </div>
+
+  <div id="pinnedBox" class="pinned"></div>
+
+  <div class="social">
+    <button type="button" class="sbtn" style="background:#059669;" onclick="openTipModal()">☕ Tip Jar</button>
+    <button type="button" class="sbtn" style="background:#1d9bf0;" onclick="shareSite()">🔗 Share</button>
+    <a class="sbtn" style="background:linear-gradient(45deg,#f09433,#dc2743)" href="https://www.instagram.com/4t_jagga" target="_blank" rel="noopener noreferrer">IG Profile</a>
+    <a class="sbtn" style="background:#e1306c" href="https://www.instagram.com/channel/FMW8_rf52qWxlGoC/" target="_blank" rel="noopener noreferrer">IG Channel</a>
+    <a class="sbtn" style="background:#25d366" href="https://wa.me/923558182875?text=I%27m%20from%20cpm%20wall" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+  </div>
+
+  <div class="filter-row">
+    <input id="wallSearch" placeholder="🔍 Search wall messages, drivers, or #tags..." oninput="handleWallSearch(this.value)">
+    <span id="clearSearch" class="clear-filter" onclick="clearSearchFilter()">✕ Clear</span>
+  </div>
+
+  <div id="feed" class="feed">Connecting to wall...</div>
+  <button id="jumpBtn" class="jump-btn" type="button" onclick="scrollToTop()">↓ New messages</button>
+  <div id="typing" class="typing-box"></div>
+
   <div class="input-panel">
     <div class="chips-bar">
       <button type="button" class="chip" onclick="tagBot()">+ Tag @Apex_Racer</button>
@@ -429,7 +578,8 @@ body {
       <div style="font-size: 0.73rem; color: #f1f5f9; display: flex; align-items: center; gap: 6px;">
         <span style="color:#38bdf8;">✓</span> <b>Verified Driver Badge:</b> Blue tick on your name site-wide
       </div>
-      <div style="font-size: 0.73rem; color: #f59e0b;">✓</span> <b>Gold Chat Theme:</b> Exclusive gold styling in the VIP room
+      <div style="font-size: 0.73rem; color: #f1f5f9; display: flex; align-items: center; gap: 6px;">
+        <span style="color:#f59e0b;">✓</span> <b>Gold Chat Theme:</b> Exclusive gold styling in the VIP room
       </div>
       <div style="font-size: 0.73rem; color: #f1f5f9; display: flex; align-items: center; gap: 6px;">
         <span style="color:#4ade80;">✓</span> <b>Livery Sharing:</b> Post direct screenshots of custom cars
@@ -437,7 +587,7 @@ body {
       <div style="font-size: 0.73rem; color: #f1f5f9; display: flex; align-items: center; gap: 6px;">
         <span style="color:#f43f5e;">✓</span> <b>Engine Rev FX:</b> Custom exhaust audio alert on posts
       </div>
-      <div style="font-size: 0.73rem; color: #f1f5f9; display: center; align-items: center; gap: 6px;">
+      <div style="font-size: 0.73rem; color: #f1f5f9; display: flex; align-items: center; gap: 6px;">
         <span style="color:#a855f7;">✓</span> <b>Private Codes:</b> High-stakes drag rooms only for VIP racers
       </div>
     </div>
@@ -449,7 +599,6 @@ body {
     <button type="button" class="close-modal-btn" onclick="cancelVipModal()">Cancel</button>
   </div>
 </div>
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, onSnapshot, query, orderBy, limit, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -578,6 +727,7 @@ window.unlockVip = async () => {
 window.cancelVipModal = () => {
   vipModal.style.display = 'none';
 };
+
 function filterFeedByRoom() {
   const bubbles = feedEl.querySelectorAll('.bubble');
   let visibleCount = 0;
@@ -1067,7 +1217,7 @@ function startCooldown(seconds) {
 
   const interval = setInterval(() => {
     const elapsed = Date.now() - startMs;
-    const left = remainMs - elapsed;
+        const left = remainMs - elapsed;
     if (left <= 0) {
       clearInterval(interval);
       isCooldownActive = false;
@@ -1075,7 +1225,7 @@ function startCooldown(seconds) {
       cooldownBar.style.width = '100%';
       if (!isChatPaused) {
         sendBtn.disabled = false;
-        sendBtn.textContent = 'Post to Wall';
+        sendBtn.textContent = "Post to Wall";
       }
     } else {
       const pct = Math.max(0, (left / remainMs) * 100);
