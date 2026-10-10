@@ -1,12 +1,1 @@
-{
-  "headers": [
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "*" },
-        { "key": "Access-Control-Allow-Methods", "value": "POST, GET, DELETE, OPTIONS" },
-        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, x-admin-key" }
-      ]
-    }
-  ]
-}
+{"functions":{"api/*.js":{"memory":1024,"maxDuration":10}}}
