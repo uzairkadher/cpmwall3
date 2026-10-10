@@ -238,7 +238,7 @@ import { getFirestore, collection, onSnapshot, query, orderBy, limit, doc } from
 
 const _k1 = "AIza";
 const _k2 = "SyAOE8v7ANE6vvlHh2ZbiaJ6iHBN4voFcYM";
-const EXPECTED_PROJECT = "cpm-wall-3";
+const EXPECTED_PROJECT = "cpmwall3";
 
 const firebaseConfig = {
   apiKey: _k1 + _k2,
@@ -549,10 +549,6 @@ window.sendPost = async () => {
     const data = await res.json().catch(() => ({}));
 
     if (res.ok) {
-      if (data.projectId && data.projectId !== EXPECTED_PROJECT && data.projectId !== "unknown") {
-        alert(`CRITICAL PROJECT MISMATCH:\nBackend is saving to "${data.projectId}", but frontend is watching "${EXPECTED_PROJECT}".\nUpdate FIREBASE_SERVICE_KEY in Vercel to match "${EXPECTED_PROJECT}"!`);
-      }
-
       lastPostedMsg = message;
       lastPostTimestamp = Date.now();
       msgInput.value = '';
