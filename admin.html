@@ -8,7 +8,19 @@
 body { background: #0a0a0a; color: #fff; font-family: system-ui, sans-serif; padding: 14px; margin: 0; }
 .card { background: #111; border: 1px solid #222; border-radius: 12px; padding: 14px; margin-bottom: 12px; }
 input, textarea { width: 100%; box-sizing: border-box; padding: 10px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 8px; margin: 6px 0; }
-button { background: #3b82f6; color: #fff; border: 0; padding: 8px 14px; border-radius: 8px; margin: 3px; font-weight: 700; cursor: pointer; }
+button {
+  background: #3b82f6;
+  color: #fff;
+  border: 0;
+  padding: 8px 14px;
+  border-radius: 8px;
+  margin: 3px;
+  font-weight: 700;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
 button.danger { background: #dc2626; }
 button.green { background: #16a34a; }
 button.orange { background: #ea580c; }
@@ -27,7 +39,16 @@ mark { background: #facc15; color: #000; padding: 0 2px; border-radius: 3px; fon
 .stat-val { font-size: 1.25rem; font-weight: 700; color: #38bdf8; }
 .stat-label { font-size: 0.75rem; color: #a1a1aa; margin-top: 2px; }
 .controls-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
-.toggle-label { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: #cbd5e1; cursor: pointer; }
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: #cbd5e1;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
 .toggle-label input { width: auto; margin: 0; }
 
 .modal-overlay {
@@ -61,6 +82,8 @@ mark { background: #facc15; color: #000; padding: 0 2px; border-radius: 3px; fon
   text-align: left;
   font-size: 0.85rem;
   margin: 2px 0;
+  user-select: none;
+  -webkit-user-select: none;
 }
 .preset-btn:hover { background: #3f3f46; }
 </style>
@@ -72,8 +95,8 @@ mark { background: #facc15; color: #000; padding: 0 2px; border-radius: 3px; fon
   <input id="adminKey" type="password" placeholder="Enter ADMIN_KEY">
   <div class="controls-row">
     <div>
-      <button onclick="loadAll()">Load Data</button>
-      <button class="green" onclick="exportBackup()">Export JSON</button>
+      <button type="button" onclick="loadAll()">Load Data</button>
+      <button type="button" class="green" onclick="exportBackup()">Export JSON</button>
       <span id="status" style="margin-left: 8px; font-size: 13px; color: #94a3b8;"></span>
     </div>
     <label class="toggle-label">
@@ -102,8 +125,8 @@ mark { background: #facc15; color: #000; padding: 0 2px; border-radius: 3px; fon
   <h4>Pinned Announcement</h4>
   <input id="pinName" placeholder="Name (Admin)">
   <textarea id="pinText" placeholder="Announcement text"></textarea>
-  <button onclick="pin(true)">Save Pin</button>
-  <button class="danger" onclick="pin(false)">Clear Pin</button>
+  <button type="button" onclick="pin(true)">Save Pin</button>
+  <button type="button" class="danger" onclick="pin(false)">Clear Pin</button>
   <div id="currentPin" style="margin-top: 8px; font-size: 13px; color: #f472b6;"></div>
 </div>
 
@@ -138,15 +161,14 @@ mark { background: #facc15; color: #000; padding: 0 2px; border-radius: 3px; fon
     <div style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 6px;">
       Target IP: <code id="modalIpDisplay"></code>
     </div>
-    <button class="preset-btn" onclick="executeBanPreset('Spamming lobby', 24)">Spamming (24 Hours)</button>
-    <button class="preset-btn" onclick="executeBanPreset('Advertising / Links', 0)">Promo / Links (Permanent)</button>
-    <button class="preset-btn" onclick="executeBanPreset('Toxicity / Harassment', 72)">Toxicity (3 Days)</button>
-    <button class="preset-btn" onclick="executeBanPreset('Trolling / Disruptive', 0)">Trolling (Permanent)</button>
-    <button class="preset-btn" onclick="promptCustomBan()">Custom Reason and Time...</button>
-    <button class="danger" style="margin-top: 6px;" onclick="closeBanModal()">Cancel</button>
+    <button type="button" class="preset-btn" onclick="executeBanPreset('Spamming lobby', 24)">Spamming (24 Hours)</button>
+    <button type="button" class="preset-btn" onclick="executeBanPreset('Advertising / Links', 0)">Promo / Links (Permanent)</button>
+    <button type="button" class="preset-btn" onclick="executeBanPreset('Toxicity / Harassment', 72)">Toxicity (3 Days)</button>
+    <button type="button" class="preset-btn" onclick="executeBanPreset('Trolling / Disruptive', 0)">Trolling (Permanent)</button>
+    <button type="button" class="preset-btn" onclick="promptCustomBan()">Custom Reason and Time...</button>
+    <button type="button" class="danger" style="margin-top: 6px;" onclick="closeBanModal()">Cancel</button>
   </div>
 </div>
-
 <script>
 let ADMIN_KEY = '';
 let cachedPosts = [], cachedLogs = [], cachedVisitors = [], cachedBanned = [], cachedVerified = [];
@@ -298,11 +320,11 @@ function applyFilter() {
           ${v.network && v.network !== 'N/A' ? `<span class="badge badge-spec">📶 ${esc(v.network.toUpperCase())}</span>` : ''}
           ${v.referrer && v.referrer !== 'Direct' ? `<span class="badge badge-spec">From: ${highlight(v.referrer, query)}</span>` : ''}
         </div>
-        <button class="danger" onclick="openBanModal('${esc(v.ip)}')">Ban ${esc(v.ip)}</button>
+        <button type="button" class="danger" onclick="openBanModal('${esc(v.ip)}')">Ban ${esc(v.ip)}</button>
         ${isVerified ? `
-          <button class="orange" onclick="unverifyIp('${esc(v.ip)}')">Unverify IP</button>
+          <button type="button" class="orange" onclick="unverifyIp('${esc(v.ip)}')">Unverify IP</button>
         ` : `
-          <button class="green" onclick="verifyIp('${esc(v.ip)}')">Verify IP</button>
+          <button type="button" class="green" onclick="verifyIp('${esc(v.ip)}')">Verify IP</button>
         `}
       </div>
     `;
@@ -328,10 +350,10 @@ function applyFilter() {
         Message: ${highlight(l.message, query)}<br>
         <small style="color:#64748b;">postId: ${highlight(l.postId || l.id, query)}</small><br>
         ${l.ip !== 'BOT' ? `
-          <button class="danger" onclick="openBanModal('${esc(l.ip)}')">Ban ${esc(l.ip)}</button>${isVerified ? `
-            <button class="orange" onclick="unverifyIp('${esc(l.ip)}')">Unverify IP</button>
+          <button type="button" class="danger" onclick="openBanModal('${esc(l.ip)}')">Ban ${esc(l.ip)}</button>${isVerified ? `
+            <button type="button" class="orange" onclick="unverifyIp('${esc(l.ip)}')">Unverify IP</button>
           ` : `
-            <button class="green" onclick="verifyIp('${esc(l.ip)}')">Verify IP</button>
+            <button type="button" class="green" onclick="verifyIp('${esc(l.ip)}')">Verify IP</button>
           `}
         ` : ''}
       </div>
@@ -345,17 +367,17 @@ function applyFilter() {
       ${p.isVerified ? '<span class="badge" style="background:#1d9bf0;">VERIFIED</span>' : ''}
       <br>${highlight(p.message, query)}
       <br><small style="color:#64748b;">ID: ${highlight(p.id, query)}</small><br>
-      <button class="danger" onclick="delPost('${p.id}')">Delete</button>
-      <button onclick="banFromPost('${p.id}')">Ban IP</button>
-      <button class="green" onclick="verifyIpFromPost('${p.id}')">Verify IP</button>
-      <button onclick="verifyPost('${p.id}', ${!p.isVerified})">${p.isVerified ? 'Unverify Post' : 'Verify Post'}</button>
+      <button type="button" class="danger" onclick="delPost('${p.id}')">Delete</button>
+      <button type="button" onclick="banFromPost('${p.id}')">Ban IP</button>
+      <button type="button" class="green" onclick="verifyIpFromPost('${p.id}')">Verify IP</button>
+      <button type="button" onclick="verifyPost('${p.id}', ${!p.isVerified})">${p.isVerified ? 'Unverify Post' : 'Verify Post'}</button>
     </div>
   `).join('') || 'No matching posts';
 
   document.getElementById('verifiedIps').innerHTML = cachedVerified.map(v => `
     <div class="post">
       <code>${highlight(v.ip || v.id, query)}</code>
-      <button class="orange" onclick="unverifyIp('${esc(v.ip || v.id)}')">Remove Verification</button>
+      <button type="button" class="orange" onclick="unverifyIp('${esc(v.ip || v.id)}')">Remove Verification</button>
     </div>
   `).join('') || 'No verified IPs yet';
 
@@ -368,7 +390,7 @@ function applyFilter() {
     return `
       <div class="post">
         <code>${highlight(b.ip || b.id, query)}</code> (Reason: <b>${highlight(b.reason || 'spam', query)}</b>, ${expiryStr})<br>
-        <button onclick="unban('${esc(b.ip || b.id)}')">Unban</button>
+        <button type="button" onclick="unban('${esc(b.ip || b.id)}')">Unban</button>
       </div>
     `;
   }).join('') || 'None';
@@ -466,4 +488,19 @@ async function unverifyIp(ip) {
 }
 
 async function verifyPost(postId, isVerified) {
-  const r = await fetch('/api/admin', { method: 'POST', head
+  const r = await fetch('/api/admin', { method: 'POST', headers: headers(), body: JSON.stringify({ action: 'verify', postId, isVerified }) });
+  const d = await r.json();
+  if (d.success) loadAll(); else alert(d.error);
+}
+
+async function pin(active) {
+  const text = document.getElementById('pinText').value;
+  const name = document.getElementById('pinName').value || 'Admin';
+  if (active && !text) return alert('Enter announcement text');
+  const r = await fetch('/api/admin', { method: 'POST', headers: headers(), body: JSON.stringify({ action: 'pin', text, name, active }) });
+  const d = await r.json();
+  if (d.success) loadAll(); else alert(d.error);
+}
+</script>
+</body>
+</html>
