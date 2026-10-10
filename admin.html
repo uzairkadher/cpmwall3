@@ -1,18 +1,32 @@
 <!DOCTYPE html>
-<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Admin - CPM Wall</title>
-<style>body{background:#0f172a;color:#fff;font-family:sans-serif;padding:20px}.post{background:#1e293b;padding:10px;margin:10px 0;border-radius:6px} button{background:#ef4444;color:#fff;border:none;padding:5px 10px;border-radius:4px;cursor:pointer}</style>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>CPM Admin</title>
+<style>body{background:#0f172a;color:#fff;font-family:sans-serif;padding:16px;max-width:800px;margin:auto}input,textarea{width:100%;padding:10px;margin:6px 0;background:#1e293b;border:1px solid #334155;color:#fff;border-radius:6px}button{padding:8px 14px;background:#38bdf8;border:none;border-radius:6px;font-weight:700;cursor:pointer;margin:4px}.post{background:#1e293b;border:1px solid #334155;border-radius:8px;padding:10px;margin:8px 0}.danger{background:#ef4444;color:#fff}.success{background:#22c55e}</style>
 </head><body>
-<h2>Admin Panel</h2><input id="pass" type="password" placeholder="Admin Password" style="padding:8px;width:200px"><button onclick="load()">Load Posts</button><div id="list"></div>
+<h2>CPM Admin Panel</h2>
+<input id="adminKey" placeholder="ADMIN_KEY" type="password">
+<button onclick="loadPosts()">Load Posts</button> <button onclick="loadBans()">Load Bans</button>
+<div style="margin:12px 0;border:1px solid #334155;padding:12px;border-radius:8px">
+<h4>Pin Announcement</h4><input id="pinName" placeholder="Name (Admin)"><input id="pinText" placeholder="Announcement text"><label><input type="checkbox" id="pinActive" checked> Active</label><button onclick="savePin()">Save Pin</button> <button onclick="clearPin()">Clear Pin</button>
+</div>
+<div id="feed"></div>
 <script>
-async function load(){
-  const res=await fetch('/api/feed'); const posts=await res.json();
-  document.getElementById('list').innerHTML=posts.map(p=>`<div class="post"><b>${p.name}</b>: ${p.message} <button onclick="del('${p.id}')">Delete</button></div>`).join('');
+function getKey(){ return document.getElementById('adminKey').value; }
+async function loadPosts(){
+  const r=await fetch('/api/admin?action=posts',{headers:{'x-admin-key':getKey()}}); const posts=await r.json();
+  document.getElementById('feed').innerHTML=posts.map(p=>`<div class="post"><b>${p.name}</b> ${p.isBot?'(BOT)':''} ${p.isVerified?'✓':''} - ${p.message}<br><small>${p.id}</small><br><button class="danger" onclick="delPost('${p.id}')">Delete</button><button onclick="banIp('${p.id}')">Ban IP (from logs)</button><button onclick="verifyPost('${p.id}',${!p.isVerified})">${p.isVerified?'Unverify':'Verify'}</button></div>`).join('');
 }
-async function del(id){
-  const pass=document.getElementById('pass').value;
-  const res=await fetch(`/api/admin?id=${id}&pass=${pass}`,{method:'DELETE'});
-  const j=await res.json(); if(j.ok){alert('Deleted'); load()} else alert(j.error);
+async function loadBans(){
+  const r=await fetch('/api/admin?action=banned',{headers:{'x-admin-key':getKey()}}); const bans=await r.json();
+  document.getElementById('feed').innerHTML=bans.map(b=>`<div class="post"><b>${b.ip||b.id}</b> - ${b.reason||''}<br><button class="danger" onclick="unban('${b.ip||b.id}')">Unban</button></div>`).join('');
 }
-load();
+async function delPost(id){ if(!confirm('Delete?')) return; await fetch('/api/admin?id='+id,{method:'DELETE',headers:{'x-admin-key':getKey()}}); loadPosts(); }
+async function banIp(postId){
+  const r=await fetch('/api/admin?action=logs',{headers:{'x-admin-key':getKey()}}); const logs=await r.json(); const log=logs.find(l=>l.postId===postId); if(!log) return alert('IP log not found');
+  await fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':getKey()},body:JSON.stringify({action:'ban',ip:log.ip})}); alert('Banned '+log.ip);
+}
+async function unban(ip){ await fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':getKey()},body:JSON.stringify({action:'unban',ip})}); loadBans(); }
+async function verifyPost(postId,isVerified){ await fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':getKey()},body:JSON.stringify({action:'verify',postId,isVerified})}); loadPosts(); }
+async function savePin(){ const text=document.getElementById('pinText').value; const name=document.getElementById('pinName').value||'Admin'; const active=document.getElementById('pinActive').checked; await fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':getKey()},body:JSON.stringify({action:'pin',text,name,active})}); alert('Pinned'); }
+async function clearPin(){ await fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':getKey()},body:JSON.stringify({action:'pin',text:'',name:'',active:false})}); alert('Cleared'); }
 </script>
 </body></html>
