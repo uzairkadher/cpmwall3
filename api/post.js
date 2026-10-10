@@ -12,7 +12,20 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 const RESERVED = ["admin", "apex_racer", "system", "moderator", "cpm_bot"];
-const LINK_REGEX = /(https?:\/\/|www\.|discord\.gg|t\.me|telegram\.me|\.com|\.gg)/i;
+const LINK_REGEX = /(https?:\/\/|www\.|discord\.gg|t\.me|telegram\.me|chat\.whatsapp\.com|\.com|\.gg|\.xyz|\.top)/i;
+
+const BLOCKED_WORDS = [
+  "free coins", "hack cpm", "mod apk", "cpm hack", "coin generator",
+  "buy followers", "free w16", "cpm unlimited", "bit.ly", "tinyurl",
+  "chutiya", "madarchod", "gandu", "bhenchod", "harami", "bitch",
+  "nigger", "faggot", "scam"
+];
+
+function containsBlockedContent(text) {
+  const lower = text.toLowerCase();
+  if (LINK_REGEX.test(lower)) return true;
+  return BLOCKED_WORDS.some(word => lower.includes(word));
+}
 
 function getHumanFallback(cleanMsg) {
   const t = cleanMsg.toLowerCase();
@@ -128,9 +141,6 @@ async function getBotReply(cleanName, cleanMsg) {
         if (reply && reply.length <= 150) {
           return reply.replace(/["*]/g, "");
         }
-      } else {
-        const err = await resp.text().catch(() => "");
-        console.error("Gemini API error:", resp.status, err);
       }
     } catch (err) {
       console.error("Gemini fetch error:", err.message);
@@ -177,12 +187,15 @@ export default async function handler(req, res) {
     const cleanMsg = message.trim().substring(0, 150);
     if (cleanName.length < 2) return res.status(400).json({ error: "Name too short" });
     if (RESERVED.includes(cleanName.toLowerCase())) return res.status(400).json({ error: "Name reserved" });
-    if (LINK_REGEX.test(cleanMsg)) return res.status(400).json({ error: "Links not allowed" });
+
+    // Automated word and scam blocker
+    if (containsBlockedContent(cleanMsg)) {
+      return res.status(400).json({ error: "Message blocked: abusive words, links, or scam phrases are prohibited." });
+    }
 
     const rawIp = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || "").split(',')[0].trim() || "unknown";
     const safeIp = rawIp.replace(/[^a-zA-Z0-9.:]/g, '_');
 
-    // Auto country detection from Vercel header
     const countryCode = (req.headers['x-vercel-ip-country'] || req.headers['cf-ipcountry'] || '').toUpperCase();
     let countryName = 'Unknown';
     if (countryCode && countryCode.length === 2) {
@@ -193,7 +206,6 @@ export default async function handler(req, res) {
       }
     }
 
-    // 1. BAN CHECK (with timed ban expiration)
     const banSnap = await db.collection("banned").doc(safeIp).get();
     if (banSnap.exists) {
       const banData = banSnap.data();
@@ -206,11 +218,9 @@ export default async function handler(req, res) {
       }
     }
 
-    // 2. VERIFIED IP CHECK
     const verifiedSnap = await db.collection("verified_ips").doc(safeIp).get();
     const isIpVerified = verifiedSnap.exists;
 
-    // 3. RATE LIMIT (10s)
     const rateRef = db.collection("rateLimits").doc(safeIp);
     const rateSnap = await rateRef.get();
     if (rateSnap.exists) {
@@ -219,7 +229,6 @@ export default async function handler(req, res) {
       if (now - last < 10) return res.status(429).json({ error: `Slow down ${10 - (now - last)}s` });
     }
 
-    // 4. WRITE USER POST (Public collection gets NO country or IP data)
     const batch = db.batch();
     const postRef = db.collection("posts").doc();
     const logRef = db.collection("ip_logs").doc(postRef.id);
@@ -232,7 +241,6 @@ export default async function handler(req, res) {
       isBot: false
     });
 
-    // 5. WRITE PRIVATE IP LOG (Contains IP and detected Country for admin panel only)
     batch.set(logRef, {
       postId: postRef.id,
       ip: rawIp,
@@ -250,7 +258,6 @@ export default async function handler(req, res) {
 
     await batch.commit();
 
-    // 6. BOT REPLY
     if (cleanMsg.toLowerCase().includes("@apex")) {
       const botText = await getBotReply(cleanName, cleanMsg);
       const botRef = db.collection("posts").doc();

@@ -23,10 +23,7 @@
   --muted: #8b8fa3;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-html, body {
-  height: 100%;
-  overflow: hidden;
-}
+html, body { height: 100%; overflow: hidden; }
 body {
   background: radial-gradient(600px at top, #1a1f3d, var(--bg));
   color: var(--text);
@@ -59,16 +56,26 @@ body {
 .status-sub { display: flex; align-items: center; gap: 6px; font-size: 0.72rem; color: var(--accent); margin-top: 2px; }
 .dot { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; display: inline-block; box-shadow: 0 0 8px #22c55e; }
 .dot.offline { background: #ef4444; box-shadow: 0 0 8px #ef4444; }
-.sound-btn {
+.online-pill {
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+}
+.header-actions { display: flex; gap: 6px; align-items: center; }
+.top-btn {
   background: transparent;
   border: 1px solid var(--border);
   color: var(--muted);
   border-radius: 20px;
-  padding: 4px 10px;
+  padding: 4px 8px;
   font-size: 11px;
   cursor: pointer;
 }
-.sound-btn.active { border-color: var(--accent); color: var(--accent); }
+.top-btn.active { border-color: var(--accent); color: var(--accent); }
 .pinned {
   background: linear-gradient(90deg, rgba(0, 240, 255, 0.1), rgba(255, 59, 154, 0.1));
   border: 1px solid rgba(0, 240, 255, 0.25);
@@ -93,6 +100,30 @@ body {
   font-weight: 600;
   border: none;
   cursor: pointer;
+}
+.filter-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  background: #111424;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 4px 8px;
+  flex-shrink: 0;
+}
+.filter-row input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #fff;
+  font-size: 0.78rem;
+  flex: 1;
+}
+.clear-filter {
+  color: var(--muted);
+  font-size: 11px;
+  cursor: pointer;
+  display: none;
 }
 .feed {
   display: flex;
@@ -159,7 +190,6 @@ body {
   display: inline-block;
   margin: 0 2px;
 }
-.room-code:hover { background: var(--accent); color: #000; }
 .jump-btn {
   position: absolute;
   bottom: 140px;
@@ -203,9 +233,6 @@ body {
   border-radius: 6px;
   cursor: pointer;
   line-height: 1.2;
-}
-.emoji-btn:active {
-  transform: scale(0.9);
 }
 .typing-box { font-size: 0.72rem; color: var(--bot); min-height: 14px; padding-left: 4px; flex-shrink: 0; }
 .input-panel {
@@ -254,9 +281,13 @@ body {
       <div class="status-sub">
         <span id="liveDot" class="dot"></span>
         <span id="statusLabel">Lobby Chat</span>
+        <span id="onlineCount" class="online-pill">1 Online</span>
       </div>
     </div>
-    <button id="soundToggle" type="button" class="sound-btn" onclick="toggleSound()">🔇 Sound</button>
+    <div class="header-actions">
+      <button id="alertBtn" type="button" class="top-btn" onclick="toggleAlerts()">🔔 Alerts</button>
+      <button id="soundToggle" type="button" class="top-btn" onclick="toggleSound()">🔇 Sound</button>
+    </div>
   </div>
 
   <div id="pinnedBox" class="pinned"></div>
@@ -266,6 +297,11 @@ body {
     <a class="sbtn" style="background:linear-gradient(45deg,#f09433,#dc2743)" href="https://www.instagram.com/4t_jagga" target="_blank" rel="noopener noreferrer">IG Profile</a>
     <a class="sbtn" style="background:#e1306c" href="https://www.instagram.com/channel/FMW8_rf52qWxlGoC/" target="_blank" rel="noopener noreferrer">IG Channel</a>
     <a class="sbtn" style="background:#25d366" href="https://wa.me/923558182875?text=I%27m%20from%20cpm%20wall" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+  </div>
+
+  <div class="filter-row">
+    <input id="wallSearch" placeholder="🔍 Search wall messages, drivers, or #tags..." oninput="handleWallSearch(this.value)">
+    <span id="clearSearch" class="clear-filter" onclick="clearSearchFilter()">✕ Clear</span>
   </div>
 
   <div id="feed" class="feed">Connecting to wall...</div>
@@ -323,14 +359,21 @@ const userNameInput = document.getElementById('userName');
 const msgInput = document.getElementById('msgInput');
 const sendBtn = document.getElementById('sendBtn');
 const charCount = document.getElementById('charCount');
+const wallSearchInput = document.getElementById('wallSearch');
+const clearSearchBtn = document.getElementById('clearSearch');
+const onlineCountEl = document.getElementById('onlineCount');
+const alertBtn = document.getElementById('alertBtn');
 
 userNameInput.value = localStorage.getItem('cpm_name') || '';
 
 let soundEnabled = localStorage.getItem('cpm_sound') === 'true';
+let alertsEnabled = localStorage.getItem('cpm_alerts') === 'true';
 let audioCtx = null;
 let isInitialLoad = true;
 let lastPostedMsg = '';
 let lastPostTimestamp = 0;
+let lastPinnedText = '';
+let activeSearchQuery = '';
 
 function initAudio() {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -362,10 +405,10 @@ document.addEventListener('touchstart', () => { initAudio(); }, { once: true });
 function updateSoundBtn() {
   const btn = document.getElementById('soundToggle');
   if (soundEnabled) {
-    btn.className = 'sound-btn active';
+    btn.className = 'top-btn active';
     btn.textContent = '🔊 Sound';
   } else {
-    btn.className = 'sound-btn';
+    btn.className = 'top-btn';
     btn.textContent = '🔇 Sound';
   }
 }
@@ -377,21 +420,45 @@ window.toggleSound = () => {
 };
 updateSoundBtn();
 
-function updateConnection() {
-  const dot = document.getElementById('liveDot');
-  const label = document.getElementById('statusLabel');
-  if (navigator.onLine) {
-    dot.className = 'dot';
-    label.textContent = 'Lobby Chat';
-    label.style.color = 'var(--accent)';
+function updateAlertBtn() {
+  if (alertsEnabled && Notification.permission === 'granted') {
+    alertBtn.className = 'top-btn active';
+    alertBtn.textContent = '🔔 Alerts On';
   } else {
-    dot.className = 'dot offline';
-    label.textContent = 'Offline';
-    label.style.color = '#ef4444';
+    alertBtn.className = 'top-btn';
+    alertBtn.textContent = '🔔 Alerts';
   }
 }
-window.addEventListener('online', updateConnection);
-window.addEventListener('offline', updateConnection);
+window.toggleAlerts = async () => {
+  if (!('Notification' in window)) return alert('Notifications not supported on this browser.');
+  if (Notification.permission === 'granted') {
+    alertsEnabled = !alertsEnabled;
+    localStorage.setItem('cpm_alerts', alertsEnabled);
+    updateAlertBtn();
+  } else {
+    const res = await Notification.requestPermission();
+    if (res === 'granted') {
+      alertsEnabled = true;
+      localStorage.setItem('cpm_alerts', true);
+      updateAlertBtn();
+    } else {
+      alert('Alerts permission was denied.');
+    }
+  }
+};
+updateAlertBtn();
+
+async function pingHeartbeat() {
+  try {
+    const r = await fetch('/api/heartbeat');
+    const d = await r.json();
+    if (d && d.online) {
+      onlineCountEl.textContent = `${d.online} Online`;
+    }
+  } catch {}
+}
+pingHeartbeat();
+setInterval(pingHeartbeat, 35000);
 
 function timeAgo(date) {
   const seconds = Math.floor((new Date() - date) / 1000);
@@ -437,6 +504,9 @@ function buildBubble(id, data, isTemporary) {
   if (id) bubble.id = `post-${id}`;
   if (isTemporary) bubble.setAttribute('data-pending', `${data.name}-${data.message}`);
 
+  bubble.setAttribute('data-text', (data.message || '').toLowerCase());
+  bubble.setAttribute('data-name', (data.name || '').toLowerCase());
+
   const authorLine = document.createElement('div');
   authorLine.className = 'author-line';
 
@@ -481,8 +551,37 @@ function buildBubble(id, data, isTemporary) {
 
   bubble.appendChild(authorLine);
   bubble.appendChild(bodyEl);
+
+  if (activeSearchQuery) {
+    const query = activeSearchQuery.toLowerCase();
+    const match = (data.name || '').toLowerCase().includes(query) || (data.message || '').toLowerCase().includes(query);
+    bubble.style.display = match ? 'flex' : 'none';
+  }
+
   return bubble;
 }
+
+window.handleWallSearch = (val) => {
+  activeSearchQuery = (val || '').trim();
+  clearSearchBtn.style.display = activeSearchQuery ? 'inline' : 'none';
+  const query = activeSearchQuery.toLowerCase();
+
+  const bubbles = feedEl.querySelectorAll('.bubble');
+  bubbles.forEach((b) => {
+    const text = b.getAttribute('data-text') || '';
+    const name = b.getAttribute('data-name') || '';
+    if (!query || text.includes(query) || name.includes(query)) {
+      b.style.display = 'flex';
+    } else {
+      b.style.display = 'none';
+    }
+  });
+};
+
+window.clearSearchFilter = () => {
+  wallSearchInput.value = '';
+  handleWallSearch('');
+};
 
 window.scrollToTop = () => {
   feedEl.scrollTo({ top: 0, behavior: 'smooth' });
@@ -501,6 +600,16 @@ onSnapshot(doc(db, "pinned", "current"), (snap) => {
     if (d.active && d.text) {
       pinnedBox.innerHTML = `📌 <b>${d.name || 'Admin'}:</b> ${d.text}`;
       pinnedBox.style.display = 'block';
+
+      if (alertsEnabled && Notification.permission === 'granted' && d.text !== lastPinnedText) {
+        lastPinnedText = d.text;
+        try {
+          new Notification(`Lobby Alert: ${d.name || 'Admin'}`, {
+            body: d.text,
+            icon: "https://cdn-icons-png.flaticon.com/512/3202/3202926.png"
+          });
+        } catch {}
+      }
       return;
     }
   }
