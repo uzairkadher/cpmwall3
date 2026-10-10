@@ -2,92 +2,197 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>CPM Community Wall</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CPM Wall - Live</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
-:root{--bg:#080a12;--card:#151825;--border:#24273f;--accent:#00f0ff;--bot:#ff3b9a;--text:#e8eaf6;--muted:#8b8fa3}
-*{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',sans-serif}
-body{background:radial-gradient(600px at top,#1a1f3d,var(--bg));color:var(--text);display:flex;justify-content:center;min-height:100vh;padding:12px}
-.container{width:100%;max-width:580px;display:flex;flex-direction:column;gap:12px}
-.header{background:linear-gradient(135deg,#1e2240,#151830);border:1px solid var(--border);border-radius:16px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
-.header h1{font-size:.95rem;font-weight:700}
-.status-sub{display:flex;align-items:center;gap:6px;font-size:.75rem;color:var(--accent);margin-top:2px}
-.dot{width:8px;height:8px;background:#22c55e;border-radius:50%;display:inline-block;box-shadow:0 0 8px #22c55e}
-.dot.offline{background:#ef4444;box-shadow:0 0 8px #ef4444}
-.sound-btn{background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:20px;padding:4px 10px;font-size:11px;cursor:pointer}
-.sound-btn.active{border-color:var(--accent);color:var(--accent)}
-.pinned{background:linear-gradient(90deg,rgba(0,240,255,.1),rgba(255,59,154,.1));border:1px solid rgba(0,240,255,.25);border-radius:12px;padding:10px 14px;font-size:.82rem;color:#ff8ac6;display:none}
-.pinned b{color:#fff;margin-right:4px}
-.social{display:flex;gap:8px}
-.sbtn{flex:1;padding:8px;border-radius:10px;text-align:center;text-decoration:none;color:#fff;font-size:.75rem;font-weight:600;border:none;cursor:pointer}
-.feed{display:flex;flex-direction:column;gap:10px;height:52vh;overflow-y:auto;padding:6px 4px}
-.bubble{max-width:85%;padding:10px 14px;border-radius:18px 18px 18px 4px;background:var(--card);border:1px solid var(--border);align-self:flex-start;animation:cardFade .2s ease-out}
-.bubble.me{align-self:flex-end;border-radius:18px 18px 4px 18px;background:linear-gradient(135deg,#1e2a5a,#1a254f);border-color:var(--accent)}
-.bubble.bot{border-color:var(--bot);box-shadow:0 0 12px rgba(255,59,154,.2);background:#1e1628}
-.author-line{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:3px}
-.author{font-weight:700;font-size:.78rem;display:flex;gap:5px;align-items:center;color:var(--accent);cursor:pointer}
-.bubble.bot .author{color:var(--bot)}
-.bubble.me .author{color:#fff}
-.meta{font-size:10px;color:var(--muted)}
-.verified-badge{display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;background:#1d9bf0;color:#fff;font-size:8px;font-weight:bold;border-radius:50%}
-.bot-badge{background:var(--bot);color:#fff;font-size:9px;padding:1px 5px;border-radius:4px;font-weight:600}
-.body{font-size:.88rem;line-height:1.4;word-break:break-word;color:#f1f5f9}
-.room-code{background:rgba(0,240,255,.15);color:var(--accent);border:1px solid rgba(0,240,255,.3);padding:1px 6px;border-radius:5px;font-weight:600;cursor:pointer;display:inline-block;margin:0 2px}
-.room-code:hover{background:var(--accent);color:#000}
-.chips-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:2px}
-.chip{background:#111424;border:1px solid var(--border);color:var(--muted);font-size:11px;padding:3px 8px;border-radius:6px;cursor:pointer}
-.chip:hover{border-color:var(--accent);color:var(--accent)}
-.typing-box{font-size:.75rem;color:var(--bot);min-height:16px;padding-left:4px}
-.input-panel{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
-.input-row{display:flex;gap:8px}
-.input-panel input{background:#0d101d;border:1px solid var(--border);color:#fff;padding:8px 12px;border-radius:8px;outline:none;font-size:.85rem}
-.input-panel input:focus{border-color:var(--accent)}
-#userName{width:110px}#msgInput{flex:1}
-.input-bottom{display:flex;justify-content:space-between;align-items:center}
-.char-num{font-size:11px;color:var(--muted)}
-.send-btn{background:linear-gradient(135deg,var(--accent),var(--bot));border:none;color:#05070e;font-weight:700;padding:8px 18px;border-radius:8px;cursor:pointer;font-size:.85rem}
-.send-btn:disabled{opacity:.5;cursor:not-allowed}
-@keyframes cardFade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+:root{--bg:#08080a;--card:#131316;--border:#232328;--accent:#3b82f6;--text:#f1f1f1;--muted:#8a8a93}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif}
+.container{max-width:680px;margin:0 auto;padding:12px}
+.header{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);margin-bottom:12px}
+.dot{width:10px;height:10px;border-radius:50%;background:#22c55e;box-shadow:0 0 8px #22c55e;display:inline-block;animation:pulse 2s infinite}
+@keyframes pulse{0%{opacity:1}50%{opacity:.5}100%{opacity:1}}
+.pinned{background:linear-gradient(90deg,#1e3a8a,#172554);border:1px solid var(--accent);border-radius:10px;padding:10px 14px;margin-bottom:12px;display:none}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:12px}
+input,textarea{width:100%;background:#0f0f12;border:1px solid var(--border);color:#fff;border-radius:10px;padding:12px;outline:none}
+input:focus,textarea:focus{border-color:var(--accent)}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.tag{background:#1e1e24;border:1px solid var(--border);padding:6px 10px;border-radius:20px;font-size:12px;cursor:pointer}
+.tag:hover{border-color:var(--accent);color:var(--accent)}
+.btn{background:var(--accent);color:#fff;border:0;padding:12px 18px;border-radius:10px;font-weight:700;cursor:pointer;width:100%}
+.btn:disabled{opacity:.5}
+.bubble{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 14px;margin:10px 0;animation:pop.2s ease}
+.bubble.me{border-color:var(--accent)}
+.bubble.bot{border-color:#a855f7;background:#1a1325}
+@keyframes pop{from{transform:scale(.96);opacity:0}to{transform:scale(1);opacity:1}}
+.author{font-weight:700;font-size:14px;cursor:pointer}
+.author:hover{color:var(--accent)}
+.meta{font-size:11px;color:var(--muted)}
+.body{margin-top:6px;line-height:1.5;word-break:break-word;white-space:pre-wrap}
+.chip{background:#1e293b;border:1px solid #334155;color:#38bdf8;padding:2px 8px;border-radius:12px;font-size:11px;font-family:monospace;cursor:pointer;margin-left:4px}
+.chip:active{transform:scale(.95)}
+.socials{display:flex;gap:12px;margin-top:10px;font-size:13px}
+.socials a{color:var(--muted);text-decoration:none}
+.socials a:hover{color:var(--text)}
 </style>
 </head>
 <body>
 <div class="container">
-<div class="header"><div><h1>Car Parking Multiplayer</h1><div class="status-sub"><span id="liveDot" class="dot"></span><span id="statusLabel">Lobby Chat</span></div></div><button id="soundToggle" type="button" class="sound-btn" onclick="toggleSound()">🔇 Sound</button></div>
-<div id="pinnedBox" class="pinned"></div>
-<div class="social"><button type="button" class="sbtn" style="background:#1d9bf0" onclick="shareSite()">🔗 Share</button><a class="sbtn" style="background:linear-gradient(45deg,#f09433,#dc2743)" href="https://www.instagram.com/4t_jagga" target="_blank">Instagram</a><a class="sbtn" style="background:#25d366" href="https://wa.me/923558182875?text=I'm%20from%20cpm%20wall" target="_blank">WhatsApp</a></div>
-<div id="feed" class="feed">Loading messages...</div>
-<div id="typing" class="typing-box"></div>
-<div class="input-panel"><div class="chips-bar"><span class="chip" onclick="tagBot()">+ Tag @Apex_Racer</span><span class="chip" onclick="addTag('#Gearbox')">#Gearbox</span><span class="chip" onclick="addTag('#Drag')">#Drag</span><span class="chip" onclick="addTag('#RoomCode')">#RoomCode</span><span class="chip" onclick="addTag('#Trade')">#Trade</span></div><div class="input-row"><input id="userName" placeholder="Driver Tag" maxlength="20"><input id="msgInput" placeholder="Type message, room code, or ID..." maxlength="150" autocomplete="off"></div><div class="input-bottom"><span id="charCount" class="char-num">0/150</span><button id="sendBtn" class="send-btn" onclick="sendPost()">Post</button></div></div>
+<div class="header">
+<div><b>CPM WALL</b> <span class="dot" id="connDot"></span> <small id="connText" style="color:var(--muted)">live</small></div>
+<div class="socials"><a href="#"><i class="fab fa-discord"></i></a><a href="#"><i class="fab fa-tiktok"></i></a><a href="#"><i class="fab fa-youtube"></i></a></div>
 </div>
+
+<div id="pinnedBox" class="pinned"></div>
+
+<div class="card">
+<div style="display:flex;gap:8px">
+<input id="userName" placeholder="Your name (2-20)" maxlength="20">
+<button id="soundBtn" style="width:auto;background:#1e1e24;border:1px solid var(--border)" onclick="toggleSound()">🔇</button>
+</div>
+
+<div class="tags">
+<span class="tag" onclick="insertTag('#Gearbox ')">#Gearbox</span>
+<span class="tag" onclick="insertTag('#Drag ')">#Drag</span>
+<span class="tag" onclick="insertTag('#RoomCode ')">#RoomCode</span>
+<span class="tag" onclick="insertTag('#Trade ')">#Trade</span>
+<span class="tag" onclick="insertTag('@Apex_Racer ')">@Apex_Racer</span>
+</div>
+
+<textarea id="msgInput" rows="3" maxlength="150" placeholder="Message... ID auto-detect, tag @Apex_Racer for bot reply"></textarea>
+<div style="display:flex;justify-content:space-between;margin:8px 0;font-size:12px;color:var(--muted)">
+<span id="charCount">0/150</span><span id="typing"></span>
+</div>
+<button id="sendBtn" class="btn" onclick="sendPost()">Post to Wall</button>
+</div>
+
+<div id="feed"><p style="text-align:center;color:var(--muted)">Loading wall...</p></div>
+</div>
+
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, onSnapshot, query, orderBy, limit, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-const _k1="AIza"; const _k2="SyAOE8v7ANE6vvlHh2ZbiaJ6iHBN4voFcYM";
-const firebaseConfig={apiKey:_k1+_k2,authDomain:"cpm-wall-3.firebaseapp.com",projectId:"cpm-wall-3"};
-const app=initializeApp(firebaseConfig); const db=getFirestore(app);
-const feedEl=document.getElementById('feed'); const typingEl=document.getElementById('typing'); const pinnedBox=document.getElementById('pinnedBox'); const userNameInput=document.getElementById('userName'); const msgInput=document.getElementById('msgInput'); const sendBtn=document.getElementById('sendBtn'); const charCount=document.getElementById('charCount');
-userNameInput.value=localStorage.getItem('cpm_name')||''; let soundEnabled=localStorage.getItem('cpm_sound')==='true'; let audioCtx=null; let isInitialLoad=true; let lastPostedMsg=''; let lastPostTimestamp=0;
-function initAudio(){ if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)(); }
-function playPing(){ if(!soundEnabled) return; initAudio(); if(audioCtx.state==='suspended') audioCtx.resume(); const osc=audioCtx.createOscillator(); const gain=audioCtx.createGain(); osc.type='sine'; osc.frequency.setValueAtTime(600,audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(950,audioCtx.currentTime+.08); gain.gain.setValueAtTime(.1,audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(.01,audioCtx.currentTime+.08); osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime+.08); }
-function updateSoundBtn(){ const btn=document.getElementById('soundToggle'); if(soundEnabled){ btn.className='sound-btn active'; btn.textContent='🔊 Sound'; } else { btn.className='sound-btn'; btn.textContent='🔇 Sound'; } }
-window.toggleSound=()=>{ soundEnabled=!soundEnabled; localStorage.setItem('cpm_sound',soundEnabled); updateSoundBtn(); if(soundEnabled){ initAudio(); if(audioCtx.state==='suspended') audioCtx.resume(); } }; updateSoundBtn();
-function updateConnection(){ const dot=document.getElementById('liveDot'); const label=document.getElementById('statusLabel'); if(navigator.onLine){ dot.className='dot'; label.textContent='Lobby Chat'; label.style.color='var(--accent)'; } else { dot.className='dot offline'; label.textContent='Offline'; label.style.color='#ef4444'; } }
-window.addEventListener('online',updateConnection); window.addEventListener('offline',updateConnection);
-function timeAgo(date){ const s=Math.floor((new Date()-date)/1000); if(s<45) return 'Just now'; if(s<3600) return `${Math.floor(s/60)}m ago`; if(s<86400) return `${Math.floor(s/3600)}h ago`; return date.toLocaleDateString(); }
-function renderMessageText(container,text){ container.innerHTML=''; const idRegex=/\b(\d{6,8}|[a-zA-Z]{2}\d{6}|[a-zA-Z]{3}\d{4})\b/g; const testRegex=/^(\d{6,8}|[a-zA-Z]{2}\d{6}|[a-zA-Z]{3}\d{4})$/; const parts=text.split(idRegex); parts.forEach(part=>{ if(testRegex.test(part)){ const chip=document.createElement('span'); chip.className='room-code'; chip.textContent=`${part} 📋`; chip.title='Click to copy ID'; chip.onclick=e=>{ e.stopPropagation(); navigator.clipboard.writeText(part); const prev=chip.textContent; chip.textContent='Copied!'; setTimeout(()=>{ chip.textContent=prev; },1200); }; container.appendChild(chip); } else if(part){ container.appendChild(document.createTextNode(part)); } }); }
-onSnapshot(doc(db,"pinned","current"),snap=>{ if(snap.exists()){ const d=snap.data(); if(d.active&&d.text){ pinnedBox.innerHTML=`📌 <b>${d.name||'Admin'}:</b> ${d.text}`; pinnedBox.style.display='block'; return; } } pinnedBox.style.display='none'; });
-const q=query(collection(db,"posts"),orderBy("createdAt","desc"),limit(50));
-onSnapshot(q,snap=>{ if(snap.empty){ feedEl.innerHTML='<p style="text-align:center;color:var(--muted);font-size:.85rem;margin-top:20px">No messages yet. Be first!</p>'; isInitialLoad=false; return; } const ph=feedEl.querySelector('p'); if(ph) ph.remove(); snap.docChanges().forEach(change=>{ if(change.type==='added'){ const data=change.doc.data(); const cur=(userNameInput.value||'').trim(); const isBot=Boolean(data.isBot||data.name==='Apex_Racer'); const isMe=Boolean(cur&&data.name===cur); const bubble=document.createElement('div'); bubble.className=`bubble ${isBot?'bot':isMe?'me':''}`; bubble.id=`post-${change.doc.id}`; const authorLine=document.createElement('div'); authorLine.className='author-line'; const author=document.createElement('div'); author.className='author'; author.textContent=data.name; author.title='Click to reply'; author.onclick=()=>{ const tag=`@${data.name} `; if(!msgInput.value.includes(tag)) msgInput.value=tag+msgInput.value; charCount.textContent=`${msgInput.value.length}/150`; msgInput.focus(); }; if(data.isVerified){ const tick=document.createElement('span'); tick.className='verified-badge'; tick.textContent='✓'; author.appendChild(tick); } if(isBot){ const bt=document.createElement('span'); bt.className='bot-badge'; bt.textContent='BOT'; author.appendChild(bt); } authorLine.appendChild(author); const meta=document.createElement('div'); meta.className='meta'; let rawDate=new Date(); try{ const ts=data.createdAt; const sec=ts?(ts._seconds||ts.seconds):null; rawDate=sec?new Date(sec*1000):(ts?.toDate?ts.toDate():new Date()); }catch{} meta.textContent=timeAgo(rawDate); authorLine.appendChild(meta); const bodyEl=document.createElement('div'); bodyEl.className='body'; renderMessageText(bodyEl,data.message||''); bubble.appendChild(authorLine); bubble.appendChild(bodyEl); if(change.newIndex===0){ feedEl.prepend(bubble); if(!isInitialLoad) playPing(); } else feedEl.appendChild(bubble); } if(change.type==='removed'){ const el=document.getElementById(`post-${change.doc.id}`); if(el) el.remove(); } }); while(feedEl.children.length>50) feedEl.removeChild(feedEl.lastChild); isInitialLoad=false; });
-msgInput.addEventListener('input',e=>{ charCount.textContent=`${e.target.value.length}/150`; });
-window.addTag=tag=>{ if(!msgInput.value.includes(tag)) msgInput.value=(msgInput.value.trim()?msgInput.value.trim()+' ':'')+tag+' '; charCount.textContent=`${msgInput.value.length}/150`; msgInput.focus(); };
-window.tagBot=()=>{ if(!msgInput.value.includes('@Apex_Racer')) msgInput.value='@Apex_Racer '+msgInput.value; charCount.textContent=`${msgInput.value.length}/150`; msgInput.focus(); };
-function startCooldown(s){ sendBtn.disabled=true; let r=s; sendBtn.textContent=`${r}s`; const t=setInterval(()=>{ r--; if(r<=0){ clearInterval(t); sendBtn.disabled=false; sendBtn.textContent='Post'; } else sendBtn.textContent=`${r}s`; },1000); }
-window.sendPost=async()=>{ const name=userNameInput.value.trim(); const message=msgInput.value.trim(); if(name.length<2||!message){ alert('Please enter valid name (2+ chars) and message.'); return; } if(message===lastPostedMsg&&Date.now()-lastPostTimestamp<60000){ alert('Duplicate message. Wait 60s.'); return; } localStorage.setItem('cpm_name',name); sendBtn.disabled=true; sendBtn.textContent='...'; try{ const res=await fetch('/api/post',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,message})}); const data=await res.json().catch(()=>({})); if(res.ok){ lastPostedMsg=message; lastPostTimestamp=Date.now(); msgInput.value=''; charCount.textContent='0/150'; feedEl.scrollTop=0; startCooldown(15); if(message.toLowerCase().includes('@apex')){ typingEl.textContent='Apex_Racer is typing...'; setTimeout(()=>{ typingEl.textContent=''; },3500); } } else { alert(data.error||'Failed to post'); sendBtn.disabled=false; sendBtn.textContent='Post'; } }catch{ alert('Network error'); sendBtn.disabled=false; sendBtn.textContent='Post'; } };
-msgInput.addEventListener('keydown',e=>{ if(e.key==='Enter') sendPost(); });
-window.shareSite=async()=>{ const d={title:'CPM Community Wall',text:'Join live anonymous chat wall for CPM players!',url:window.location.href}; if(navigator.share){ try{ await navigator.share(d);}catch{}} else { try{ await navigator.clipboard.writeText(window.location.href); alert('Link copied!'); }catch{ prompt('Copy link:',window.location.href); } } };
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, query, orderBy, limit, onSnapshot, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAOE8v7ANE6vvlHh2ZbiaJ6iHBN4voFcYM",
+  authDomain: "cpm-wall-3.firebaseapp.com",
+  projectId: "cpm-wall-3",
+  storageBucket: "cpm-wall-3.firebasestorage.app",
+  messagingSenderId: "1046950098549",
+  appId: "1:1046950098549:web:example"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const feedEl = document.getElementById('feed');
+const msgInput = document.getElementById('msgInput');
+const userNameInput = document.getElementById('userName');
+const charCount = document.getElementById('charCount');
+const typingEl = document.getElementById('typing');
+const sendBtn = document.getElementById('sendBtn');
+const pinnedBox = document.getElementById('pinnedBox');
+const soundBtn = document.getElementById('soundBtn');
+const connDot = document.getElementById('connDot');
+const connText = document.getElementById('connText');
+
+let soundEnabled = localStorage.getItem('cpm_sound')==='on';
+let audioCtx, isInitialLoad=true, lastPostedMsg='', lastPostTimestamp=0, cooldownInterval=null;
+
+function initAudio(){ if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)(); if(audioCtx.state==='suspended') audioCtx.resume(); }
+function playPing(){ if(!soundEnabled) return; try{ initAudio(); const o=audioCtx.createOscillator(), g=audioCtx.createGain(); o.type='sine'; o.frequency.setValueAtTime(880,audioCtx.currentTime); o.frequency.exponentialRampToValueAtTime(1200,audioCtx.currentTime+0.15); g.gain.setValueAtTime(0.6,audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.01,audioCtx.currentTime+0.3); o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime+0.3);}catch{}}
+window.toggleSound=()=>{ soundEnabled=!soundEnabled; localStorage.setItem('cpm_sound', soundEnabled?'on':'off'); soundBtn.textContent=soundEnabled?'🔊':'🔇'; if(soundEnabled) playPing(); };
+if(soundEnabled) soundBtn.textContent='🔊';
+document.addEventListener('click',()=>{ initAudio(); },{once:true});
+window.insertTag=(t)=>{ msgInput.value+=t; msgInput.focus(); charCount.textContent=msgInput.value.length+'/150'; }
+
+const ID_REGEX = /\b(\d{6,8}|[a-zA-Z]{2}\d{6}|[a-zA-Z]{3}\d{4})\b/g;
+
+function renderMessageText(el, text){
+  el.innerHTML='';
+  let lastIndex=0, match;
+  const safeText = text.replace(/</g,'&lt;');
+  while((match=ID_REGEX.exec(safeText))!==null){
+    if(match.index>lastIndex) el.appendChild(document.createTextNode(safeText.slice(lastIndex, match.index)));
+    const chip=document.createElement('span');
+    chip.className='chip'; chip.textContent=match[0]+' 📋';
+    chip.onclick=()=>{ navigator.clipboard.writeText(match[0]); chip.textContent='Copied!'; setTimeout(()=>chip.textContent=match[0]+' 📋',1000); };
+    el.appendChild(chip);
+    lastIndex=ID_REGEX.lastIndex;
+  }
+  if(lastIndex<safeText.length) el.appendChild(document.createTextNode(safeText.slice(lastIndex)));
+}
+
+function timeAgo(ts){
+  if(!ts) return 'Just now';
+  const d=ts.toDate?ts.toDate():new Date(ts);
+  const s=Math.floor((Date.now()-d)/1000);
+  if(s<60) return 'Just now';
+  if(s<3600) return Math.floor(s/60)+'m ago';
+  if(s<86400) return Math.floor(s/3600)+'h ago';
+  return Math.floor(s/86400)+'d ago';
+}
+
+function addBubble(docSnap, isNew){
+ const data=docSnap.data();
+ const div=document.createElement('div');
+ div.className='bubble'+(data.isBot?' bot':'')+(data.name===userNameInput.value.trim()?' me':'');
+ div.id=docSnap.id;
+ div.innerHTML=`<div style="display:flex;justify-content:space-between"><div class="author" onclick="replyTo('${data.name.replace(/'/g,'')}')">${data.name} ${data.isVerified?'✔️':''}</div><div class="meta">${timeAgo(data.createdAt)}</div></div><div class="body"></div>`;
+ renderMessageText(div.querySelector('.body'), data.message);
+ if(isNew){
+   feedEl.prepend(div);
+   if(!isInitialLoad) playPing();
+ } else {
+   feedEl.appendChild(div);
+ }
+}
+window.replyTo=(name)=>{ msgInput.value='@'+name+' '; msgInput.focus(); }
+
+const q=query(collection(db,"posts"), orderBy("createdAt","desc"), limit(50));
+onSnapshot(q,(snap)=>{
+ connDot.style.background='#22c55e'; connText.textContent='live';
+ if(snap.empty && isInitialLoad){ feedEl.innerHTML='<p style="text-align:center;color:var(--muted)">No messages yet. Be first!</p>'; isInitialLoad=false; return; }
+ if(isInitialLoad){
+   feedEl.innerHTML='';
+   snap.docs.forEach(d=> addBubble(d, false));
+   isInitialLoad=false;
+ } else {
+   snap.docChanges().forEach(ch=>{ if(ch.type==='added') addBubble(ch.doc, true); });
+ }
+ const pinDoc=doc(db,"pinned","current");
+ getDoc(pinDoc).then(s=>{ if(s.exists()&&s.data().active){ pinnedBox.style.display='block'; pinnedBox.innerHTML=`📌 <b>${s.data().name}:</b> ${s.data().text}`; } else { pinnedBox.style.display='none'; }});
+}, (err)=>{
+ connDot.style.background='#ef4444'; connText.textContent='offline';
+ feedEl.innerHTML='<p style="color:#ef4444">Connection lost. Refresh.</p>';
+});
+
+msgInput.addEventListener('input',()=>{
+ charCount.textContent=msgInput.value.length+'/150';
+ if(msgInput.value.toLowerCase().includes('@apex')) typingEl.textContent='Apex_Racer will reply...';
+ else typingEl.textContent='';
+});
+
+window.sendPost=async()=>{
+ const name=userNameInput.value.trim(), message=msgInput.value.trim();
+ if(name.length<2||!message){ alert('Enter name 2+ and message'); return; }
+ if(message===lastPostedMsg&&Date.now()-lastPostTimestamp<60000){ alert('Duplicate, wait'); return; }
+ localStorage.setItem('cpm_name',name);
+ sendBtn.disabled=true; sendBtn.textContent='Posting...';
+ try{
+  const res=await fetch('/api/post',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,message})});
+  const data=await res.json().catch(()=>({}));
+  if(res.ok){
+   lastPostedMsg=message; lastPostTimestamp=Date.now(); msgInput.value=''; charCount.textContent='0/150';
+   let c=15; sendBtn.textContent=`Wait ${c}s`;
+   cooldownInterval=setInterval(()=>{ c--; sendBtn.textContent=c>0?`Wait ${c}s`:'Post to Wall'; if(c<=0){ clearInterval(cooldownInterval); sendBtn.disabled=false; }},1000);
+   if(message.toLowerCase().includes('@apex')){ typingEl.textContent='Apex_Racer is typing...'; setTimeout(()=>typingEl.textContent='',4000); }
+   playPing();
+  } else { alert(data.error||'Failed'); sendBtn.disabled=false; sendBtn.textContent='Post to Wall'; }
+ }catch(e){ alert('Network error'); sendBtn.disabled=false; sendBtn.textContent='Post to Wall'; }
+};
+
+userNameInput.value=localStorage.getItem('cpm_name')||'';
 </script>
 </body>
 </html>

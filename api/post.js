@@ -1,105 +1,66 @@
-import admin from 'firebase-admin';
+import admin from "firebase-admin";
 if (!admin.apps.length) {
-  const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_KEY);
-  admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+  admin.initializeApp({ credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_KEY)) });
 }
 const db = admin.firestore();
-const RESERVED = ['apex_racer', 'admin', 'moderator', 'system', 'cpm_bot'];
-const LINK_REGEX = /(https?:\/\/|www\.|t\.me\/|discord\.gg|bit\.ly|\.gg|\.xyz)/i;
-
-async function callAIBot(userName, userMessage) {
-  const key = process.env.GEMINI_API_KEY;
-  if (!key) return null;
-  try {
-    const cleanMessage = userMessage.replace(/@(apex|apex_racer|ai|bot)/gi, '').trim() || 'yo';
-    const prompt = `You are Apex_Racer, a pro Car Parking Multiplayer player in lobby chat. Reply in 1 short sentence (under 25 words), casual gamer slang, helpful with setups, tunes, or codes. User ${userName} said: "${cleanMessage}". Reply as Apex_Racer, natural, no AI mention.`;
-    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
-      signal: AbortSignal.timeout(4000)
-    });
-    const j = await r.json();
-    const reply = j?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-    if (!reply || reply.length > 200) return null;
-    return reply.replace(/["*]/g, '').slice(0, 150);
-  } catch { return null; }
-}
-
+const RESERVED = ["admin", "apex_racer", "system", "moderator", "cpm_bot"];
+const LINK_REGEX = /(https?:\/\/|www\.|discord\.gg|t\.me|telegram\.me|\.com|\.gg)/i;
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
-
-  const rawIp = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket?.remoteAddress || 'unknown';
-  const safeIp = rawIp.replace(/[^a-zA-Z0-9.:]/g, '_');
-  const { name, message } = req.body || {};
-
-  if (!message || !message.trim()) return res.status(400).json({ error: 'Empty message' });
-  if (message.length > 150) return res.status(400).json({ error: 'Too long (max 150 chars)' });
-  if (LINK_REGEX.test(message) || LINK_REGEX.test(name || '')) return res.status(400).json({ error: 'Links/ads not allowed' });
-
-  const cleanName = (name || 'Anonymous').substring(0, 20).trim();
-  if (RESERVED.includes(cleanName.toLowerCase())) return res.status(400).json({ error: 'Name reserved' });
-
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, x-admin-key");
+  if (req.method === "OPTIONS") return res.status(200).end();
+  if (req.method!== "POST") return res.status(405).json({ error: "POST only" });
   try {
-    const banDoc = await db.collection('banned').doc(safeIp).get();
-    if (banDoc.exists) return res.status(403).json({ error: 'You are banned from this wall' });
-
-    const rateRef = db.collection('rateLimits').doc(safeIp);
-    const rateDoc = await rateRef.get();
-    if (rateDoc.exists) {
-      const lastTime = rateDoc.data().lastPost?.toMillis?.() || 0;
-      if (Date.now() - lastTime < 15000) {
-        return res.status(429).json({ error: 'Cooldown active. Please wait 15 seconds.' });
-      }
+    const { name, message } = req.body || {};
+    if (!name ||!message) return res.status(400).json({ error: "Name and message required" });
+    const cleanName = name.trim().substring(0, 20);
+    const cleanMsg = message.trim().substring(0, 150);
+    if (cleanName.length < 2) return res.status(400).json({ error: "Name too short" });
+    if (RESERVED.includes(cleanName.toLowerCase())) return res.status(400).json({ error: "Name reserved" });
+    if (LINK_REGEX.test(cleanMsg)) return res.status(400).json({ error: "Links not allowed" });
+    const rawIp = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || "").split(',')[0].trim() || "unknown";
+    const safeIp = rawIp.replace(/[^a-zA-Z0-9.:]/g, '_');
+    const banSnap = await db.collection("banned").doc(safeIp).get();
+    if (banSnap.exists) return res.status(403).json({ error: "You are banned" });
+    const rateRef = db.collection("rateLimits").doc(safeIp);
+    const rateSnap = await rateRef.get();
+    if (rateSnap.exists) {
+      const last = rateSnap.data().lastPost?._seconds || rateSnap.data().lastPost?.seconds || 0;
+      const now = Math.floor(Date.now() / 1000);
+      if (now - last < 15) return res.status(429).json({ error: `Slow down ${15 - (now - last)}s` });
     }
-
-    const postRef = db.collection('posts').doc();
     const batch = db.batch();
-    batch.set(postRef, {
-      name: cleanName,
-      message: message.substring(0, 150),
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      isBot: false
-    });
-    batch.set(db.collection('ip_logs').doc(postRef.id), {
-      postId: postRef.id,
-      name: cleanName,
-      message: message.substring(0, 150),
-      ip: rawIp,
-      createdAt: admin.firestore.FieldValue.serverTimestamp()
-    });
+    const postRef = db.collection("posts").doc();
+    const logRef = db.collection("ip_logs").doc(postRef.id);
+    batch.set(logRef, { postId: postRef.id, ip: rawIp, name: cleanName, message: cleanMsg, createdAt: admin.firestore.FieldValue.serverTimestamp() });
     batch.set(rateRef, { lastPost: admin.firestore.FieldValue.serverTimestamp(), ip: rawIp }, { merge: true });
+    batch.set(postRef, { name: cleanName, message: cleanMsg, createdAt: admin.firestore.FieldValue.serverTimestamp(), isVerified: false, isBot: false });
     await batch.commit();
-
-    if (message.toLowerCase().includes('@apex')) {
-      const botReply = await callAIBot(cleanName, message);
-      if (botReply) {
-        const botRef = db.collection('posts').doc();
-        const botBatch = db.batch();
-        botBatch.set(botRef, {
-          name: 'Apex_Racer',
-          message: botReply,
-          createdAt: admin.firestore.FieldValue.serverTimestamp(),
-          isBot: true
-        });
-        botBatch.set(db.collection('ip_logs').doc(botRef.id), {
-          postId: botRef.id,
-          name: 'Apex_Racer',
-          message: botReply,
-          ip: 'BOT',
-          createdAt: admin.firestore.FieldValue.serverTimestamp()
-        });
-        await botBatch.commit();
+    if (cleanMsg.toLowerCase().includes("@apex")) {
+      try {
+        const apiKey = process.env.GEMINI_API_KEY;
+        if (apiKey) {
+          const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ contents: [{ parts: [{ text: `You are Apex_Racer, CPM expert. Short cool reply under 100 chars. User ${cleanName}: ${cleanMsg}` }] }] }),
+            signal: AbortSignal.timeout(4000)
+          });
+          const data = await resp.json();
+          let botText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "Yo! Ask me drift, gearbox or room codes.";
+          botText = botText.substring(0, 150);
+          const botRef = db.collection("posts").doc();
+          const botBatch = db.batch();
+          botBatch.set(botRef, { name: "Apex_Racer", message: botText, createdAt: admin.firestore.FieldValue.serverTimestamp(), isBot: true, isVerified: true });
+          botBatch.set(db.collection("ip_logs").doc(botRef.id), { postId: botRef.id, name: "Apex_Racer", message: botText, ip: "BOT", createdAt: admin.firestore.FieldValue.serverTimestamp() });
+          await botBatch.commit();
+        }
+      } catch (e) {
+        console.error("Bot fail", e.message);
+        const botRef = db.collection("posts").doc();
+        await botRef.set({ name: "Apex_Racer", message: "Yo! I'm here. Ask me about tunes, drag or rooms.", createdAt: admin.firestore.FieldValue.serverTimestamp(), isBot: true, isVerified: true });
       }
     }
-
     return res.status(200).json({ success: true });
-  } catch (e) {
-    console.error(e);
-    return res.status(500).json({ error: 'Server error' });
-  }
+  } catch (e) { console.error(e); return res.status(500).json({ error: e.message }); }
 }
