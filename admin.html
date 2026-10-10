@@ -15,6 +15,7 @@ button.orange { background: #ea580c; }
 .post { border-bottom: 1px solid #222; padding: 12px 0; }
 .post:last-child { border-bottom: 0; }
 code { background: #1e293b; padding: 2px 6px; border-radius: 4px; color: #38bdf8; font-family: monospace; font-size: 12px; }
+mark { background: #facc15; color: #000; padding: 0 2px; border-radius: 3px; font-weight: 700; }
 .badge { background: #333; padding: 2px 6px; border-radius: 4px; font-size: 11px; margin-right: 4px; }
 .badge-loc { background: #4c1d95; color: #d8b4fe; }
 .badge-dev { background: #064e3b; color: #6ee7b7; }
@@ -72,6 +73,7 @@ code { background: #1e293b; padding: 2px 6px; border-radius: 4px; color: #38bdf8
   <div class="controls-row">
     <div>
       <button onclick="loadAll()">Load Data</button>
+      <button class="green" onclick="exportBackup()">Export JSON</button>
       <span id="status" style="margin-left: 8px; font-size: 13px; color: #94a3b8;"></span>
     </div>
     <label class="toggle-label">
@@ -159,6 +161,13 @@ function esc(s) {
   return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
+function highlight(str, q) {
+  const safe = esc(str);
+  if (!q) return safe;
+  const escapedQuery = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return safe.replace(new RegExp(`(${escapedQuery})`, 'gi'), '<mark>$1</mark>');
+}
+
 function toggleAutoRefresh(enabled) {
   if (refreshTimer) clearInterval(refreshTimer);
   if (enabled) {
@@ -222,6 +231,35 @@ function updateStats() {
   document.getElementById('statBanned').textContent = cachedBanned.length;
 }
 
+function exportBackup() {
+  if (!cachedPosts.length && !cachedLogs.length && !cachedVisitors.length && !cachedBanned.length) {
+    alert('No data to export. Click Load Data first.');
+    return;
+  }
+  const backup = {
+    exportedAt: new Date().toISOString(),
+    stats: {
+      postsCount: cachedPosts.length,
+      visitorsCount: cachedVisitors.length,
+      bansCount: cachedBanned.length
+    },
+    posts: cachedPosts,
+    visitors: cachedVisitors,
+    ipLogs: cachedLogs,
+    verifiedIps: cachedVerified,
+    bannedIps: cachedBanned
+  };
+  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `cpm_wall_backup_${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
 function applyFilter() {
   const query = (document.getElementById('searchInput').value || '').trim().toLowerCase();
 
@@ -248,17 +286,17 @@ function applyFilter() {
     const locText = v.city && v.city !== 'Unknown City' ? `${v.city}, ${v.country}` : v.country;
     return `
       <div class="post">
-        IP: <code>${esc(v.ip)}</code> ${isVerified ? '<span class="badge" style="background:#16a34a;">VERIFIED IP</span>' : ''}
+        IP: <code>${highlight(v.ip, query)}</code> ${isVerified ? '<span class="badge" style="background:#16a34a;">VERIFIED IP</span>' : ''}
         <div class="detail-grid">
-          ${locText ? `<span class="badge badge-loc">📍 ${esc(locText)}</span>` : ''}
-          ${v.device ? `<span class="badge badge-dev">📱 ${esc(v.device)}</span>` : ''}
-          ${v.os ? `<span class="badge badge-dev">${esc(v.os)}</span>` : ''}
-          ${v.browser ? `<span class="badge badge-dev">${esc(v.browser)}</span>` : ''}
+          ${locText ? `<span class="badge badge-loc">📍 ${highlight(locText, query)}</span>` : ''}
+          ${v.device ? `<span class="badge badge-dev">📱 ${highlight(v.device, query)}</span>` : ''}
+          ${v.os ? `<span class="badge badge-dev">${highlight(v.os, query)}</span>` : ''}
+          ${v.browser ? `<span class="badge badge-dev">${highlight(v.browser, query)}</span>` : ''}
           ${v.battery && v.battery !== 'N/A' ? `<span class="badge badge-batt">🔋 ${esc(v.battery)}</span>` : ''}
           ${v.ram && v.ram !== 'N/A' ? `<span class="badge badge-spec">RAM: ${esc(v.ram)}</span>` : ''}
           ${v.screen && v.screen !== 'Unknown' ? `<span class="badge badge-spec">📺 ${esc(v.screen)}</span>` : ''}
           ${v.network && v.network !== 'N/A' ? `<span class="badge badge-spec">📶 ${esc(v.network.toUpperCase())}</span>` : ''}
-          ${v.referrer && v.referrer !== 'Direct' ? `<span class="badge badge-spec">From: ${esc(v.referrer)}</span>` : ''}
+          ${v.referrer && v.referrer !== 'Direct' ? `<span class="badge badge-spec">From: ${highlight(v.referrer, query)}</span>` : ''}
         </div>
         <button class="danger" onclick="openBanModal('${esc(v.ip)}')">Ban ${esc(v.ip)}</button>
         ${isVerified ? `
@@ -275,20 +313,20 @@ function applyFilter() {
     const locText = l.city && l.city !== 'Unknown City' ? `${l.city}, ${l.country}` : l.country;
     return `
       <div class="post">
-        <b>${esc(l.name)}</b><br>
-        IP: <code>${esc(l.ip)}</code> ${isVerified ? '<span class="badge" style="background:#16a34a;">VERIFIED IP</span>' : ''}
+        <b>${highlight(l.name, query)}</b><br>
+        IP: <code>${highlight(l.ip, query)}</code> ${isVerified ? '<span class="badge" style="background:#16a34a;">VERIFIED IP</span>' : ''}
         <div class="detail-grid">
-          ${locText && l.ip !== 'BOT' ? `<span class="badge badge-loc">📍 ${esc(locText)}</span>` : ''}
-          ${l.device ? `<span class="badge badge-dev">📱 ${esc(l.device)}</span>` : ''}
-          ${l.os ? `<span class="badge badge-dev">${esc(l.os)}</span>` : ''}
-          ${l.browser ? `<span class="badge badge-dev">${esc(l.browser)}</span>` : ''}
+          ${locText && l.ip !== 'BOT' ? `<span class="badge badge-loc">📍 ${highlight(locText, query)}</span>` : ''}
+          ${l.device ? `<span class="badge badge-dev">📱 ${highlight(l.device, query)}</span>` : ''}
+          ${l.os ? `<span class="badge badge-dev">${highlight(l.os, query)}</span>` : ''}
+          ${l.browser ? `<span class="badge badge-dev">${highlight(l.browser, query)}</span>` : ''}
           ${l.battery && l.battery !== 'N/A' ? `<span class="badge badge-batt">🔋 ${esc(l.battery)}</span>` : ''}
           ${l.ram && l.ram !== 'N/A' ? `<span class="badge badge-spec">RAM: ${esc(l.ram)}</span>` : ''}
           ${l.screen && l.screen !== 'N/A' ? `<span class="badge badge-spec">📺 ${esc(l.screen)}</span>` : ''}
           ${l.network && l.network !== 'N/A' ? `<span class="badge badge-spec">📶 ${esc(l.network.toUpperCase())}</span>` : ''}
         </div>
-        Message: ${esc(l.message)}<br>
-        <small style="color:#64748b;">postId: ${l.postId || l.id}</small><br>
+        Message: ${highlight(l.message, query)}<br>
+        <small style="color:#64748b;">postId: ${highlight(l.postId || l.id, query)}</small><br>
         ${l.ip !== 'BOT' ? `
           <button class="danger" onclick="openBanModal('${esc(l.ip)}')">Ban ${esc(l.ip)}</button>${isVerified ? `
             <button class="orange" onclick="unverifyIp('${esc(l.ip)}')">Unverify IP</button>
@@ -302,11 +340,11 @@ function applyFilter() {
 
   document.getElementById('posts').innerHTML = filteredPosts.map(p => `
     <div class="post">
-      <b>${esc(p.name)}</b>
+      <b>${highlight(p.name, query)}</b>
       ${p.isBot ? '<span class="badge">BOT</span>' : ''}
       ${p.isVerified ? '<span class="badge" style="background:#1d9bf0;">VERIFIED</span>' : ''}
-      <br>${esc(p.message)}
-      <br><small style="color:#64748b;">ID: ${p.id}</small><br>
+      <br>${highlight(p.message, query)}
+      <br><small style="color:#64748b;">ID: ${highlight(p.id, query)}</small><br>
       <button class="danger" onclick="delPost('${p.id}')">Delete</button>
       <button onclick="banFromPost('${p.id}')">Ban IP</button>
       <button class="green" onclick="verifyIpFromPost('${p.id}')">Verify IP</button>
@@ -316,7 +354,7 @@ function applyFilter() {
 
   document.getElementById('verifiedIps').innerHTML = cachedVerified.map(v => `
     <div class="post">
-      <code>${esc(v.ip || v.id)}</code>
+      <code>${highlight(v.ip || v.id, query)}</code>
       <button class="orange" onclick="unverifyIp('${esc(v.ip || v.id)}')">Remove Verification</button>
     </div>
   `).join('') || 'No verified IPs yet';
@@ -329,7 +367,7 @@ function applyFilter() {
     }
     return `
       <div class="post">
-        <code>${esc(b.ip || b.id)}</code> (Reason: <b>${esc(b.reason || 'spam')}</b>, ${expiryStr})<br>
+        <code>${highlight(b.ip || b.id, query)}</code> (Reason: <b>${highlight(b.reason || 'spam', query)}</b>, ${expiryStr})<br>
         <button onclick="unban('${esc(b.ip || b.id)}')">Unban</button>
       </div>
     `;
@@ -401,7 +439,7 @@ async function unban(ip) {
 
 function verifyIpFromPost(postId) {
   const log = cachedLogs.find(l => l.postId === postId || l.id === postId);
-  if (!log) return alert('Log not found for post ' + postId);
+  if (!log) return alert('Log not found for ' + postId);
   if (log.ip === 'BOT') return alert('Cannot verify BOT IP');
   verifyIp(log.ip, postId);
 }
@@ -428,19 +466,4 @@ async function unverifyIp(ip) {
 }
 
 async function verifyPost(postId, isVerified) {
-  const r = await fetch('/api/admin', { method: 'POST', headers: headers(), body: JSON.stringify({ action: 'verify', postId, isVerified }) });
-  const d = await r.json();
-  if (d.success) loadAll(); else alert(d.error);
-}
-
-async function pin(active) {
-  const text = document.getElementById('pinText').value;
-  const name = document.getElementById('pinName').value || 'Admin';
-  if (active && !text) return alert('Enter announcement text');
-  const r = await fetch('/api/admin', { method: 'POST', headers: headers(), body: JSON.stringify({ action: 'pin', text, name, active }) });
-  const d = await r.json();
-  if (d.success) loadAll(); else alert(d.error);
-}
-</script>
-</body>
-</html>
+  const r = await fetch('/api/admin', { method: 'POST', head
