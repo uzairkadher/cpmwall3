@@ -14,23 +14,23 @@ const db = admin.firestore();
 const RESERVED = ["admin", "apex_racer", "system", "moderator", "cpm_bot"];
 const LINK_REGEX = /(https?:\/\/|www\.|discord\.gg|t\.me|telegram\.me|chat\.whatsapp\.com|\.com|\.gg|\.xyz|\.top)/i;
 
-const BASE_BLOCKED_WORDS = [
+const STATIC_BLOCKED_WORDS = [
   "free coins", "hack cpm", "mod apk", "cpm hack", "coin generator",
   "buy followers", "free w16", "cpm unlimited", "bit.ly", "tinyurl",
   "chutiya", "madarchod", "gandu", "bhenchod", "harami", "bitch",
   "nigger", "faggot", "scam"
 ];
 
-async function isContentBlocked(text) {
+async function containsBlockedContent(text) {
   const lower = text.toLowerCase();
   if (LINK_REGEX.test(lower)) return true;
-  if (BASE_BLOCKED_WORDS.some(word => lower.includes(word))) return true;
+  if (STATIC_BLOCKED_WORDS.some(word => lower.includes(word))) return true;
 
   try {
-    const filterSnap = await db.collection("config").doc("filters").get();
-    if (filterSnap.exists) {
-      const customList = filterSnap.data().words || [];
-      if (customList.some(w => lower.includes(w.toLowerCase()))) return true;
+    const filterDoc = await db.collection("settings").doc("filters").get();
+    if (filterDoc.exists) {
+      const customWords = filterDoc.data().words || [];
+      if (customWords.some(w => lower.includes(w.toLowerCase()))) return true;
     }
   } catch {}
 
@@ -180,7 +180,7 @@ async function getBotReply(cleanName, cleanMsg) {
           return reply.replace(/["*]/g, "");
         }
       }
-    } catch (err) {}
+    } catch {}
   }
 
   return getHumanFallback(stripped || cleanMsg);
@@ -204,15 +204,27 @@ async function pruneOldMessages() {
       });
       await pruneBatch.commit();
     }
-  } catch (err) {}
+  } catch {}
 }
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, x-admin-key");
   if (req.method === "OPTIONS") return res.status(200).end();
-  if (req.method !== "POST") return res.status(405).json({ error: "POST only" });
+
+  // Instant server-side feed for mobile connections
+  if (req.method === "GET") {
+    try {
+      const snap = await db.collection("posts").orderBy("createdAt", "desc").limit(100).get();
+      const posts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      return res.status(200).json(posts);
+    } catch (e) {
+      return res.status(500).json({ error: e.message });
+    }
+  }
+
+  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   try {
     const { action, postId, name, message, clientInfo } = req.body || {};
@@ -228,6 +240,7 @@ export default async function handler(req, res) {
     if (action === "report") {
       if (!postId) return res.status(400).json({ error: "Missing postId" });
       await db.collection("posts").doc(postId).update({
+        isReported: true,
         reportCount: admin.firestore.FieldValue.increment(1)
       });
       return res.status(200).json({ success: true });
@@ -239,8 +252,8 @@ export default async function handler(req, res) {
     if (cleanName.length < 2) return res.status(400).json({ error: "Name too short" });
     if (RESERVED.includes(cleanName.toLowerCase())) return res.status(400).json({ error: "Name reserved" });
 
-    const blocked = await isContentBlocked(cleanMsg);
-    if (blocked) {
+    const isBlocked = await containsBlockedContent(cleanMsg);
+    if (isBlocked) {
       return res.status(400).json({ error: "Message blocked: words, links, or scam phrases are prohibited." });
     }
 
@@ -297,6 +310,7 @@ export default async function handler(req, res) {
       isVerified: isIpVerified,
       isBot: false,
       likes: 0,
+      isReported: false,
       reportCount: 0
     });
 
@@ -339,6 +353,7 @@ export default async function handler(req, res) {
         isBot: true,
         isVerified: true,
         likes: 0,
+        isReported: false,
         reportCount: 0
       });
       botBatch.set(db.collection("ip_logs").doc(botRef.id), {
