@@ -9,6 +9,11 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta property="og:title" content="Car Parking Multiplayer Wall">
+<meta property="og:description" content="Live room codes, drag setups, and real-time lobby chat.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://cpmwall3-liard.vercel.app/">
+<meta property="og:image" content="https://cdn-icons-png.flaticon.com/512/3202/3202926.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -727,7 +732,6 @@ feedEl.addEventListener('scroll', () => {
   }
 });
 
-// Instant HTTP fetch so 4G connections never stay stuck on connecting
 async function loadFeedInstantly() {
   try {
     const res = await fetch('/api/post');
