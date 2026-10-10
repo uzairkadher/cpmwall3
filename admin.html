@@ -1,288 +1,393 @@
-import admin from "firebase-admin";
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CPM Admin Panel</title>
+<style>
+body { background: #0a0a0a; color: #fff; font-family: system-ui, sans-serif; padding: 14px; margin: 0; }
+.card { background: #111; border: 1px solid #222; border-radius: 12px; padding: 14px; margin-bottom: 12px; }
+input, textarea { width: 100%; box-sizing: border-box; padding: 10px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 8px; margin: 6px 0; }
+button { background: #3b82f6; color: #fff; border: 0; padding: 8px 14px; border-radius: 8px; margin: 3px; font-weight: 700; cursor: pointer; }
+button.danger { background: #dc2626; }
+button.green { background: #16a34a; }
+button.orange { background: #ea580c; }
+.post { border-bottom: 1px solid #222; padding: 10px 0; }
+.post:last-child { border-bottom: 0; }
+code { background: #1e293b; padding: 2px 6px; border-radius: 4px; color: #38bdf8; font-family: monospace; }
+.badge { background: #333; padding: 2px 6px; border-radius: 4px; font-size: 11px; margin-left: 4px; }
+.country-badge { background: #2e1065; color: #c084fc; border: 1px solid #581c87; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; margin-left: 4px; }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; margin-top: 8px; }
+.stat-box { background: #18181b; border: 1px solid #27272a; border-radius: 8px; padding: 10px; text-align: center; }
+.stat-val { font-size: 1.25rem; font-weight: 700; color: #38bdf8; }
+.stat-label { font-size: 0.75rem; color: #a1a1aa; margin-top: 2px; }
+.controls-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.toggle-label { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: #cbd5e1; cursor: pointer; }
+.toggle-label input { width: auto; margin: 0; }
 
-let serviceAccount = null;
-if (!admin.apps.length) {
-  serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_KEY);
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
-  });
-} else {
-  serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_KEY || "{}");
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 50;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
 }
-const db = admin.firestore();
+.modal-card {
+  background: #18181b;
+  border: 1px solid #333;
+  border-radius: 14px;
+  max-width: 380px;
+  width: 100%;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.modal-card h4 { margin: 0 0 4px 0; }
+.preset-btn {
+  background: #27272a;
+  color: #fff;
+  border: 1px solid #3f3f46;
+  padding: 10px;
+  border-radius: 8px;
+  text-align: left;
+  font-size: 0.85rem;
+  margin: 2px 0;
+}
+.preset-btn:hover { background: #3f3f46; }
+</style>
+</head>
+<body>
+<h3>CPM Admin Panel</h3>
 
-const RESERVED = ["admin", "apex_racer", "system", "moderator", "cpm_bot"];
-const LINK_REGEX = /(https?:\/\/|www\.|discord\.gg|t\.me|telegram\.me|\.com|\.gg)/i;
+<div class="card">
+  <input id="adminKey" type="password" placeholder="Enter ADMIN_KEY">
+  <div class="controls-row">
+    <div>
+      <button onclick="loadAll()">Load Data</button>
+      <span id="status" style="margin-left: 8px; font-size: 13px; color: #94a3b8;"></span>
+    </div>
+    <label class="toggle-label">
+      <input type="checkbox" id="autoRefreshCheck" onchange="toggleAutoRefresh(this.checked)">
+      Auto-refresh (10s)
+    </label>
+  </div>
+</div>
 
-function getHumanFallback(cleanMsg) {
-  const t = cleanMsg.toLowerCase();
+<div class="card" id="statsCard" style="display:none;">
+  <h4>Wall Statistics</h4>
+  <div class="stats-grid">
+    <div class="stat-box"><div id="statPosts" class="stat-val">0</div><div class="stat-label">Total Posts</div></div>
+    <div class="stat-box"><div id="statUsers" class="stat-val">0</div><div class="stat-label">Unique Posters</div></div>
+    <div class="stat-box"><div id="statVerified" class="stat-val">0</div><div class="stat-label">Verified IPs</div></div>
+    <div class="stat-box"><div id="statBanned" class="stat-val">0</div><div class="stat-label">Active Bans</div></div>
+  </div>
+</div>
 
-  if (t.includes("who are you") || t.includes("what are you") || t.includes("are you a bot") || t.includes("are you bot")) {
-    const replies = [
-      "I'm Apex bro, just a CPM racer hanging out in the lobby.",
-      "Just a regular player tuning cars and testing drag setups.",
-      "A CPM driver who spends way too much time in the garage haha."
-    ];
-    return replies[Math.floor(Math.random() * replies.length)];
-  }
+<div class="card">
+  <h4>Filter Feed and Logs</h4>
+  <input id="searchInput" placeholder="Search by name, message text, IP, or country..." oninput="applyFilter()">
+</div>
 
-  if (t.includes("why are you best") || t.includes("best") || t.includes("fastest") || t.includes("pro")) {
-    const replies = [
-      "Because my gearbox ratios on the 400m strip do not miss bro.",
-      "Not the best, just got hundreds of dyno hours on the drag strip.",
-      "Lots of practice and testing AWD launch tunes bro, nothing crazy."
-    ];
-    return replies[Math.floor(Math.random() * replies.length)];
-  }
+<div class="card">
+  <h4>Pinned Announcement</h4>
+  <input id="pinName" placeholder="Name (Admin)">
+  <textarea id="pinText" placeholder="Announcement text"></textarea>
+  <button onclick="pin(true)">Save Pin</button>
+  <button class="danger" onclick="pin(false)">Clear Pin</button>
+  <div id="currentPin" style="margin-top: 8px; font-size: 13px; color: #f472b6;"></div>
+</div>
 
-  if (t === "hi" || t === "hello" || t === "hey" || t.includes("what's up") || t.includes("whats up") || t === "yo") {
-    const replies = [
-      "Yo what's up bro! You running drag or cruising today?",
-      "Sup man! Ready to jump into the lobby whenever.",
-      "Hey bro, good to see you. What car you driving right now?"
-    ];
-    return replies[Math.floor(Math.random() * replies.length)];
-  }
+<div class="card">
+  <h4>Posts</h4>
+  <div id="posts">Login to load posts</div>
+</div>
 
-  if (t.includes("how are you") || t.includes("how r u")) {
-    const replies = [
-      "Chilling bro, just dialing in a new drift angle setup. How about you?",
-      "Doing good man, just testing launch control on the strip.",
-      "Pretty good bro, looking for clean rooms to join."
-    ];
-    return replies[Math.floor(Math.random() * replies.length)];
-  }
+<div class="card">
+  <h4>IP Logs (Live User IPs and Countries)</h4>
+  <div id="logs">Login to load logs</div>
+</div>
 
-  if (t.includes("supra") || t.includes("gearbox") || t.includes("gear") || t.includes("ratio")) {
-    const replies = [
-      "For Supra set Final Drive 3.12, 1st 2.66, 2nd 1.90. Fast shifts and no wheel spin.",
-      "Run Final Drive 2.80 with AWD on Supra, easy sub-6 second run on the strip.",
-      "Keep 1st gear long around 2.70 so you don't burn rubber off the starting line."
-    ];
-    return replies[Math.floor(Math.random() * replies.length)];
-  }
+<div class="card">
+  <h4>Permanently Verified IPs</h4>
+  <div id="verifiedIps">Login to load verified IPs</div>
+</div>
 
-  if (t.includes("drag") || t.includes("speed") || t.includes("fast") || t.includes("launch")) {
-    const replies = [
-      "Drop your tire pressure to 1.2 bar and launch in 2nd gear bro.",
-      "Turn off TCS and ESP before staging at the line, thank me later.",
-      "Max out torque, switch to AWD, and shift right as the needle touches red."
-    ];
-    return replies[Math.floor(Math.random() * replies.length)];
-  }
+<div class="card">
+  <h4>Banned IPs</h4>
+  <div id="banned">Login to load bans</div>
+</div>
 
-  if (t.includes("drift")) {
-    const replies = [
-      "RWD mode, steer angle at 60, zero front camber, and stiff rear suspension.",
-      "Lock steering angle to 58 and tap the handbrake into the corners."
-    ];
-    return replies[Math.floor(Math.random() * replies.length)];
-  }
+<div id="banModal" class="modal-overlay">
+  <div class="modal-card">
+    <h4>Select Ban Preset</h4>
+    <div style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 6px;">
+      Target IP: <code id="modalIpDisplay"></code>
+    </div>
+    <button class="preset-btn" onclick="executeBanPreset('Spamming lobby', 24)">Spamming (24 Hours)</button>
+    <button class="preset-btn" onclick="executeBanPreset('Advertising / Links', 0)">Promo / Links (Permanent)</button>
+    <button class="preset-btn" onclick="executeBanPreset('Toxicity / Harassment', 72)">Toxicity (3 Days)</button>
+    <button class="preset-btn" onclick="executeBanPreset('Trolling / Disruptive', 0)">Trolling (Permanent)</button>
+    <button class="preset-btn" onclick="promptCustomBan()">Custom Reason and Time...</button>
+    <button class="danger" style="margin-top: 6px;" onclick="closeBanModal()">Cancel</button>
+  </div>
+</div>
 
-  if (t.includes("trade") || t.includes("sell") || t.includes("buy")) {
-    const replies = [
-      "What you got to trade bro? Any clean custom liveries or W16 builds?",
-      "Looking for a clean M8 or 350z livery if anyone has one for sale.",
-      "Drop the car name and specs, let me see what you're working with."
-    ];
-    return replies[Math.floor(Math.random() * replies.length)];
-  }
+<script>
+let ADMIN_KEY = '';
+let cachedPosts = [], cachedLogs = [], cachedBanned = [], cachedVerified = [];
+let refreshTimer = null;
+let activeBanIp = '';
 
-  if (t.includes("room") || t.includes("code") || /\b\d{6,8}\b/.test(t)) {
-    const replies = [
-      "Drop the lobby code bro, hopping in right now.",
-      "Is the room open or full? Drop the code.",
-      "Send the room ID, pulling up with my drag tune."
-    ];
-    return replies[Math.floor(Math.random() * replies.length)];
-  }
-
-  const dynamicReplies = [
-    "Fair enough bro, tell me what car you're working on today.",
-    "Haha for real man. You hitting the city map or highway?",
-    "That makes sense bro, have you tested that build on the strip yet?",
-    "Nice one. Let me know if you need any gearbox numbers for that.",
-    "I feel you bro. The competition in these lobbies has been crazy lately."
-  ];
-  return dynamicReplies[Math.floor(Math.random() * dynamicReplies.length)];
+function headers() {
+  return { 'Content-Type': 'application/json', 'x-admin-key': ADMIN_KEY };
 }
 
-async function getBotReply(cleanName, cleanMsg) {
-  const rawKey = (process.env.GEMINI_API_KEY || "").trim().replace(/^["']|["']$/g, "");
-  const stripped = cleanMsg.replace(/@(apex|apex_racer)/gi, "").trim();
+function esc(s) {
+  return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
 
-  if (rawKey) {
-    try {
-      const prompt = `You are Apex_Racer, a real human player chatting in the Car Parking Multiplayer game lobby. Talk like a real, chill car gamer buddy using simple slang. Answer this exact question from user ${cleanName}: "${stripped}". Keep it under 20 words, 1 short sentence, completely natural, direct, and friendly. Never mention AI, models, or bots.`;
-
-      const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${rawKey}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
-        signal: AbortSignal.timeout(8000)
-      });
-
-      if (resp.ok) {
-        const data = await resp.json();
-        const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-        if (reply && reply.length <= 150) {
-          return reply.replace(/["*]/g, "");
-        }
-      } else {
-        const err = await resp.text().catch(() => "");
-        console.error("Gemini API error:", resp.status, err);
-      }
-    } catch (err) {
-      console.error("Gemini fetch error:", err.message);
+function toggleAutoRefresh(enabled) {
+  if (refreshTimer) clearInterval(refreshTimer);
+  if (enabled) {
+    if (!ADMIN_KEY) {
+      alert('Enter admin key and load data first');
+      document.getElementById('autoRefreshCheck').checked = false;
+      return;
     }
+    refreshTimer = setInterval(() => { loadAll(true); }, 10000);
   }
-
-  return getHumanFallback(stripped || cleanMsg);
 }
 
-async function pruneOldMessages() {
+async function loadAll(isBackground = false) {
+  ADMIN_KEY = document.getElementById('adminKey').value.trim();
+  if (!ADMIN_KEY) return alert('Enter key');
+  if (!isBackground) document.getElementById('status').textContent = 'Loading...';
+
   try {
-    const countSnap = await db.collection("posts").count().get();
-    const total = countSnap.data().count;
-    if (total > 500) {
-      const excess = total - 500;
-      const oldestDocs = await db.collection("posts")
-        .orderBy("createdAt", "asc")
-        .limit(excess)
-        .get();
+    const [pR, bR, lR, vR, pinR] = await Promise.all([
+      fetch(`/api/admin?action=posts&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
+      fetch(`/api/admin?action=banned&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
+      fetch(`/api/admin?action=logs&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
+      fetch(`/api/admin?action=verified_ips&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
+      fetch(`/api/admin?action=pinned&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() })
+    ]);
 
-      const pruneBatch = db.batch();
-      oldestDocs.forEach(d => {
-        pruneBatch.delete(d.ref);
-        pruneBatch.delete(db.collection("ip_logs").doc(d.id));
-      });
-      await pruneBatch.commit();
-    }
+    const posts = await pR.json();
+    const banned = await bR.json();
+    const logs = await lR.json();
+    const verified = await vR.json();
+    const pinned = await pinR.json();
+
+    if (posts.error) return alert(posts.error);
+
+    cachedPosts = Array.isArray(posts) ? posts : [];
+    cachedBanned = Array.isArray(banned) ? banned : [];
+    cachedLogs = Array.isArray(logs) ? logs : [];
+    cachedVerified = Array.isArray(verified) ? verified : [];
+
+    updateStats();
+    applyFilter();
+
+    document.getElementById('currentPin').textContent = pinned && pinned.active ? `${pinned.name}: ${pinned.text}` : 'No active pin';
+    document.getElementById('status').textContent = `Updated ${new Date().toLocaleTimeString()}`;
+    document.getElementById('statsCard').style.display = 'block';
   } catch (err) {
-    console.error("Prune error:", err);
+    if (!isBackground) {
+      document.getElementById('status').textContent = 'Error loading data';
+      alert(err.message);
+    }
   }
 }
 
-export default async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, x-admin-key");
-  if (req.method === "OPTIONS") return res.status(200).end();
-  if (req.method !== "POST") return res.status(405).json({ error: "POST only" });
+function updateStats() {
+  document.getElementById('statPosts').textContent = cachedPosts.length;
+  const uniqueUsers = new Set(cachedPosts.filter(p => !p.isBot).map(p => p.name)).size;
+  document.getElementById('statUsers').textContent = uniqueUsers;
+  document.getElementById('statVerified').textContent = cachedVerified.length;
+  document.getElementById('statBanned').textContent = cachedBanned.length;
+}
 
-  try {
-    const { name, message } = req.body || {};
-    if (!name || !message) return res.status(400).json({ error: "Name and message required" });
-    const cleanName = name.trim().substring(0, 20);
-    const cleanMsg = message.trim().substring(0, 150);
-    if (cleanName.length < 2) return res.status(400).json({ error: "Name too short" });
-    if (RESERVED.includes(cleanName.toLowerCase())) return res.status(400).json({ error: "Name reserved" });
-    if (LINK_REGEX.test(cleanMsg)) return res.status(400).json({ error: "Links not allowed" });
+function applyFilter() {
+  const query = (document.getElementById('searchInput').value || '').trim().toLowerCase();
 
-    const rawIp = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || "").split(',')[0].trim() || "unknown";
-    const safeIp = rawIp.replace(/[^a-zA-Z0-9.:]/g, '_');
+  const filteredPosts = cachedPosts.filter(p => {
+    return !query || (p.name && p.name.toLowerCase().includes(query)) || (p.message && p.message.toLowerCase().includes(query)) || p.id.includes(query);
+  });
 
-    // Auto country detection from Vercel header
-    const countryCode = (req.headers['x-vercel-ip-country'] || req.headers['cf-ipcountry'] || '').toUpperCase();
-    let countryName = 'Unknown';
-    if (countryCode && countryCode.length === 2) {
-      try {
-        countryName = new Intl.DisplayNames(['en'], { type: 'region' }).of(countryCode) || countryCode;
-      } catch {
-        countryName = countryCode;
-      }
+  const verifiedIpSet = new Set(cachedVerified.map(v => v.ip || v.id.replace(/_/g, '.')));
+
+  const filteredLogs = cachedLogs.filter(l => {
+    const countryMatch = l.country && l.country.toLowerCase().includes(query);
+    return !query || (l.name && l.name.toLowerCase().includes(query)) || (l.message && l.message.toLowerCase().includes(query)) || (l.ip && l.ip.includes(query)) || countryMatch;
+  });
+
+  document.getElementById('posts').innerHTML = filteredPosts.map(p => `
+    <div class="post">
+      <b>${esc(p.name)}</b>
+      ${p.isBot ? '<span class="badge">BOT</span>' : ''}
+      ${p.isVerified ? '<span class="badge" style="background:#1d9bf0;">VERIFIED</span>' : ''}
+      <br>${esc(p.message)}
+      <br><small style="color:#64748b;">ID: ${p.id}</small><br>
+      <button class="danger" onclick="delPost('${p.id}')">Delete</button>
+      <button onclick="banFromPost('${p.id}')">Ban IP</button>
+      <button class="green" onclick="verifyIpFromPost('${p.id}')">Verify IP</button>
+      <button onclick="verifyPost('${p.id}', ${!p.isVerified})">${p.isVerified ? 'Unverify Post' : 'Verify Post'}</button>
+    </div>
+  `).join('') || 'No matching posts';
+
+  document.getElementById('logs').innerHTML = filteredLogs.map(l => {
+    const isVerified = verifiedIpSet.has(l.ip);
+    const countryTag = l.country && l.country !== 'Unknown' && l.country !== 'Server' 
+      ? `<span class="country-badge">${esc(l.country)}</span>` 
+      : '';
+    return `
+      <div class="post">
+        <b>${esc(l.name)}</b><br>
+        IP: <code>${esc(l.ip)}</code> ${countryTag} ${isVerified ? '<span class="badge" style="background:#16a34a;">VERIFIED IP</span>' : ''}<br>
+        Message: ${esc(l.message)}<br>
+        <small style="color:#64748b;">postId: ${l.postId || l.id}</small><br>
+        ${l.ip !== 'BOT' ? `
+          <button class="danger" onclick="openBanModal('${esc(l.ip)}')">Ban ${esc(l.ip)}</button>${isVerified ? `
+            <button class="orange" onclick="unverifyIp('${esc(l.ip)}')">Unverify IP</button>
+          ` : `
+            <button class="green" onclick="verifyIp('${esc(l.ip)}')">Verify IP</button>
+          `}
+        ` : ''}
+      </div>
+    `;
+  }).join('') || 'No matching logs';
+
+  document.getElementById('verifiedIps').innerHTML = cachedVerified.map(v => `
+    <div class="post">
+      <code>${esc(v.ip || v.id)}</code>
+      <button class="orange" onclick="unverifyIp('${esc(v.ip || v.id)}')">Remove Verification</button>
+    </div>
+  `).join('') || 'No verified IPs yet';
+
+  document.getElementById('banned').innerHTML = cachedBanned.map(b => {
+    let expiryStr = 'Permanent';
+    if (b.bannedUntil) {
+      const expDate = b.bannedUntil._seconds ? new Date(b.bannedUntil._seconds * 1000) : new Date(b.bannedUntil);
+      expiryStr = 'Expires: ' + expDate.toLocaleString();
     }
+    return `
+      <div class="post">
+        <code>${esc(b.ip || b.id)}</code> (Reason: <b>${esc(b.reason || 'spam')}</b>, ${expiryStr})<br>
+        <button onclick="unban('${esc(b.ip || b.id)}')">Unban</button>
+      </div>
+    `;
+  }).join('') || 'None';
+}
 
-    // 1. BAN CHECK (with timed ban expiration)
-    const banSnap = await db.collection("banned").doc(safeIp).get();
-    if (banSnap.exists) {
-      const banData = banSnap.data();
-      const until = banData.bannedUntil?._seconds ? banData.bannedUntil._seconds * 1000 : null;
-      if (!until || until > Date.now()) {
-        const reasonText = banData.reason ? `: ${banData.reason}` : "";
-        return res.status(403).json({ error: `You are banned${reasonText}` });
-      } else {
-        await db.collection("banned").doc(safeIp).delete().catch(() => {});
-      }
+function openBanModal(ip) {
+  activeBanIp = ip;
+  document.getElementById('modalIpDisplay').textContent = ip;
+  document.getElementById('banModal').style.display = 'flex';
+}
+
+function closeBanModal() {
+  activeBanIp = '';
+  document.getElementById('banModal').style.display = 'none';
+}
+
+async function executeBanPreset(reason, hours) {
+  if (!activeBanIp) return;
+  const ip = activeBanIp;
+  closeBanModal();
+  const r = await fetch('/api/admin', {
+    method: 'POST',
+    headers: headers(),
+    body: JSON.stringify({ action: 'ban', ip, reason, hours })
+  });
+  const d = await r.json();
+  if (d.success) loadAll(); else alert(d.error);
+}
+
+function promptCustomBan() {
+  const ip = activeBanIp;
+  closeBanModal();
+  const reason = prompt(`Enter ban reason for IP ${ip}:`, 'Custom reason');
+  if (reason === null) return;
+  const hoursStr = prompt('Ban duration in hours (enter 0 for permanent):', '0');
+  if (hoursStr === null) return;
+  const hours = parseFloat(hoursStr) || 0;
+
+  fetch('/api/admin', {
+    method: 'POST',
+    headers: headers(),
+    body: JSON.stringify({ action: 'ban', ip, reason, hours })
+  }).then(r => r.json()).then(d => {
+    if (d.success) loadAll(); else alert(d.error);
+  });
+}
+
+async function delPost(id) {
+  if (!confirm('Delete post ' + id + '?')) return;
+  const r = await fetch(`/api/admin?id=${id}`, { method: 'DELETE', headers: headers() });
+  const d = await r.json();
+  if (d.success) loadAll(); else alert(d.error);
+}
+
+function banFromPost(postId) {
+  const log = cachedLogs.find(l => l.postId === postId || l.id === postId);
+  if (!log) return alert('Log not found for post ' + postId);
+  if (log.ip === 'BOT') return alert('Cannot ban BOT');
+  openBanModal(log.ip);
+}
+
+async function unban(ip) {
+  if (!confirm('Unban ' + ip + '?')) return;
+  const r = await fetch('/api/admin', { method: 'POST', headers: headers(), body: JSON.stringify({ action: 'unban', ip }) });
+  const d = await r.json();
+  if (d.success) loadAll(); else alert(d.error);
+}
+
+function verifyIpFromPost(postId) {
+  const log = cachedLogs.find(l => l.postId === postId || l.id === postId);
+  if (!log) return alert('Log not found for ' + postId);
+  if (log.ip === 'BOT') return alert('Cannot verify BOT IP');
+  verifyIp(log.ip, postId);
+}
+
+async function verifyIp(ip, postId) {
+  if (!confirm('Verify IP ' + ip + '? All future messages will have the verified badge.')) return;
+  const r = await fetch('/api/admin', { method: 'POST', headers: headers(), body: JSON.stringify({ action: 'verify_ip', ip }) });
+  const d = await r.json();
+  if (d.success) {
+    if (postId) {
+      await fetch('/api/admin', { method: 'POST', headers: headers(), body: JSON.stringify({ action: 'verify', postId, isVerified: true }) });
     }
-
-    // 2. VERIFIED IP CHECK
-    const verifiedSnap = await db.collection("verified_ips").doc(safeIp).get();
-    const isIpVerified = verifiedSnap.exists;
-
-    // 3. RATE LIMIT (10s)
-    const rateRef = db.collection("rateLimits").doc(safeIp);
-    const rateSnap = await rateRef.get();
-    if (rateSnap.exists) {
-      const last = rateSnap.data().lastPost?._seconds || rateSnap.data().lastPost?.seconds || 0;
-      const now = Math.floor(Date.now() / 1000);
-      if (now - last < 10) return res.status(429).json({ error: `Slow down ${10 - (now - last)}s` });
-    }
-
-    // 4. WRITE USER POST (Public collection gets NO country or IP data)
-    const batch = db.batch();
-    const postRef = db.collection("posts").doc();
-    const logRef = db.collection("ip_logs").doc(postRef.id);
-
-    batch.set(postRef, {
-      name: cleanName,
-      message: cleanMsg,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      isVerified: isIpVerified,
-      isBot: false
-    });
-
-    // 5. WRITE PRIVATE IP LOG (Contains IP and detected Country for admin panel only)
-    batch.set(logRef, {
-      postId: postRef.id,
-      ip: rawIp,
-      country: countryName,
-      countryCode: countryCode,
-      name: cleanName,
-      message: cleanMsg,
-      createdAt: admin.firestore.FieldValue.serverTimestamp()
-    });
-
-    batch.set(rateRef, {
-      lastPost: admin.firestore.FieldValue.serverTimestamp(),
-      ip: rawIp
-    }, { merge: true });
-
-    await batch.commit();
-
-    // 6. BOT REPLY
-    if (cleanMsg.toLowerCase().includes("@apex")) {
-      const botText = await getBotReply(cleanName, cleanMsg);
-      const botRef = db.collection("posts").doc();
-      const botBatch = db.batch();
-
-      botBatch.set(botRef, {
-        name: "Apex_Racer",
-        message: botText,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-        isBot: true,
-        isVerified: true
-      });
-      botBatch.set(db.collection("ip_logs").doc(botRef.id), {
-        postId: botRef.id,
-        name: "Apex_Racer",
-        message: botText,
-        ip: "BOT",
-        country: "Server",
-        countryCode: "BOT",
-        createdAt: admin.firestore.FieldValue.serverTimestamp()
-      });
-      await botBatch.commit();
-    }
-
-    await pruneOldMessages();
-
-    return res.status(200).json({
-      success: true,
-      projectId: serviceAccount?.project_id || "unknown"
-    });
-  } catch (e) {
-    console.error(e);
-    return res.status(500).json({ error: e.message || "Server error" });
+    loadAll();
+  } else {
+    alert(d.error);
   }
 }
+
+async function unverifyIp(ip) {
+  if (!confirm('Remove verification for IP ' + ip + '?')) return;
+  const r = await fetch('/api/admin', { method: 'POST', headers: headers(), body: JSON.stringify({ action: 'unverify_ip', ip }) });
+  const d = await r.json();
+  if (d.success) loadAll(); else alert(d.error);
+}
+
+async function verifyPost(postId, isVerified) {
+  const r = await fetch('/api/admin', { method: 'POST', headers: headers(), body: JSON.stringify({ action: 'verify', postId, isVerified }) });
+  const d = await r.json();
+  if (d.success) loadAll(); else alert(d.error);
+}
+
+async function pin(active) {
+  const text = document.getElementById('pinText').value;
+  const name = document.getElementById('pinName').value || 'Admin';
+  if (active && !text) return alert('Enter announcement text');
+  const r = await fetch('/api/admin', { method: 'POST', headers: headers(), body: JSON.stringify({ action: 'pin', text, name, active }) });
+  const d = await r.json();
+  if (d.success) loadAll(); else alert(d.error);
+}
+</script>
+</body>
+</html>
