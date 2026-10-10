@@ -12,11 +12,15 @@ button { background: #3b82f6; color: #fff; border: 0; padding: 8px 14px; border-
 button.danger { background: #dc2626; }
 button.green { background: #16a34a; }
 button.orange { background: #ea580c; }
-.post { border-bottom: 1px solid #222; padding: 10px 0; }
+.post { border-bottom: 1px solid #222; padding: 12px 0; }
 .post:last-child { border-bottom: 0; }
-code { background: #1e293b; padding: 2px 6px; border-radius: 4px; color: #38bdf8; font-family: monospace; }
-.badge { background: #333; padding: 2px 6px; border-radius: 4px; font-size: 11px; margin-left: 4px; }
-.country-badge { background: #2e1065; color: #c084fc; border: 1px solid #581c87; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; margin-left: 4px; }
+code { background: #1e293b; padding: 2px 6px; border-radius: 4px; color: #38bdf8; font-family: monospace; font-size: 12px; }
+.badge { background: #333; padding: 2px 6px; border-radius: 4px; font-size: 11px; margin-right: 4px; }
+.badge-loc { background: #4c1d95; color: #d8b4fe; }
+.badge-dev { background: #064e3b; color: #6ee7b7; }
+.badge-spec { background: #1e293b; color: #94a3b8; }
+.badge-batt { background: #713f12; color: #fde047; }
+.detail-grid { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0; }
 .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; margin-top: 8px; }
 .stat-box { background: #18181b; border: 1px solid #27272a; border-radius: 8px; padding: 10px; text-align: center; }
 .stat-val { font-size: 1.25rem; font-weight: 700; color: #38bdf8; }
@@ -81,15 +85,15 @@ code { background: #1e293b; padding: 2px 6px; border-radius: 4px; color: #38bdf8
   <h4>Wall Statistics</h4>
   <div class="stats-grid">
     <div class="stat-box"><div id="statPosts" class="stat-val">0</div><div class="stat-label">Total Posts</div></div>
-    <div class="stat-box"><div id="statUsers" class="stat-val">0</div><div class="stat-label">Unique Posters</div></div>
+    <div class="stat-box"><div id="statVisitors" class="stat-val">0</div><div class="stat-label">Tracked Visitors</div></div>
     <div class="stat-box"><div id="statVerified" class="stat-val">0</div><div class="stat-label">Verified IPs</div></div>
     <div class="stat-box"><div id="statBanned" class="stat-val">0</div><div class="stat-label">Active Bans</div></div>
   </div>
 </div>
 
 <div class="card">
-  <h4>Filter Feed and Logs</h4>
-  <input id="searchInput" placeholder="Search by name, message text, IP, or country..." oninput="applyFilter()">
+  <h4>Filter Feed, Visitors and Logs</h4>
+  <input id="searchInput" placeholder="Search by name, message, IP, city, device, or OS..." oninput="applyFilter()">
 </div>
 
 <div class="card">
@@ -102,13 +106,18 @@ code { background: #1e293b; padding: 2px 6px; border-radius: 4px; color: #38bdf8
 </div>
 
 <div class="card">
-  <h4>Posts</h4>
-  <div id="posts">Login to load posts</div>
+  <h4>Live Visitors (Opened Website)</h4>
+  <div id="visitors">Login to load visitors</div>
 </div>
 
 <div class="card">
-  <h4>IP Logs (Live User IPs and Countries)</h4>
+  <h4>IP Logs (Posts with Details)</h4>
   <div id="logs">Login to load logs</div>
+</div>
+
+<div class="card">
+  <h4>Posts</h4>
+  <div id="posts">Login to load posts</div>
 </div>
 
 <div class="card">
@@ -138,7 +147,7 @@ code { background: #1e293b; padding: 2px 6px; border-radius: 4px; color: #38bdf8
 
 <script>
 let ADMIN_KEY = '';
-let cachedPosts = [], cachedLogs = [], cachedBanned = [], cachedVerified = [];
+let cachedPosts = [], cachedLogs = [], cachedVisitors = [], cachedBanned = [], cachedVerified = [];
 let refreshTimer = null;
 let activeBanIp = '';
 
@@ -168,12 +177,13 @@ async function loadAll(isBackground = false) {
   if (!isBackground) document.getElementById('status').textContent = 'Loading...';
 
   try {
-    const [pR, bR, lR, vR, pinR] = await Promise.all([
+    const [pR, bR, lR, vR, pinR, visR] = await Promise.all([
       fetch(`/api/admin?action=posts&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
       fetch(`/api/admin?action=banned&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
       fetch(`/api/admin?action=logs&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
       fetch(`/api/admin?action=verified_ips&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
-      fetch(`/api/admin?action=pinned&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() })
+      fetch(`/api/admin?action=pinned&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
+      fetch(`/api/admin?action=visitors&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() })
     ]);
 
     const posts = await pR.json();
@@ -181,6 +191,7 @@ async function loadAll(isBackground = false) {
     const logs = await lR.json();
     const verified = await vR.json();
     const pinned = await pinR.json();
+    const visitors = await visR.json();
 
     if (posts.error) return alert(posts.error);
 
@@ -188,6 +199,7 @@ async function loadAll(isBackground = false) {
     cachedBanned = Array.isArray(banned) ? banned : [];
     cachedLogs = Array.isArray(logs) ? logs : [];
     cachedVerified = Array.isArray(verified) ? verified : [];
+    cachedVisitors = Array.isArray(visitors) ? visitors : [];
 
     updateStats();
     applyFilter();
@@ -205,8 +217,7 @@ async function loadAll(isBackground = false) {
 
 function updateStats() {
   document.getElementById('statPosts').textContent = cachedPosts.length;
-  const uniqueUsers = new Set(cachedPosts.filter(p => !p.isBot).map(p => p.name)).size;
-  document.getElementById('statUsers').textContent = uniqueUsers;
+  document.getElementById('statVisitors').textContent = cachedVisitors.length;
   document.getElementById('statVerified').textContent = cachedVerified.length;
   document.getElementById('statBanned').textContent = cachedBanned.length;
 }
@@ -221,9 +232,73 @@ function applyFilter() {
   const verifiedIpSet = new Set(cachedVerified.map(v => v.ip || v.id.replace(/_/g, '.')));
 
   const filteredLogs = cachedLogs.filter(l => {
-    const countryMatch = l.country && l.country.toLowerCase().includes(query);
-    return !query || (l.name && l.name.toLowerCase().includes(query)) || (l.message && l.message.toLowerCase().includes(query)) || (l.ip && l.ip.includes(query)) || countryMatch;
+    const loc = `${l.city || ''} ${l.country || ''}`.toLowerCase();
+    const dev = `${l.device || ''} ${l.os || ''} ${l.browser || ''}`.toLowerCase();
+    return !query || (l.name && l.name.toLowerCase().includes(query)) || (l.message && l.message.toLowerCase().includes(query)) || (l.ip && l.ip.includes(query)) || loc.includes(query) || dev.includes(query);
   });
+
+  const filteredVisitors = cachedVisitors.filter(v => {
+    const loc = `${v.city || ''} ${v.country || ''}`.toLowerCase();
+    const dev = `${v.device || ''} ${v.os || ''} ${v.browser || ''}`.toLowerCase();
+    return !query || (v.ip && v.ip.includes(query)) || loc.includes(query) || dev.includes(query);
+  });
+
+  document.getElementById('visitors').innerHTML = filteredVisitors.map(v => {
+    const isVerified = verifiedIpSet.has(v.ip);
+    const locText = v.city && v.city !== 'Unknown City' ? `${v.city}, ${v.country}` : v.country;
+    return `
+      <div class="post">
+        IP: <code>${esc(v.ip)}</code> ${isVerified ? '<span class="badge" style="background:#16a34a;">VERIFIED IP</span>' : ''}
+        <div class="detail-grid">
+          ${locText ? `<span class="badge badge-loc">📍 ${esc(locText)}</span>` : ''}
+          ${v.device ? `<span class="badge badge-dev">📱 ${esc(v.device)}</span>` : ''}
+          ${v.os ? `<span class="badge badge-dev">${esc(v.os)}</span>` : ''}
+          ${v.browser ? `<span class="badge badge-dev">${esc(v.browser)}</span>` : ''}
+          ${v.battery && v.battery !== 'N/A' ? `<span class="badge badge-batt">🔋 ${esc(v.battery)}</span>` : ''}
+          ${v.ram && v.ram !== 'N/A' ? `<span class="badge badge-spec">RAM: ${esc(v.ram)}</span>` : ''}
+          ${v.screen && v.screen !== 'Unknown' ? `<span class="badge badge-spec">📺 ${esc(v.screen)}</span>` : ''}
+          ${v.network && v.network !== 'N/A' ? `<span class="badge badge-spec">📶 ${esc(v.network.toUpperCase())}</span>` : ''}
+          ${v.referrer && v.referrer !== 'Direct' ? `<span class="badge badge-spec">From: ${esc(v.referrer)}</span>` : ''}
+        </div>
+        <button class="danger" onclick="openBanModal('${esc(v.ip)}')">Ban ${esc(v.ip)}</button>
+        ${isVerified ? `
+          <button class="orange" onclick="unverifyIp('${esc(v.ip)}')">Unverify IP</button>
+        ` : `
+          <button class="green" onclick="verifyIp('${esc(v.ip)}')">Verify IP</button>
+        `}
+      </div>
+    `;
+  }).join('') || 'No visitors tracked yet';
+
+  document.getElementById('logs').innerHTML = filteredLogs.map(l => {
+    const isVerified = verifiedIpSet.has(l.ip);
+    const locText = l.city && l.city !== 'Unknown City' ? `${l.city}, ${l.country}` : l.country;
+    return `
+      <div class="post">
+        <b>${esc(l.name)}</b><br>
+        IP: <code>${esc(l.ip)}</code> ${isVerified ? '<span class="badge" style="background:#16a34a;">VERIFIED IP</span>' : ''}
+        <div class="detail-grid">
+          ${locText && l.ip !== 'BOT' ? `<span class="badge badge-loc">📍 ${esc(locText)}</span>` : ''}
+          ${l.device ? `<span class="badge badge-dev">📱 ${esc(l.device)}</span>` : ''}
+          ${l.os ? `<span class="badge badge-dev">${esc(l.os)}</span>` : ''}
+          ${l.browser ? `<span class="badge badge-dev">${esc(l.browser)}</span>` : ''}
+          ${l.battery && l.battery !== 'N/A' ? `<span class="badge badge-batt">🔋 ${esc(l.battery)}</span>` : ''}
+          ${l.ram && l.ram !== 'N/A' ? `<span class="badge badge-spec">RAM: ${esc(l.ram)}</span>` : ''}
+          ${l.screen && l.screen !== 'N/A' ? `<span class="badge badge-spec">📺 ${esc(l.screen)}</span>` : ''}
+          ${l.network && l.network !== 'N/A' ? `<span class="badge badge-spec">📶 ${esc(l.network.toUpperCase())}</span>` : ''}
+        </div>
+        Message: ${esc(l.message)}<br>
+        <small style="color:#64748b;">postId: ${l.postId || l.id}</small><br>
+        ${l.ip !== 'BOT' ? `
+          <button class="danger" onclick="openBanModal('${esc(l.ip)}')">Ban ${esc(l.ip)}</button>${isVerified ? `
+            <button class="orange" onclick="unverifyIp('${esc(l.ip)}')">Unverify IP</button>
+          ` : `
+            <button class="green" onclick="verifyIp('${esc(l.ip)}')">Verify IP</button>
+          `}
+        ` : ''}
+      </div>
+    `;
+  }).join('') || 'No matching logs';
 
   document.getElementById('posts').innerHTML = filteredPosts.map(p => `
     <div class="post">
@@ -238,28 +313,6 @@ function applyFilter() {
       <button onclick="verifyPost('${p.id}', ${!p.isVerified})">${p.isVerified ? 'Unverify Post' : 'Verify Post'}</button>
     </div>
   `).join('') || 'No matching posts';
-
-  document.getElementById('logs').innerHTML = filteredLogs.map(l => {
-    const isVerified = verifiedIpSet.has(l.ip);
-    const countryTag = l.country && l.country !== 'Unknown' && l.country !== 'Server' 
-      ? `<span class="country-badge">${esc(l.country)}</span>` 
-      : '';
-    return `
-      <div class="post">
-        <b>${esc(l.name)}</b><br>
-        IP: <code>${esc(l.ip)}</code> ${countryTag} ${isVerified ? '<span class="badge" style="background:#16a34a;">VERIFIED IP</span>' : ''}<br>
-        Message: ${esc(l.message)}<br>
-        <small style="color:#64748b;">postId: ${l.postId || l.id}</small><br>
-        ${l.ip !== 'BOT' ? `
-          <button class="danger" onclick="openBanModal('${esc(l.ip)}')">Ban ${esc(l.ip)}</button>${isVerified ? `
-            <button class="orange" onclick="unverifyIp('${esc(l.ip)}')">Unverify IP</button>
-          ` : `
-            <button class="green" onclick="verifyIp('${esc(l.ip)}')">Verify IP</button>
-          `}
-        ` : ''}
-      </div>
-    `;
-  }).join('') || 'No matching logs';
 
   document.getElementById('verifiedIps').innerHTML = cachedVerified.map(v => `
     <div class="post">
@@ -348,7 +401,7 @@ async function unban(ip) {
 
 function verifyIpFromPost(postId) {
   const log = cachedLogs.find(l => l.postId === postId || l.id === postId);
-  if (!log) return alert('Log not found for ' + postId);
+  if (!log) return alert('Log not found for post ' + postId);
   if (log.ip === 'BOT') return alert('Cannot verify BOT IP');
   verifyIp(log.ip, postId);
 }

@@ -35,6 +35,10 @@ export default async function handler(req, res) {
         const snap = await db.collection("ip_logs").orderBy("createdAt", "desc").limit(100).get();
         return res.status(200).json(snap.docs.map(d => ({ id: d.id, ...d.data() })));
       }
+      if (action === "visitors") {
+        const snap = await db.collection("visitors").orderBy("lastSeen", "desc").limit(60).get();
+        return res.status(200).json(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      }
       if (action === "pinned") {
         const snap = await db.collection("pinned").doc("current").get();
         return res.status(200).json(snap.exists ? snap.data() : null);
@@ -114,7 +118,6 @@ export default async function handler(req, res) {
     }
     return res.status(400).json({ error: "Invalid action" });
   } catch (e) {
-    console.error(e);
     return res.status(500).json({ error: e.message });
   }
 }

@@ -27,6 +27,34 @@ function containsBlockedContent(text) {
   return BLOCKED_WORDS.some(word => lower.includes(word));
 }
 
+function parseUserAgent(ua = "") {
+  let os = "Unknown OS";
+  if (/windows nt 10/i.test(ua)) os = "Windows 10/11";
+  else if (/android (\d+(\.\d+)?)/i.test(ua)) os = "Android " + (ua.match(/android (\d+(\.\d+)?)/i)?.[1] || "");
+  else if (/iphone os (\d+[_\d]*)/i.test(ua)) os = "iOS " + (ua.match(/iphone os (\d+[_\d]*)/i)?.[1]?.replace(/_/g, '.') || "");
+  else if (/mac os x/i.test(ua)) os = "macOS";
+  else if (/linux/i.test(ua)) os = "Linux";
+
+  let browser = "Browser";
+  if (/instagram/i.test(ua)) browser = "Instagram App";
+  else if (/whatsapp/i.test(ua)) browser = "WhatsApp App";
+  else if (/edg\//i.test(ua)) browser = "Edge";
+  else if (/chrome\//i.test(ua)) browser = "Chrome";
+  else if (/safari\//i.test(ua)) browser = "Safari";
+  else if (/firefox\//i.test(ua)) browser = "Firefox";
+
+  let device = "Desktop";
+  if (/mobile|android|iphone|ipad/i.test(ua)) {
+    device = "Mobile";
+    const model = ua.match(/;\s*([^;)]+)\s*Build\//i);
+    if (model && model[1]) device = model[1].trim();
+    else if (/iphone/i.test(ua)) device = "iPhone";
+    else if (/ipad/i.test(ua)) device = "iPad";
+  }
+
+  return { os, browser, device };
+}
+
 function getHumanFallback(cleanMsg) {
   const t = cleanMsg.toLowerCase();
 
@@ -142,9 +170,7 @@ async function getBotReply(cleanName, cleanMsg) {
           return reply.replace(/["*]/g, "");
         }
       }
-    } catch (err) {
-      console.error("Gemini fetch error:", err.message);
-    }
+    } catch (err) {}
   }
 
   return getHumanFallback(stripped || cleanMsg);
@@ -168,9 +194,7 @@ async function pruneOldMessages() {
       });
       await pruneBatch.commit();
     }
-  } catch (err) {
-    console.error("Prune error:", err);
-  }
+  } catch (err) {}
 }
 
 export default async function handler(req, res) {
@@ -181,14 +205,13 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "POST only" });
 
   try {
-    const { name, message } = req.body || {};
+    const { name, message, clientInfo } = req.body || {};
     if (!name || !message) return res.status(400).json({ error: "Name and message required" });
     const cleanName = name.trim().substring(0, 20);
     const cleanMsg = message.trim().substring(0, 150);
     if (cleanName.length < 2) return res.status(400).json({ error: "Name too short" });
     if (RESERVED.includes(cleanName.toLowerCase())) return res.status(400).json({ error: "Name reserved" });
 
-    // Automated word and scam blocker
     if (containsBlockedContent(cleanMsg)) {
       return res.status(400).json({ error: "Message blocked: abusive words, links, or scam phrases are prohibited." });
     }
@@ -205,6 +228,12 @@ export default async function handler(req, res) {
         countryName = countryCode;
       }
     }
+
+    const city = req.headers['x-vercel-ip-city'] || '';
+    const region = req.headers['x-vercel-ip-country-region'] || '';
+    const ua = req.headers['user-agent'] || '';
+    const { os, browser, device } = parseUserAgent(ua);
+    const client = clientInfo || {};
 
     const banSnap = await db.collection("banned").doc(safeIp).get();
     if (banSnap.exists) {
@@ -245,7 +274,17 @@ export default async function handler(req, res) {
       postId: postRef.id,
       ip: rawIp,
       country: countryName,
-      countryCode: countryCode,
+      city: city || 'Unknown City',
+      region: region,
+      device: device,
+      os: os,
+      browser: browser,
+      battery: client.battery || 'N/A',
+      ram: client.ram || 'N/A',
+      cores: client.cores || 'N/A',
+      screen: client.screen || 'N/A',
+      network: client.network || 'N/A',
+      referrer: client.referrer || 'Direct',
       name: cleanName,
       message: cleanMsg,
       createdAt: admin.firestore.FieldValue.serverTimestamp()
@@ -276,7 +315,10 @@ export default async function handler(req, res) {
         message: botText,
         ip: "BOT",
         country: "Server",
-        countryCode: "BOT",
+        city: "Cloud",
+        device: "Server Bot",
+        os: "Node.js",
+        browser: "AI Engine",
         createdAt: admin.firestore.FieldValue.serverTimestamp()
       });
       await botBatch.commit();
@@ -289,7 +331,6 @@ export default async function handler(req, res) {
       projectId: serviceAccount?.project_id || "unknown"
     });
   } catch (e) {
-    console.error(e);
     return res.status(500).json({ error: e.message || "Server error" });
   }
 }

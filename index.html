@@ -448,9 +448,33 @@ window.toggleAlerts = async () => {
 };
 updateAlertBtn();
 
+async function getClientDeviceInfo() {
+  let batteryStr = null;
+  if (navigator.getBattery) {
+    try {
+      const b = await navigator.getBattery();
+      batteryStr = `${Math.round(b.level * 100)}%${b.charging ? ' (Charging)' : ''}`;
+    } catch {}
+  }
+  return {
+    screen: `${window.screen.width}x${window.screen.height}`,
+    ram: navigator.deviceMemory ? `${navigator.deviceMemory} GB` : null,
+    cores: navigator.hardwareConcurrency ? `${navigator.hardwareConcurrency} Cores` : null,
+    lang: navigator.language || null,
+    network: navigator.connection ? navigator.connection.effectiveType : null,
+    battery: batteryStr,
+    referrer: document.referrer || 'Direct'
+  };
+}
+
 async function pingHeartbeat() {
   try {
-    const r = await fetch('/api/heartbeat');
+    const info = await getClientDeviceInfo();
+    const r = await fetch('/api/heartbeat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(info)
+    });
     const d = await r.json();
     if (d && d.online) {
       onlineCountEl.textContent = `${d.online} Online`;
@@ -668,7 +692,6 @@ onSnapshot(q, (snap) => {
     feedEl.removeChild(feedEl.lastChild);
   }
 }, (err) => {
-  console.error("Firestore error:", err);
   feedEl.innerHTML = `<p style="text-align:center;color:#ef4444;font-size:0.85rem;margin-top:20px;">Connection failed: ${err.message}</p>`;
 });
 
@@ -739,10 +762,11 @@ window.sendPost = async () => {
   sendBtn.textContent = "Posting...";
 
   try {
+    const clientInfo = await getClientDeviceInfo();
     const res = await fetch('/api/post', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, message })
+      body: JSON.stringify({ name, message, clientInfo })
     });
     const data = await res.json().catch(() => ({}));
 
