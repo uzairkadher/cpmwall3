@@ -69,6 +69,7 @@ mark { background: #facc15; color: #000; padding: 0 2px; border-radius: 3px; fon
 .badge-spec { background: #1e293b; color: #94a3b8; }
 .badge-batt { background: #713f12; color: #fde047; }
 .badge-count { background: #0284c7; color: #fff; font-weight: 700; }
+.badge-vip { background: #854d0e; color: #fef08a; font-weight: 700; }
 .detail-grid { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0; }
 .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; margin-top: 8px; }
 .stat-box { background: #18181b; border: 1px solid #27272a; border-radius: 8px; padding: 10px; text-align: center; }
@@ -166,6 +167,7 @@ mark { background: #facc15; color: #000; padding: 0 2px; border-radius: 3px; fon
   <div class="stats-grid">
     <div class="stat-box"><div id="statPosts" class="stat-val">0</div><div class="stat-label">Total Posts</div></div>
     <div class="stat-box"><div id="statVisitors" class="stat-val">0</div><div class="stat-label">Tracked Visitors</div></div>
+    <div class="stat-box"><div id="statVip" class="stat-val" style="color:#f59e0b;">0</div><div class="stat-label">VIP Racers</div></div>
     <div class="stat-box"><div id="statReports" class="stat-val" style="color:#ef4444;">0</div><div class="stat-label">Reports Queue</div></div>
     <div class="stat-box"><div id="statBanned" class="stat-val">0</div><div class="stat-label">Active Bans</div></div>
   </div>
@@ -174,6 +176,16 @@ mark { background: #facc15; color: #000; padding: 0 2px; border-radius: 3px; fon
 <div class="card" id="reportedCard">
   <h4 style="color:#ef4444;">🚩 Flagged Reports Queue</h4>
   <div id="reportedPosts">No reported messages</div>
+</div>
+
+<div class="card">
+  <h4 style="color:#f59e0b;">⭐ VIP Lounge Members & Access</h4>
+  <div id="vipMembers">Login to load VIP members</div>
+</div>
+
+<div class="card">
+  <h4 style="color:#ef4444;">🚫 Blocked from VIP Lounge</h4>
+  <div id="vipBannedList">Login to load blocked VIPs</div>
 </div>
 
 <div class="card">
@@ -186,7 +198,7 @@ mark { background: #facc15; color: #000; padding: 0 2px; border-radius: 3px; fon
 </div>
 
 <div class="card">
-  <h4>Filter Feed, Visitors and Logs</h4>
+  <h4>Filter Feed, Visitors, VIPs and Logs</h4>
   <input id="searchInput" placeholder="Search by name, message, IP, city, device, or OS..." oninput="applyFilter()">
 </div>
 
@@ -248,6 +260,7 @@ mark { background: #facc15; color: #000; padding: 0 2px; border-radius: 3px; fon
 <script>
 let ADMIN_KEY = '';
 let cachedPosts = [], cachedLogs = [], cachedVisitors = [], cachedBanned = [], cachedVerified = [], cachedFilters = [];
+let cachedVipMembers = [], cachedVipBanned = [];
 let refreshTimer = null;
 let activeBanIp = '';
 let isChatCurrentlyLocked = false;
@@ -362,6 +375,46 @@ async function saveVipKey() {
   }
 }
 
+async function banVip(ip) {
+  if (!confirm(`Block IP ${ip} from accessing and posting in the VIP Lounge?`)) return;
+  try {
+    const r = await fetch('/api/admin', {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify({ action: 'ban_vip', ip })
+    });
+    const d = await r.json();
+    if (d.success) {
+      setStatus(`Blocked ${ip} from VIP Lounge`);
+      loadAll(true);
+    } else {
+      setStatus(d.error || 'Failed to block from VIP', true);
+    }
+  } catch (err) {
+    setStatus('Network error: ' + err.message, true);
+  }
+}
+
+async function unbanVip(ip) {
+  if (!confirm(`Unblock IP ${ip} so they can re-enter VIP Lounge?`)) return;
+  try {
+    const r = await fetch('/api/admin', {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify({ action: 'unban_vip', ip })
+    });
+    const d = await r.json();
+    if (d.success) {
+      setStatus(`Unblocked ${ip} from VIP Lounge`);
+      loadAll(true);
+    } else {
+      setStatus(d.error || 'Failed to unblock from VIP', true);
+    }
+  } catch (err) {
+    setStatus('Network error: ' + err.message, true);
+  }
+}
+
 async function loadAll(isBackground = false) {
   const keyInput = document.getElementById('adminKey');
   const loadBtn = document.getElementById('loadBtn');
@@ -379,14 +432,16 @@ async function loadAll(isBackground = false) {
   }
 
   try {
-    const [pR, bR, lR, vR, pinR, visR, fR] = await Promise.all([
+    const [pR, bR, lR, vR, pinR, visR, fR, vipR, vipBanR] = await Promise.all([
       fetch(`/api/admin?action=posts&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
       fetch(`/api/admin?action=banned&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
       fetch(`/api/admin?action=logs&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
       fetch(`/api/admin?action=verified_ips&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
       fetch(`/api/admin?action=pinned&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
       fetch(`/api/admin?action=visitors&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
-      fetch(`/api/admin?action=filters&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() })
+      fetch(`/api/admin?action=filters&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
+      fetch(`/api/admin?action=vip_members&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
+      fetch(`/api/admin?action=vip_banned&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() })
     ]);
 
     if (pR.status === 401) {
@@ -403,6 +458,8 @@ async function loadAll(isBackground = false) {
     const pinned = await pinR.json();
     const visitors = await visR.json();
     const filters = await fR.json();
+    const vipMembers = await vipR.json();
+    const vipBanned = await vipBanR.json();
 
     if (posts && posts.error) {
       setStatus('Error: ' + posts.error, true);
@@ -417,6 +474,8 @@ async function loadAll(isBackground = false) {
     cachedVerified = Array.isArray(verified) ? verified : [];
     cachedVisitors = Array.isArray(visitors) ? visitors : [];
     cachedFilters = (filters && Array.isArray(filters.words)) ? filters.words : [];
+    cachedVipMembers = Array.isArray(vipMembers) ? vipMembers : [];
+    cachedVipBanned = Array.isArray(vipBanned) ? vipBanned : [];
 
     updateStats();
     renderFilters();
@@ -439,6 +498,7 @@ async function loadAll(isBackground = false) {
 function updateStats() {
   document.getElementById('statPosts').textContent = cachedPosts.length;
   document.getElementById('statVisitors').textContent = cachedVisitors.length;
+  document.getElementById('statVip').textContent = cachedVipMembers.length;
   const reportedCount = cachedPosts.filter(p => p.isReported).length;
   document.getElementById('statReports').textContent = reportedCount;
   document.getElementById('statBanned').textContent = cachedBanned.length;
@@ -504,9 +564,12 @@ function exportBackup() {
     stats: {
       postsCount: cachedPosts.length,
       visitorsCount: cachedVisitors.length,
+      vipCount: cachedVipMembers.length,
       bansCount: cachedBanned.length
     },
     posts: cachedPosts,
+    vipMembers: cachedVipMembers,
+    vipBanned: cachedVipBanned,
     visitors: cachedVisitors,
     ipLogs: cachedLogs,
     verifiedIps: cachedVerified,
@@ -577,6 +640,33 @@ function applyFilter() {
     </div>
   `).join('') || '<div style="color:#94a3b8; font-size:12px;">No reported messages right now.</div>';
 
+  const filteredVips = cachedVipMembers.filter(m => {
+    const loc = `${m.city || ''} ${m.country || ''}`.toLowerCase();
+    const dev = `${m.device || ''} ${m.os || ''} ${m.browser || ''}`.toLowerCase();
+    return !query || (m.name && m.name.toLowerCase().includes(query)) || (m.ip && m.ip.includes(query)) || loc.includes(query) || dev.includes(query);
+  });
+
+  document.getElementById('vipMembers').innerHTML = filteredVips.map(m => `
+    <div class="post">
+      <b>${highlight(m.name, query)}</b> <span class="badge badge-vip">VIP MEMBER</span><br>
+      IP: <code>${highlight(m.ip, query)}</code>
+      <div class="detail-grid">
+        ${m.country ? `<span class="badge badge-loc">📍 ${esc(m.city ? m.city + ', ' + m.country : m.country)}</span>` : ''}
+        ${m.device ? `<span class="badge badge-dev">📱 ${esc(m.device)}</span>` : ''}
+        ${m.os ? `<span class="badge badge-dev">${esc(m.os)}</span>` : ''}
+      </div>
+      <button type="button" class="danger" onclick="banVip('${esc(m.ip)}')">Block from VIP</button>
+      <button type="button" class="danger" style="background:#991b1b;" onclick="openBanModal('${esc(m.ip)}')">Ban Whole Site</button>
+    </div>
+  `).join('') || '<div style="color:#94a3b8; font-size:12px;">No VIP members unlocked yet.</div>';
+
+  document.getElementById('vipBannedList').innerHTML = cachedVipBanned.map(b => `
+    <div class="post">
+      <code>${highlight(b.ip || b.id, query)}</code> <span class="badge" style="background:#ef4444;">VIP BLOCKED</span><br>
+      <button type="button" class="green" onclick="unbanVip('${esc(b.ip || b.id)}')">Unblock from VIP</button>
+    </div>
+  `).join('') || '<div style="color:#94a3b8; font-size:12px;">No users blocked from VIP.</div>';
+
   const verifiedIpSet = new Set(cachedVerified.map(v => v.ip || v.id.replace(/_/g, '.')));
 
   const ipCounts = {};
@@ -645,7 +735,7 @@ function applyFilter() {
           ${l.network && l.network !== 'N/A' ? `<span class="badge badge-spec">📶 ${esc(l.network.toUpperCase())}</span>` : ''}
         </div>
         Message: ${highlight(l.message, query)}<br>
-        <small style="color:#64748b;">postId: ${highlight(l.postId || l.id, query)}</small><br>
+                <small style="color:#64748b;">postId: ${highlight(l.postId || l.id, query)}</small><br>
         ${l.ip !== 'BOT' ? `
           <button type="button" class="danger" onclick="openBanModal('${esc(l.ip)}')">Ban ${esc(l.ip)}</button>
           <button type="button" class="danger" style="background:#991b1b;" onclick="purgeIp('${esc(l.ip)}')">Purge All (${postCount})</button>${isVerified ? `

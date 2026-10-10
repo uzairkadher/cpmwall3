@@ -28,7 +28,13 @@
   --text: #e8eaf6;
   --muted: #8b8fa3;
 }
-* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
 html, body {
   height: 100%;
   width: 100%;
@@ -346,156 +352,6 @@ body {
   flex-shrink: 0;
 }
 .typing-box { font-size: 0.7rem; color: var(--bot); min-height: 12px; padding-left: 4px; flex-shrink: 0; }
-.input-panel {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 6px 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  flex-shrink: 0;
-}
-.cooldown-wrap {
-  width: 100%;
-  height: 3px;
-  background: #1e243b;
-  border-radius: 2px;
-  overflow: hidden;
-  display: none;
-}
-.cooldown-bar {
-  height: 100%;
-  width: 100%;
-  background: linear-gradient(90deg, var(--accent), var(--bot));
-  transition: width 0.2s linear;
-}
-.input-row { display: flex; gap: 6px; }
-.input-panel input {
-  background: #0d101d;
-  border: 1px solid var(--border);
-  color: #fff;
-  padding: 7px 9px;
-  border-radius: 8px;
-  outline: none;
-  font-size: 0.82rem;
-}
-.input-panel input:focus { border-color: var(--accent); }
-.input-panel input:disabled { opacity: 0.5; cursor: not-allowed; }
-#userName { width: 95px; flex-shrink: 0; }
-#msgInput { flex: 1; min-width: 0; }
-.input-bottom { display: flex; justify-content: space-between; align-items: center; }
-.char-num { font-size: 10px; color: var(--muted); }
-.send-btn {
-  background: linear-gradient(135deg, var(--accent), var(--bot));
-  border: none;
-  color: #05070e;
-  font-weight: 700;
-  padding: 6px 14px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.8rem;
-  user-select: none;
-  -webkit-user-select: none;
-}
-.send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-.modal-back {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.8);
-  z-index: 60;
-  justify-content: center;
-  align-items: center;
-  padding: 16px;
-}
-.modal-window {
-  background: #131726;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  max-width: 360px;
-  width: 100%;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.modal-window h3 { font-size: 1rem; color: #fff; }
-.tip-card {
-  background: #1a2035;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 10px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.tip-info b { font-size: 0.82rem; color: #4ade80; }
-.tip-info div { font-size: 0.78rem; color: #cbd5e1; margin-top: 2px; }
-.copy-pill {
-  background: #2563eb;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 6px 10px;
-  font-size: 11px;
-  font-weight: 700;
-  cursor: pointer;
-}
-.close-modal-btn {
-  background: #27272a;
-  border: 1px solid #3f3f46;
-  color: #fff;
-  padding: 8px;
-  border-radius: 8px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  cursor: pointer;
-}
-</style>
-</head>
-<body>
-<div class="container">
-  <div class="header">
-    <div>
-      <h1>Car Parking Multiplayer</h1>
-      <div class="status-sub">
-        <span id="liveDot" class="dot"></span>
-        <span id="statusLabel">Lobby Chat</span>
-        <span id="onlineCount" class="online-pill">1 Online</span>
-      </div>
-    </div>
-    <div class="header-actions">
-      <button id="alertBtn" type="button" class="top-btn" onclick="toggleAlerts()">🔔 Alerts</button>
-      <button id="soundToggle" type="button" class="top-btn" onclick="toggleSound()">🔇 Sound</button>
-    </div>
-  </div>
-
-  <div class="room-bar">
-    <button id="tabPublic" type="button" class="room-tab active" onclick="switchRoom('public')">🌐 Public Wall</button>
-    <button id="tabVip" type="button" class="room-tab vip" onclick="switchRoom('vip')">🔒 VIP Lounge</button>
-  </div>
-
-  <div id="pinnedBox" class="pinned"></div>
-
-  <div class="social">
-    <button type="button" class="sbtn" style="background:#059669;" onclick="openTipModal()">☕ Tip Jar</button>
-    <button type="button" class="sbtn" style="background:#1d9bf0;" onclick="shareSite()">🔗 Share</button>
-    <a class="sbtn" style="background:linear-gradient(45deg,#f09433,#dc2743)" href="https://www.instagram.com/4t_jagga" target="_blank" rel="noopener noreferrer">IG Profile</a>
-    <a class="sbtn" style="background:#e1306c" href="https://www.instagram.com/channel/FMW8_rf52qWxlGoC/" target="_blank" rel="noopener noreferrer">IG Channel</a>
-    <a class="sbtn" style="background:#25d366" href="https://wa.me/923558182875?text=I%27m%20from%20cpm%20wall" target="_blank" rel="noopener noreferrer">WhatsApp</a>
-  </div>
-
-  <div class="filter-row">
-    <input id="wallSearch" placeholder="🔍 Search wall messages, drivers, or #tags..." oninput="handleWallSearch(this.value)">
-    <span id="clearSearch" class="clear-filter" onclick="clearSearchFilter()">✕ Clear</span>
-  </div>
-
-  <div id="feed" class="feed">Connecting to wall...</div>
-  <button id="jumpBtn" class="jump-btn" type="button" onclick="scrollToTop()">↓ New messages</button>
-  <div id="typing" class="typing-box"></div>
-
   <div class="input-panel">
     <div class="chips-bar">
       <button type="button" class="chip" onclick="tagBot()">+ Tag @Apex_Racer</button>
@@ -538,18 +394,22 @@ body {
 
     <div class="tip-card">
       <div class="tip-info">
-        <b>Easypaisa</b>
-        <div>03558182875</div>
+        <b style="color:#f59e0b;">JazzCash (Pakistan)</b>
+        <div style="font-size: 0.85rem; font-weight: 600; margin-top: 2px;">03206872177</div>
       </div>
-      <button type="button" class="copy-pill" onclick="copyTip('03558182875', this)">Copy</button>
+      <button type="button" class="copy-pill" onclick="copyTip('03206872177', this)">Copy</button>
     </div>
 
     <div class="tip-card">
-      <div class="tip-info">
-        <b style="color:#f59e0b;">JazzCash</b>
-        <div>03558182875</div>
+      <div class="tip-info" style="min-width: 0; padding-right: 6px;">
+        <b style="color:#38bdf8;">NayaPay IBAN (International)</b>
+        <div style="font-size: 0.68rem; font-family: monospace; word-break: break-all; color: #fff; margin-top: 3px;">PK97NAYA1234503427565802</div>
       </div>
-      <button type="button" class="copy-pill" onclick="copyTip('03558182875', this)">Copy</button>
+      <button type="button" class="copy-pill" onclick="copyTip('PK97NAYA1234503427565802', this)">Copy</button>
+    </div>
+
+    <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 8px; padding: 8px 10px; font-size: 0.72rem; color: #fef08a; line-height: 1.35;">
+      ⚠️ <b>Note:</b> We just receive payments on JazzCash and NayaPay. Please send screenshot after you send money.
     </div>
 
     <a href="https://wa.me/923558182875?text=Hello%20Admin%2C%20I%20sent%20a%20tip%20for%20the%20CPM%20wall" target="_blank" class="sbtn" style="background:#25d366; text-align:center; padding:8px;">Send Screenshot on WhatsApp</a>
@@ -559,18 +419,37 @@ body {
 
 <div id="vipModal" class="modal-back">
   <div class="modal-window">
-    <h3 style="color:#fef08a;">🔒 Enter VIP Lounge Passcode</h3>
+    <h3 style="color:#fef08a;">🔒 VIP Lounge Passcode</h3>
     <p style="font-size: 0.75rem; color: var(--muted); line-height: 1.35;">
-      Exclusive room for verified racers, custom liveries, and high-stakes drag lobbies.
+      Private room for verified racers, custom builds, and high-stakes drag meets.
     </p>
 
-    <input id="vipPassInput" placeholder="Enter VIP Passcode" style="background:#0d101d; border:1px solid var(--border); color:#fff; padding:9px; border-radius:8px;">
-    <button type="button" class="send-btn" style="background:linear-gradient(135deg, #f59e0b, #d97706); color:#000;" onclick="unlockVip()">Unlock VIP Room</button>
+    <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 6px;">
+      <div style="font-size: 0.72rem; font-weight: 700; color: #fef08a; margin-bottom: 2px;">⭐ VIP Member Perks:</div>
+      <div style="font-size: 0.73rem; color: #f1f5f9; display: flex; align-items: center; gap: 6px;">
+        <span style="color:#38bdf8;">✓</span> <b>Verified Driver Badge:</b> Blue tick on your name site-wide
+      </div>
+      <div style="font-size: 0.73rem; color: #f59e0b;">✓</span> <b>Gold Chat Theme:</b> Exclusive gold styling in the VIP room
+      </div>
+      <div style="font-size: 0.73rem; color: #f1f5f9; display: flex; align-items: center; gap: 6px;">
+        <span style="color:#4ade80;">✓</span> <b>Livery Sharing:</b> Post direct screenshots of custom cars
+      </div>
+      <div style="font-size: 0.73rem; color: #f1f5f9; display: flex; align-items: center; gap: 6px;">
+        <span style="color:#f43f5e;">✓</span> <b>Engine Rev FX:</b> Custom exhaust audio alert on posts
+      </div>
+      <div style="font-size: 0.73rem; color: #f1f5f9; display: center; align-items: center; gap: 6px;">
+        <span style="color:#a855f7;">✓</span> <b>Private Codes:</b> High-stakes drag rooms only for VIP racers
+      </div>
+    </div>
 
-    <a href="https://wa.me/923558182875?text=Hello%20Admin%2C%20I%20want%20to%20buy%20the%20VIP%20Room%20Passcode" target="_blank" class="sbtn" style="background:#25d366; text-align:center; padding:7px;">Get VIP Pass ($1 / 300 PKR)</a>
+    <input id="vipPassInput" placeholder="Enter VIP Passcode" style="background:#0d101d; border:1px solid var(--border); color:#fff; padding:9px; border-radius:8px;">
+    <button id="vipUnlockBtn" type="button" class="send-btn" style="background:linear-gradient(135deg, #f59e0b, #d97706); color:#000;" onclick="unlockVip()">Unlock VIP Room</button>
+
+    <a href="https://wa.me/923558182875?text=Hello%20Admin%2C%20I%20want%20to%20buy%20the%20VIP%20Room%20Passcode" target="_blank" class="sbtn" style="background:#25d366; text-align:center; padding:8px;">Get VIP Pass ($1 / 300 PKR)</a>
     <button type="button" class="close-modal-btn" onclick="cancelVipModal()">Cancel</button>
   </div>
 </div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, onSnapshot, query, orderBy, limit, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -652,19 +531,53 @@ window.switchRoom = (room) => {
   filterFeedByRoom();
 };
 
-window.unlockVip = () => {
+window.unlockVip = async () => {
   const entered = (document.getElementById('vipPassInput').value || '').trim();
+  const name = (userNameInput.value || '').trim();
   if (!entered) return alert('Enter VIP Passcode');
-  activeVipKey = entered;
-  localStorage.setItem('cpm_vip_key', entered);
-  vipModal.style.display = 'none';
-  switchRoom('vip');
+
+  const unlockBtn = document.getElementById('vipUnlockBtn');
+  if (unlockBtn) {
+    unlockBtn.disabled = true;
+    unlockBtn.textContent = 'Verifying...';
+  }
+
+  try {
+    const clientInfo = await getClientDeviceInfo();
+    const res = await fetch('/api/post', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'unlock_vip',
+        vipKey: entered,
+        name: name,
+        clientInfo
+      })
+    });
+    const data = await res.json().catch(() => ({}));
+
+    if (res.ok) {
+      activeVipKey = entered;
+      localStorage.setItem('cpm_vip_key', entered);
+      vipModal.style.display = 'none';
+      alert('VIP Lounge unlocked! Verified Driver Badge granted to your profile.');
+      switchRoom('vip');
+    } else {
+      alert(data.error || 'Failed to unlock VIP room.');
+    }
+  } catch {
+    alert('Network error unlocking VIP.');
+  } finally {
+    if (unlockBtn) {
+      unlockBtn.disabled = false;
+      unlockBtn.textContent = 'Unlock VIP Room';
+    }
+  }
 };
 
 window.cancelVipModal = () => {
   vipModal.style.display = 'none';
 };
-
 function filterFeedByRoom() {
   const bubbles = feedEl.querySelectorAll('.bubble');
   let visibleCount = 0;
@@ -1162,7 +1075,7 @@ function startCooldown(seconds) {
       cooldownBar.style.width = '100%';
       if (!isChatPaused) {
         sendBtn.disabled = false;
-        sendBtn.textContent = "Post to Wall";
+        sendBtn.textContent = 'Post to Wall';
       }
     } else {
       const pct = Math.max(0, (left / remainMs) * 100);

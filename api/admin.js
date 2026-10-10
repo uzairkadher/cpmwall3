@@ -23,6 +23,14 @@ export default async function handler(req, res) {
         const snap = await db.collection("posts").orderBy("createdAt", "desc").limit(100).get();
         return res.status(200).json(snap.docs.map(d => ({ id: d.id, ...d.data() })));
       }
+      if (action === "vip_members") {
+        const snap = await db.collection("vip_members").orderBy("unlockedAt", "desc").limit(100).get();
+        return res.status(200).json(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      }
+      if (action === "vip_banned") {
+        const snap = await db.collection("vip_banned").limit(100).get();
+        return res.status(200).json(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      }
       if (action === "banned") {
         const snap = await db.collection("banned").limit(100).get();
         return res.status(200).json(snap.docs.map(d => ({ id: d.id, ...d.data() })));
@@ -67,6 +75,28 @@ export default async function handler(req, res) {
           vipKey: String(vipKey || "VIP777").trim()
         }, { merge: true });
         return res.status(200).json({ success: true, vipKey: String(vipKey || "VIP777").trim() });
+      }
+
+      if (action === "ban_vip") {
+        const { ip } = req.body;
+        if (!ip) return res.status(400).json({ error: "Missing IP" });
+        const safeIp = ip.replace(/[^a-zA-Z0-9.:]/g, "_");
+        const batch = db.batch();
+        batch.set(db.collection("vip_banned").doc(safeIp), {
+          ip,
+          bannedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+        batch.delete(db.collection("vip_members").doc(safeIp));
+        await batch.commit();
+        return res.status(200).json({ success: true });
+      }
+
+      if (action === "unban_vip") {
+        const { ip } = req.body;
+        if (!ip) return res.status(400).json({ error: "Missing IP" });
+        const safeIp = ip.replace(/[^a-zA-Z0-9.:]/g, "_");
+        await db.collection("vip_banned").doc(safeIp).delete();
+        return res.status(200).json({ success: true });
       }
 
       if (action === "toggle_chat_lock") {

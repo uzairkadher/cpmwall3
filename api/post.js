@@ -228,6 +228,59 @@ export default async function handler(req, res) {
   try {
     const { action, postId, name, message, clientInfo, room, vipKey } = req.body || {};
 
+    const rawIp = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || "").split(',')[0].trim() || "unknown";
+    const safeIp = rawIp.replace(/[^a-zA-Z0-9.:]/g, '_');
+
+    if (action === "unlock_vip") {
+      const siteBan = await db.collection("banned").doc(safeIp).get();
+      if (siteBan.exists) return res.status(403).json({ error: "You are banned from this website." });
+
+      const vipBan = await db.collection("vip_banned").doc(safeIp).get();
+      if (vipBan.exists) return res.status(403).json({ error: "Your access to the VIP Lounge has been blocked by admin." });
+
+      const pinDoc = await db.collection("pinned").doc("current").get();
+      const validVipKey = pinDoc.exists && pinDoc.data().vipKey ? pinDoc.data().vipKey : "VIP777";
+
+      if (!vipKey || String(vipKey).trim() !== String(validVipKey).trim()) {
+        return res.status(403).json({ error: "Invalid VIP Access Passcode." });
+      }
+
+      const cleanName = (name || "VIP Driver").trim().substring(0, 20);
+      const ua = req.headers['user-agent'] || '';
+      const { os, browser, device } = parseUserAgent(ua);
+      const countryCode = (req.headers['x-vercel-ip-country'] || req.headers['cf-ipcountry'] || '').toUpperCase();
+      let countryName = 'Unknown';
+      if (countryCode && countryCode.length === 2) {
+        try {
+          countryName = new Intl.DisplayNames(['en'], { type: 'region' }).of(countryCode) || countryCode;
+        } catch {
+          countryName = countryCode;
+        }
+      }
+      const city = req.headers['x-vercel-ip-city'] || '';
+
+      const batch = db.batch();
+      batch.set(db.collection("verified_ips").doc(safeIp), {
+        ip: rawIp,
+        verifiedAt: admin.firestore.FieldValue.serverTimestamp(),
+        source: "vip_passcode"
+      }, { merge: true });
+
+      batch.set(db.collection("vip_members").doc(safeIp), {
+        ip: rawIp,
+        name: cleanName,
+        device,
+        os,
+        browser,
+        country: countryName,
+        city: city || 'Unknown City',
+        unlockedAt: admin.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+
+      await batch.commit();
+      return res.status(200).json({ success: true, message: "VIP Lounge unlocked and Verified Driver badge granted!" });
+    }
+
     if (action === "like") {
       if (!postId) return res.status(400).json({ error: "Missing postId" });
       await db.collection("posts").doc(postId).update({
@@ -252,8 +305,16 @@ export default async function handler(req, res) {
 
     const isVipRoom = room === "vip";
     if (isVipRoom) {
+      const vipBan = await db.collection("vip_banned").doc(safeIp).get();
+      if (vipBan.exists) {
+        return res.status(403).json({ error: "You are blocked from the VIP Lounge." });
+      }
+
       const validVipKey = pinDoc.exists && pinDoc.data().vipKey ? pinDoc.data().vipKey : "VIP777";
-      if (!vipKey || String(vipKey).trim() !== String(validVipKey).trim()) {
+      const memberDoc = await db.collection("vip_members").doc(safeIp).get();
+      const hasValidKey = vipKey && String(vipKey).trim() === String(validVipKey).trim();
+
+      if (!memberDoc.exists && !hasValidKey) {
         return res.status(403).json({ error: "Invalid VIP Access Passcode." });
       }
     }
@@ -268,9 +329,6 @@ export default async function handler(req, res) {
     if (isBlocked) {
       return res.status(400).json({ error: "Message blocked: words, links, or scam phrases are prohibited." });
     }
-
-    const rawIp = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || "").split(',')[0].trim() || "unknown";
-    const safeIp = rawIp.replace(/[^a-zA-Z0-9.:]/g, '_');
 
     const countryCode = (req.headers['x-vercel-ip-country'] || req.headers['cf-ipcountry'] || '').toUpperCase();
     let countryName = 'Unknown';
