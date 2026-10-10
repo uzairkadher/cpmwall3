@@ -142,13 +142,24 @@ export default async function handler(req, res) {
     const rawIp = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || "").split(',')[0].trim() || "unknown";
     const safeIp = rawIp.replace(/[^a-zA-Z0-9.:]/g, '_');
 
+    // BAN CHECK (with timed ban expiration)
     const banSnap = await db.collection("banned").doc(safeIp).get();
-    if (banSnap.exists) return res.status(403).json({ error: "You are banned" });
+    if (banSnap.exists) {
+      const banData = banSnap.data();
+      const until = banData.bannedUntil?._seconds ? banData.bannedUntil._seconds * 1000 : null;
+      if (!until || until > Date.now()) {
+        const reasonText = banData.reason ? `: ${banData.reason}` : "";
+        return res.status(403).json({ error: `You are banned${reasonText}` });
+      } else {
+        await db.collection("banned").doc(safeIp).delete().catch(() => {});
+      }
+    }
 
-    // Check if IP is verified
+    // VERIFIED IP CHECK
     const verifiedSnap = await db.collection("verified_ips").doc(safeIp).get();
     const isIpVerified = verifiedSnap.exists;
 
+    // RATE LIMIT (10s)
     const rateRef = db.collection("rateLimits").doc(safeIp);
     const rateSnap = await rateRef.get();
     if (rateSnap.exists) {

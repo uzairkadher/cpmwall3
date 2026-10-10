@@ -53,12 +53,18 @@ export default async function handler(req, res) {
       const { action } = req.body;
 
       if (action === "ban") {
-        const { ip, reason } = req.body;
+        const { ip, reason, hours } = req.body;
+        if (!ip) return res.status(400).json({ error: "Missing IP" });
         const safeIp = ip.replace(/[^a-zA-Z0-9.:]/g, "_");
+        let bannedUntil = null;
+        if (hours && Number(hours) > 0) {
+          bannedUntil = admin.firestore.Timestamp.fromMillis(Date.now() + Number(hours) * 3600 * 1000);
+        }
         await db.collection("banned").doc(safeIp).set({
           ip,
           reason: reason || "spam",
-          bannedAt: admin.firestore.FieldValue.serverTimestamp()
+          bannedAt: admin.firestore.FieldValue.serverTimestamp(),
+          bannedUntil
         });
         return res.status(200).json({ success: true });
       }
