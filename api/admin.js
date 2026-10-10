@@ -61,6 +61,14 @@ export default async function handler(req, res) {
     if (req.method === "POST") {
       const { action } = req.body;
 
+      if (action === "set_vip_key") {
+        const { vipKey } = req.body;
+        await db.collection("pinned").doc("current").set({
+          vipKey: String(vipKey || "VIP777").trim()
+        }, { merge: true });
+        return res.status(200).json({ success: true, vipKey: String(vipKey || "VIP777").trim() });
+      }
+
       if (action === "toggle_chat_lock") {
         const { locked } = req.body;
         await db.collection("pinned").doc("current").set({

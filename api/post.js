@@ -226,7 +226,7 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   try {
-    const { action, postId, name, message, clientInfo } = req.body || {};
+    const { action, postId, name, message, clientInfo, room, vipKey } = req.body || {};
 
     if (action === "like") {
       if (!postId) return res.status(400).json({ error: "Missing postId" });
@@ -248,6 +248,14 @@ export default async function handler(req, res) {
     const pinDoc = await db.collection("pinned").doc("current").get();
     if (pinDoc.exists && pinDoc.data().chatLocked) {
       return res.status(403).json({ error: "Chat is temporarily paused by admin." });
+    }
+
+    const isVipRoom = room === "vip";
+    if (isVipRoom) {
+      const validVipKey = pinDoc.exists && pinDoc.data().vipKey ? pinDoc.data().vipKey : "VIP777";
+      if (!vipKey || String(vipKey).trim() !== String(validVipKey).trim()) {
+        return res.status(403).json({ error: "Invalid VIP Access Passcode." });
+      }
     }
 
     if (!name || !message) return res.status(400).json({ error: "Name and message required" });
@@ -315,7 +323,8 @@ export default async function handler(req, res) {
       isBot: false,
       likes: 0,
       isReported: false,
-      reportCount: 0
+      reportCount: 0,
+      room: isVipRoom ? "vip" : "public"
     });
 
     batch.set(logRef, {
@@ -335,6 +344,7 @@ export default async function handler(req, res) {
       referrer: client.referrer || 'Direct',
       name: cleanName,
       message: cleanMsg,
+      room: isVipRoom ? "vip" : "public",
       createdAt: admin.firestore.FieldValue.serverTimestamp()
     });
 
@@ -358,7 +368,8 @@ export default async function handler(req, res) {
         isVerified: true,
         likes: 0,
         isReported: false,
-        reportCount: 0
+        reportCount: 0,
+        room: isVipRoom ? "vip" : "public"
       });
       botBatch.set(db.collection("ip_logs").doc(botRef.id), {
         postId: botRef.id,
@@ -370,6 +381,7 @@ export default async function handler(req, res) {
         device: "Server Bot",
         os: "Node.js",
         browser: "AI Engine",
+        room: isVipRoom ? "vip" : "public",
         createdAt: admin.firestore.FieldValue.serverTimestamp()
       });
       await botBatch.commit();

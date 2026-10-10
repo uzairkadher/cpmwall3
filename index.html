@@ -24,10 +24,11 @@
   --border: #24273f;
   --accent: #00f0ff;
   --bot: #ff3b9a;
+  --gold: #f59e0b;
   --text: #e8eaf6;
   --muted: #8b8fa3;
 }
-* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
 html, body {
   height: 100%;
   width: 100%;
@@ -90,6 +91,38 @@ body {
   -webkit-user-select: none;
 }
 .top-btn.active { border-color: var(--accent); color: var(--accent); }
+
+.room-bar {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.room-tab {
+  flex: 1;
+  background: #111424;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 6px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: all 0.15s ease;
+}
+.room-tab.active {
+  background: linear-gradient(135deg, #1e295a, #1e1b4b);
+  border-color: var(--accent);
+  color: #fff;
+}
+.room-tab.vip.active {
+  background: linear-gradient(135deg, #713f12, #451a03);
+  border-color: var(--gold);
+  color: #fef08a;
+}
+
 .pinned {
   background: linear-gradient(90deg, rgba(0, 240, 255, 0.1), rgba(255, 59, 154, 0.1));
   border: 1px solid rgba(0, 240, 255, 0.25);
@@ -170,6 +203,10 @@ body {
   box-shadow: 0 0 12px rgba(255, 59, 154, 0.2);
   background: #1e1628;
 }
+.bubble.vip-post {
+  border-color: rgba(245, 158, 11, 0.4);
+  background: #1c1917;
+}
 .author-line { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 2px; }
 .author { font-weight: 700; font-size: 0.75rem; display: flex; gap: 5px; align-items: center; color: var(--accent); cursor: pointer; }
 .bubble.bot .author { color: var(--bot); }
@@ -186,6 +223,14 @@ body {
   font-size: 8px;
   font-weight: bold;
   border-radius: 50%;
+}
+.vip-badge {
+  background: #ca8a04;
+  color: #fff;
+  font-size: 8px;
+  padding: 1px 4px;
+  border-radius: 4px;
+  font-weight: 700;
 }
 .bot-badge {
   background: var(--bot);
@@ -354,6 +399,60 @@ body {
   -webkit-user-select: none;
 }
 .send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.modal-back {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 60;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+}
+.modal-window {
+  background: #131726;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  max-width: 360px;
+  width: 100%;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.modal-window h3 { font-size: 1rem; color: #fff; }
+.tip-card {
+  background: #1a2035;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.tip-info b { font-size: 0.82rem; color: #4ade80; }
+.tip-info div { font-size: 0.78rem; color: #cbd5e1; margin-top: 2px; }
+.copy-pill {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.close-modal-btn {
+  background: #27272a;
+  border: 1px solid #3f3f46;
+  color: #fff;
+  padding: 8px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
 </style>
 </head>
 <body>
@@ -373,9 +472,15 @@ body {
     </div>
   </div>
 
+  <div class="room-bar">
+    <button id="tabPublic" type="button" class="room-tab active" onclick="switchRoom('public')">🌐 Public Wall</button>
+    <button id="tabVip" type="button" class="room-tab vip" onclick="switchRoom('vip')">🔒 VIP Lounge</button>
+  </div>
+
   <div id="pinnedBox" class="pinned"></div>
 
   <div class="social">
+    <button type="button" class="sbtn" style="background:#059669;" onclick="openTipModal()">☕ Tip Jar</button>
     <button type="button" class="sbtn" style="background:#1d9bf0;" onclick="shareSite()">🔗 Share</button>
     <a class="sbtn" style="background:linear-gradient(45deg,#f09433,#dc2743)" href="https://www.instagram.com/4t_jagga" target="_blank" rel="noopener noreferrer">IG Profile</a>
     <a class="sbtn" style="background:#e1306c" href="https://www.instagram.com/channel/FMW8_rf52qWxlGoC/" target="_blank" rel="noopener noreferrer">IG Channel</a>
@@ -423,6 +528,49 @@ body {
     </div>
   </div>
 </div>
+
+<div id="tipModal" class="modal-back">
+  <div class="modal-window">
+    <h3>☕ Support CPM Community</h3>
+    <p style="font-size: 0.75rem; color: var(--muted); line-height: 1.35;">
+      Tips keep our servers online and ad-free. Send a screenshot on WhatsApp after tipping to receive a permanent Verified Driver Badge.
+    </p>
+
+    <div class="tip-card">
+      <div class="tip-info">
+        <b>Easypaisa</b>
+        <div>03558182875</div>
+      </div>
+      <button type="button" class="copy-pill" onclick="copyTip('03558182875', this)">Copy</button>
+    </div>
+
+    <div class="tip-card">
+      <div class="tip-info">
+        <b style="color:#f59e0b;">JazzCash</b>
+        <div>03558182875</div>
+      </div>
+      <button type="button" class="copy-pill" onclick="copyTip('03558182875', this)">Copy</button>
+    </div>
+
+    <a href="https://wa.me/923558182875?text=Hello%20Admin%2C%20I%20sent%20a%20tip%20for%20the%20CPM%20wall" target="_blank" class="sbtn" style="background:#25d366; text-align:center; padding:8px;">Send Screenshot on WhatsApp</a>
+    <button type="button" class="close-modal-btn" onclick="closeTipModal()">Close</button>
+  </div>
+</div>
+
+<div id="vipModal" class="modal-back">
+  <div class="modal-window">
+    <h3 style="color:#fef08a;">🔒 Enter VIP Lounge Passcode</h3>
+    <p style="font-size: 0.75rem; color: var(--muted); line-height: 1.35;">
+      Exclusive room for verified racers, custom liveries, and high-stakes drag lobbies.
+    </p>
+
+    <input id="vipPassInput" placeholder="Enter VIP Passcode" style="background:#0d101d; border:1px solid var(--border); color:#fff; padding:9px; border-radius:8px;">
+    <button type="button" class="send-btn" style="background:linear-gradient(135deg, #f59e0b, #d97706); color:#000;" onclick="unlockVip()">Unlock VIP Room</button>
+
+    <a href="https://wa.me/923558182875?text=Hello%20Admin%2C%20I%20want%20to%20buy%20the%20VIP%20Room%20Passcode" target="_blank" class="sbtn" style="background:#25d366; text-align:center; padding:7px;">Get VIP Pass ($1 / 300 PKR)</a>
+    <button type="button" class="close-modal-btn" onclick="cancelVipModal()">Cancel</button>
+  </div>
+</div>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, onSnapshot, query, orderBy, limit, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -454,8 +602,15 @@ const alertBtn = document.getElementById('alertBtn');
 const cooldownWrap = document.getElementById('cooldownWrap');
 const cooldownBar = document.getElementById('cooldownBar');
 
+const tabPublic = document.getElementById('tabPublic');
+const tabVip = document.getElementById('tabVip');
+const tipModal = document.getElementById('tipModal');
+const vipModal = document.getElementById('vipModal');
+
 userNameInput.value = localStorage.getItem('cpm_name') || '';
 
+let currentRoom = 'public';
+let activeVipKey = localStorage.getItem('cpm_vip_key') || '';
 let soundEnabled = localStorage.getItem('cpm_sound') === 'true';
 let alertsEnabled = localStorage.getItem('cpm_alerts') === 'true';
 let audioCtx = null;
@@ -467,6 +622,80 @@ let lastPostedMsg = '';
 let lastPostTimestamp = 0;
 let lastPinnedText = '';
 let activeSearchQuery = '';
+
+window.openTipModal = () => { tipModal.style.display = 'flex'; };
+window.closeTipModal = () => { tipModal.style.display = 'none'; };
+
+window.copyTip = (num, btn) => {
+  navigator.clipboard.writeText(num);
+  const orig = btn.textContent;
+  btn.textContent = 'Copied!';
+  setTimeout(() => { btn.textContent = orig; }, 1200);
+};
+
+window.switchRoom = (room) => {
+  if (room === 'vip') {
+    if (!activeVipKey) {
+      vipModal.style.display = 'flex';
+      return;
+    }
+    currentRoom = 'vip';
+    tabPublic.classList.remove('active');
+    tabVip.classList.add('active');
+    document.getElementById('statusLabel').textContent = 'VIP Lounge';
+  } else {
+    currentRoom = 'public';
+    tabVip.classList.remove('active');
+    tabPublic.classList.add('active');
+    document.getElementById('statusLabel').textContent = 'Lobby Chat';
+  }
+  filterFeedByRoom();
+};
+
+window.unlockVip = () => {
+  const entered = (document.getElementById('vipPassInput').value || '').trim();
+  if (!entered) return alert('Enter VIP Passcode');
+  activeVipKey = entered;
+  localStorage.setItem('cpm_vip_key', entered);
+  vipModal.style.display = 'none';
+  switchRoom('vip');
+};
+
+window.cancelVipModal = () => {
+  vipModal.style.display = 'none';
+};
+
+function filterFeedByRoom() {
+  const bubbles = feedEl.querySelectorAll('.bubble');
+  let visibleCount = 0;
+  bubbles.forEach((b) => {
+    const bubbleRoom = b.getAttribute('data-room') || 'public';
+    const text = b.getAttribute('data-text') || '';
+    const name = b.getAttribute('data-name') || '';
+    const matchesRoom = currentRoom === 'vip' ? (bubbleRoom === 'vip') : (bubbleRoom !== 'vip');
+    const matchesSearch = !activeSearchQuery || text.includes(activeSearchQuery) || name.includes(activeSearchQuery);
+
+    if (matchesRoom && matchesSearch) {
+      b.style.display = 'flex';
+      visibleCount++;
+    } else {
+      b.style.display = 'none';
+    }
+  });
+
+  const emptyNotice = document.getElementById('emptyRoomNotice');
+  if (visibleCount === 0) {
+    if (!emptyNotice) {
+      const p = document.createElement('p');
+      p.id = 'emptyRoomNotice';
+      p.style.cssText = 'text-align:center;color:var(--muted);font-size:0.85rem;margin-top:20px;';
+      p.textContent = currentRoom === 'vip' ? 'VIP Lounge is quiet. Post the first VIP code!' : 'No public messages yet. Be first!';
+      feedEl.appendChild(p);
+    }
+  } else if (emptyNotice) {
+    emptyNotice.remove();
+  }
+}
 
 function initAudio() {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -614,12 +843,14 @@ function buildBubble(id, data, isTemporary) {
   const currentName = (userNameInput.value || '').trim();
   const isBot = Boolean(data.isBot || data.name === 'Apex_Racer');
   const isMe = Boolean(currentName && data.name === currentName);
+  const postRoom = data.room || 'public';
 
   const bubble = document.createElement('div');
-  bubble.className = `bubble ${isBot ? 'bot' : isMe ? 'me' : ''}`;
+  bubble.className = `bubble ${isBot ? 'bot' : isMe ? 'me' : ''} ${postRoom === 'vip' ? 'vip-post' : ''}`;
   if (id) bubble.id = `post-${id}`;
   if (isTemporary) bubble.setAttribute('data-pending', `${data.name}-${data.message}`);
 
+  bubble.setAttribute('data-room', postRoom);
   bubble.setAttribute('data-text', (data.message || '').toLowerCase());
   bubble.setAttribute('data-name', (data.name || '').toLowerCase());
 
@@ -641,6 +872,12 @@ function buildBubble(id, data, isTemporary) {
     tick.className = 'verified-badge';
     tick.textContent = '✓';
     author.appendChild(tick);
+  }
+  if (postRoom === 'vip') {
+    const vipTag = document.createElement('span');
+    vipTag.className = 'vip-badge';
+    vipTag.textContent = 'VIP';
+    author.appendChild(vipTag);
   }
   if (isBot) {
     const botTag = document.createElement('span');
@@ -716,30 +953,16 @@ function buildBubble(id, data, isTemporary) {
     bubble.appendChild(actionsEl);
   }
 
-  if (activeSearchQuery) {
-    const query = activeSearchQuery.toLowerCase();
-    const match = (data.name || '').toLowerCase().includes(query) || (data.message || '').toLowerCase().includes(query);
-    bubble.style.display = match ? 'flex' : 'none';
-  }
+  const matchesRoom = currentRoom === 'vip' ? (postRoom === 'vip') : (postRoom !== 'vip');
+  bubble.style.display = matchesRoom ? 'flex' : 'none';
 
   return bubble;
 }
 
 window.handleWallSearch = (val) => {
-  activeSearchQuery = (val || '').trim();
+  activeSearchQuery = (val || '').trim().toLowerCase();
   clearSearchBtn.style.display = activeSearchQuery ? 'inline' : 'none';
-  const query = activeSearchQuery.toLowerCase();
-
-  const bubbles = feedEl.querySelectorAll('.bubble');
-  bubbles.forEach((b) => {
-    const text = b.getAttribute('data-text') || '';
-    const name = b.getAttribute('data-name') || '';
-    if (!query || text.includes(query) || name.includes(query)) {
-      b.style.display = 'flex';
-    } else {
-      b.style.display = 'none';
-    }
-  });
+  filterFeedByRoom();
 };
 
 window.clearSearchFilter = () => {
@@ -767,6 +990,7 @@ async function loadFeedInstantly() {
         feedEl.innerHTML = '';
         posts.forEach(p => feedEl.appendChild(buildBubble(p.id, p, false)));
         hasLoadedPosts = true;
+        filterFeedByRoom();
       }
     }
   } catch {}
@@ -820,13 +1044,13 @@ const q = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(500
 onSnapshot(q, (snap) => {
   if (snap.empty) {
     if (!hasLoadedPosts) {
-      feedEl.innerHTML = '<p style="text-align:center;color:var(--muted);font-size:0.85rem;margin-top:20px;">No messages yet. Be first!</p>';
+      feedEl.innerHTML = '<p id="emptyRoomNotice" style="text-align:center;color:var(--muted);font-size:0.85rem;margin-top:20px;">No messages yet. Be first!</p>';
     }
     isInitialLoad = false;
     return;
   }
 
-  const placeholder = feedEl.querySelector('p');
+  const placeholder = document.getElementById('emptyRoomNotice');
   if (placeholder) placeholder.remove();
 
   if (isInitialLoad || !hasLoadedPosts) {
@@ -836,6 +1060,7 @@ onSnapshot(q, (snap) => {
     });
     isInitialLoad = false;
     hasLoadedPosts = true;
+    filterFeedByRoom();
     return;
   }
 
@@ -872,6 +1097,8 @@ onSnapshot(q, (snap) => {
       if (el) el.remove();
     }
   });
+
+  filterFeedByRoom();
 
   while (feedEl.children.length > 500) {
     feedEl.removeChild(feedEl.lastChild);
@@ -935,7 +1162,7 @@ function startCooldown(seconds) {
       cooldownBar.style.width = '100%';
       if (!isChatPaused) {
         sendBtn.disabled = false;
-        sendBtn.textContent = 'Post to Wall';
+        sendBtn.textContent = "Post to Wall";
       }
     } else {
       const pct = Math.max(0, (left / remainMs) * 100);
@@ -964,8 +1191,8 @@ window.sendPost = async () => {
 
   localStorage.setItem('cpm_name', name);
 
-  const optimisticEl = buildBubble(null, { name, message, createdAt: new Date() }, true);
-  const placeholder = feedEl.querySelector('p');
+  const optimisticEl = buildBubble(null, { name, message, createdAt: new Date(), room: currentRoom }, true);
+  const placeholder = document.getElementById('emptyRoomNotice');
   if (placeholder) placeholder.remove();
   feedEl.prepend(optimisticEl);
   playPing();
@@ -978,7 +1205,13 @@ window.sendPost = async () => {
     const res = await fetch('/api/post', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, message, clientInfo })
+      body: JSON.stringify({
+        name,
+        message,
+        clientInfo,
+        room: currentRoom,
+        vipKey: currentRoom === 'vip' ? activeVipKey : ''
+      })
     });
     const data = await res.json().catch(() => ({}));
 
@@ -996,7 +1229,14 @@ window.sendPost = async () => {
       }
     } else {
       optimisticEl.remove();
-      alert(data.error || "Failed to post");
+      if (res.status === 403 && data.error && data.error.includes("VIP")) {
+        alert(data.error);
+        localStorage.removeItem('cpm_vip_key');
+        activeVipKey = '';
+        vipModal.style.display = 'flex';
+      } else {
+        alert(data.error || "Failed to post");
+      }
       if (!isChatPaused) {
         sendBtn.disabled = false;
         sendBtn.textContent = "Post to Wall";

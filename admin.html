@@ -197,6 +197,13 @@ mark { background: #facc15; color: #000; padding: 0 2px; border-radius: 3px; fon
   <button type="button" onclick="pin(true)">Save Pin</button>
   <button type="button" class="danger" onclick="pin(false)">Clear Pin</button>
   <div id="currentPin" style="margin-top: 8px; font-size: 13px; color: #f472b6;"></div>
+
+  <div style="margin-top: 14px; border-top: 1px solid #222; padding-top: 10px;">
+    <h4>Private VIP Room Passcode</h4>
+    <input id="vipKeyInput" placeholder="Set VIP Key (e.g. VIP777)">
+    <button type="button" class="green" onclick="saveVipKey()">Save VIP Passcode</button>
+    <div id="currentVipKey" style="margin-top: 4px; font-size: 13px; color: #38bdf8;"></div>
+  </div>
 </div>
 
 <div class="card">
@@ -329,6 +336,32 @@ async function toggleChatLock() {
   }
 }
 
+async function saveVipKey() {
+  const key = document.getElementById('adminKey').value.trim();
+  if (!key) return setStatus('Enter admin key first', true);
+  ADMIN_KEY = key;
+
+  const vipKey = (document.getElementById('vipKeyInput').value || '').trim();
+  if (!vipKey) return setStatus('Enter a VIP passcode to save', true);
+
+  try {
+    const r = await fetch('/api/admin', {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify({ action: 'set_vip_key', vipKey })
+    });
+    const d = await r.json();
+    if (d.success) {
+      document.getElementById('currentVipKey').textContent = `Active VIP Passcode: ${d.vipKey}`;
+      setStatus('VIP Passcode updated successfully');
+    } else {
+      setStatus(d.error || 'Failed to save VIP key', true);
+    }
+  } catch (err) {
+    setStatus('Network error: ' + err.message, true);
+  }
+}
+
 async function loadAll(isBackground = false) {
   const keyInput = document.getElementById('adminKey');
   const loadBtn = document.getElementById('loadBtn');
@@ -392,6 +425,7 @@ async function loadAll(isBackground = false) {
     updateLockBtnUI(pinned && pinned.chatLocked);
 
     document.getElementById('currentPin').textContent = pinned && pinned.active ? `${pinned.name}: ${pinned.text}` : 'No active pin';
+    document.getElementById('currentVipKey').textContent = `Active VIP Passcode: ${pinned && pinned.vipKey ? pinned.vipKey : 'VIP777'}`;
     document.getElementById('statsCard').style.display = 'block';
     setStatus(`Updated successfully at ${new Date().toLocaleTimeString()}`);
   } catch (err) {
@@ -599,6 +633,7 @@ function applyFilter() {
         IP: <code>${highlight(l.ip, query)}</code>
         ${l.ip !== 'BOT' ? `<span class="badge badge-count" title="Total messages from this IP">${postCount} posts</span>` : ''}
         ${isVerified ? '<span class="badge" style="background:#16a34a;">VERIFIED IP</span>' : ''}
+        <span class="badge" style="background:${l.room === 'vip' ? '#ca8a04' : '#2563eb'};">${(l.room || 'public').toUpperCase()}</span>
         <div class="detail-grid">
           ${locText && l.ip !== 'BOT' ? `<span class="badge badge-loc" onclick="setFilterBadge('${esc(l.country)}')">📍 ${highlight(locText, query)}</span>` : ''}
           ${l.device ? `<span class="badge badge-dev" onclick="setFilterBadge('${esc(l.device)}')">📱 ${highlight(l.device, query)}</span>` : ''}
@@ -628,6 +663,7 @@ function applyFilter() {
       <b>${highlight(p.name, query)}</b>
       ${p.isBot ? '<span class="badge">BOT</span>' : ''}
       ${p.isVerified ? '<span class="badge" style="background:#1d9bf0;">VERIFIED</span>' : ''}
+      <span class="badge" style="background:${p.room === 'vip' ? '#ca8a04' : '#2563eb'};">${(p.room || 'public').toUpperCase()}</span>
       ${p.likes ? `<span class="badge" style="background:#ea580c;">🔥 ${p.likes}</span>` : ''}
       ${p.isReported ? '<span class="badge" style="background:#ef4444;">REPORTED</span>' : ''}
       <br>${highlight(p.message, query)}
@@ -724,7 +760,7 @@ function banFromPost(postId) {
   const log = cachedLogs.find(l => l.postId === postId || l.id === postId);
   if (!log) return setStatus('Log not found for post ' + postId, true);
   if (log.ip === 'BOT') return setStatus('Cannot ban BOT', true);
-    openBanModal(log.ip);
+  openBanModal(log.ip);
 }
 
 async function unban(ip) {
