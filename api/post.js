@@ -14,28 +14,90 @@ const db = admin.firestore();
 const RESERVED = ["admin", "apex_racer", "system", "moderator", "cpm_bot"];
 const LINK_REGEX = /(https?:\/\/|www\.|discord\.gg|t\.me|telegram\.me|\.com|\.gg)/i;
 
+function getHumanFallback(cleanMsg) {
+  const text = cleanMsg.toLowerCase();
+
+  if (text.includes("supra") || text.includes("gearbox") || text.includes("gear")) {
+    const gearboxTunes = [
+      "For Supra set Final Drive 3.12, 1st 2.66, 2nd 1.90. Shifts fast and clean.",
+      "Run Final Drive 2.80 with AWD on Supra, easy sub-6 on the strip.",
+      "Keep 1st gear long around 2.70 so you do not spin tires off the line."
+    ];
+    return gearboxTunes[Math.floor(Math.random() * gearboxTunes.length)];
+  }
+
+  if (text.includes("drag") || text.includes("speed") || text.includes("fast")) {
+    const dragTips = [
+      "Drop tire pressure to 1.2 bar and launch in 2nd gear bro.",
+      "Turn off TCS and ESP before staging, thank me later.",
+      "Max out torque, run AWD, and shift right at the redline."
+    ];
+    return dragTips[Math.floor(Math.random() * dragTips.length)];
+  }
+
+  if (text.includes("drift")) {
+    const driftTips = [
+      "RWD mode, steer angle at 60, 0% front camber, and stiff rear suspension.",
+      "Lock steering angle to 58 and pump the handbrake into the corner."
+    ];
+    return driftTips[Math.floor(Math.random() * driftTips.length)];
+  }
+
+  if (text.includes("trade") || text.includes("sell") || text.includes("buy")) {
+    const tradeReplies = [
+      "What you got to trade bro? Got any clean liveries or w16?",
+      "Looking for a clean M8 or 350z livery if anyone is selling.",
+      "Drop the car and specs, let me see what you have."
+    ];
+    return tradeReplies[Math.floor(Math.random() * tradeReplies.length)];
+  }
+
+  if (text.includes("room") || text.includes("code") || /\b\d{6,8}\b/.test(text)) {
+    const roomReplies = [
+      "Send the lobby code bro, hopping in right now.",
+      "Is the room full or are you starting a new lobby?",
+      "Drop the code, pulling up with the drag tune."
+    ];
+    return roomReplies[Math.floor(Math.random() * roomReplies.length)];
+  }
+
+  const generalReplies = [
+    "What car are you building right now bro?",
+    "Yo, you hitting the drag strip or cruising city?",
+    "What tune do you need help with?",
+    "Sup bro, ready to run on the strip whenever."
+  ];
+  return generalReplies[Math.floor(Math.random() * generalReplies.length)];
+}
+
 async function getBotReply(cleanName, cleanMsg) {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    return "Yo! I'm here. Ask me about tunes, drag setups, or room codes.";
-  }
-  try {
-    const prompt = `You are Apex_Racer, a pro Car Parking Multiplayer player in lobby chat. Reply in 1 short sentence (under 20 words), casual gamer slang, helpful with setups, tunes, or codes. User ${cleanName} said: "${cleanMsg.replace(/@(apex|apex_racer)/gi, '').trim()}". Reply as Apex_Racer, natural, no AI mention.`;
-    const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
-      signal: AbortSignal.timeout(4000)
-    });
-    const data = await resp.json();
-    const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-    if (reply && reply.length <= 150) {
-      return reply.replace(/["*]/g, '');
+  const rawKey = (process.env.GEMINI_API_KEY || "").trim().replace(/^["']|["']$/g, "");
+  const stripped = cleanMsg.replace(/@(apex|apex_racer)/gi, "").trim();
+
+  if (rawKey) {
+    try {
+      const prompt = `You are Apex_Racer, a real human player in Car Parking Multiplayer lobby chat. You talk like a real teenage car gamer (chill, direct, gamer slang, no AI tone). Reply in 1 short sentence under 20 words directly answering this message from ${cleanName}: "${stripped}". Never say you are an AI or bot.`;
+      
+      const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${rawKey}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+        signal: AbortSignal.timeout(4500)
+      });
+
+      if (resp.ok) {
+        const data = await resp.json();
+        const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+        if (reply && reply.length <= 150) {
+          return reply.replace(/["*]/g, "");
+        }
+      }
+    } catch (err) {
+      console.error("Gemini fetch exception:", err.message);
     }
-    return "Yo! Ask me about drift, gearbox setups, or room codes.";
-  } catch {
-    return "Yo! I'm here. Ask me about tunes, drag setups, or room codes.";
   }
+
+  return getHumanFallback(stripped || cleanMsg);
 }
 
 async function pruneOldMessages() {
@@ -83,6 +145,10 @@ export default async function handler(req, res) {
     const banSnap = await db.collection("banned").doc(safeIp).get();
     if (banSnap.exists) return res.status(403).json({ error: "You are banned" });
 
+    // Check if IP is verified
+    const verifiedSnap = await db.collection("verified_ips").doc(safeIp).get();
+    const isIpVerified = verifiedSnap.exists;
+
     const rateRef = db.collection("rateLimits").doc(safeIp);
     const rateSnap = await rateRef.get();
     if (rateSnap.exists) {
@@ -99,7 +165,7 @@ export default async function handler(req, res) {
       name: cleanName,
       message: cleanMsg,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      isVerified: false,
+      isVerified: isIpVerified,
       isBot: false
     });
     batch.set(logRef, {

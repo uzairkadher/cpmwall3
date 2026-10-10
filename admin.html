@@ -11,6 +11,7 @@ input, textarea { width: 100%; box-sizing: border-box; padding: 10px; background
 button { background: #3b82f6; color: #fff; border: 0; padding: 8px 14px; border-radius: 8px; margin: 3px; font-weight: 700; cursor: pointer; }
 button.danger { background: #dc2626; }
 button.green { background: #16a34a; }
+button.orange { background: #ea580c; }
 .post { border-bottom: 1px solid #222; padding: 10px 0; }
 .post:last-child { border-bottom: 0; }
 code { background: #1e293b; padding: 2px 6px; border-radius: 4px; color: #38bdf8; font-family: monospace; }
@@ -45,12 +46,17 @@ code { background: #1e293b; padding: 2px 6px; border-radius: 4px; color: #38bdf8
 </div>
 
 <div class="card">
+  <h4>⭐ Permanently Verified IPs</h4>
+  <div id="verifiedIps">Login to load verified IPs</div>
+</div>
+
+<div class="card">
   <h4>🚫 Banned IPs</h4>
   <div id="banned">Login to load bans</div>
 </div>
 
 <script>
-let ADMIN_KEY = '', cachedLogs = [];
+let ADMIN_KEY = '', cachedLogs = [], verifiedIpsList = [];
 
 function headers() {
   return { 'Content-Type': 'application/json', 'x-admin-key': ADMIN_KEY };
@@ -66,21 +72,26 @@ async function loadAll() {
   document.getElementById('status').textContent = 'Loading...';
 
   try {
-    const [pR, bR, lR, pinR] = await Promise.all([
+    const [pR, bR, lR, vR, pinR] = await Promise.all([
       fetch(`/api/admin?action=posts&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
       fetch(`/api/admin?action=banned&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
       fetch(`/api/admin?action=logs&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
+      fetch(`/api/admin?action=verified_ips&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
       fetch(`/api/admin?action=pinned&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() })
     ]);
 
     const posts = await pR.json();
     const banned = await bR.json();
     const logs = await lR.json();
+    const verifiedIps = await vR.json();
     const pinned = await pinR.json();
 
     if (posts.error) return alert(posts.error);
 
     cachedLogs = Array.isArray(logs) ? logs : [];
+    verifiedIpsList = Array.isArray(verifiedIps) ? verifiedIps : [];
+
+    const verifiedIpSet = new Set(verifiedIpsList.map(v => v.ip || v.id.replace(/_/g, '.')));
 
     document.getElementById('posts').innerHTML = posts.map(p => `
       <div class="post">
@@ -90,20 +101,37 @@ async function loadAll() {
         <br>${esc(p.message)}
         <br><small style="color:#64748b;">ID: ${p.id}</small><br>
         <button class="danger" onclick="delPost('${p.id}')">Delete</button>
-        <button onclick="banFromPost('${p.id}')">Ban IP from log</button>
-        <button class="green" onclick="verifyPost('${p.id}', ${!p.isVerified})">${p.isVerified ? 'Unverify' : 'Verify'}</button>
+        <button onclick="banFromPost('${p.id}')">Ban IP</button>
+        <button class="green" onclick="verifyIpFromPost('${p.id}')">Verify IP (Always)</button>
+        <button onclick="verifyPost('${p.id}', ${!p.isVerified})">${p.isVerified ? 'Unverify Post' : 'Verify Post'}</button>
       </div>
     `).join('') || 'No posts';
 
-    document.getElementById('logs').innerHTML = cachedLogs.map(l => `
+    document.getElementById('logs').innerHTML = cachedLogs.map(l => {
+      const isVerified = verifiedIpSet.has(l.ip);
+      return `
+        <div class="post">
+          <b>${esc(l.name)}</b><br>
+          IP: <code>${esc(l.ip)}</code> ${isVerified ? '<span class="badge" style="background:#16a34a;">VERIFIED IP</span>' : ''}<br>
+          Message: ${esc(l.message)}<br>
+          <small style="color:#64748b;">postId: ${l.postId || l.id}</small><br>
+          ${l.ip !== 'BOT' ? `
+            <button class="danger" onclick="banIp('${esc(l.ip)}')">Ban ${esc(l.ip)}</button>${isVerified ? `
+              <button class="orange" onclick="unverifyIp('${esc(l.ip)}')">Unverify IP</button>
+            ` : `
+              <button class="green" onclick="verifyIp('${esc(l.ip)}')">Verify IP (Always)</button>
+            `}
+          ` : ''}
+        </div>
+      `;
+    }).join('') || 'No logs yet';
+
+    document.getElementById('verifiedIps').innerHTML = verifiedIpsList.map(v => `
       <div class="post">
-        <b>${esc(l.name)}</b><br>
-        IP: <code>${esc(l.ip)}</code><br>
-        Message: ${esc(l.message)}<br>
-        <small style="color:#64748b;">postId: ${l.postId || l.id}</small><br>
-        ${l.ip !== 'BOT' ? `<button class="danger" onclick="banIp('${esc(l.ip)}')">Ban ${esc(l.ip)}</button>` : ''}
+        <code>${esc(v.ip || v.id)}</code>
+        <button class="orange" onclick="unverifyIp('${esc(v.ip || v.id)}')">Remove Verification</button>
       </div>
-    `).join('') || 'No logs yet';
+    `).join('') || 'No verified IPs yet';
 
     document.getElementById('banned').innerHTML = banned.map(b => `
       <div class="post">
@@ -113,7 +141,7 @@ async function loadAll() {
     `).join('') || 'None';
 
     document.getElementById('currentPin').textContent = pinned && pinned.active ? `📌 ${pinned.name}: ${pinned.text}` : 'No active pin';
-    document.getElementById('status').textContent = `Posts: ${posts.length} | Logs: ${cachedLogs.length} | Banned: ${banned.length}`;
+    document.getElementById('status').textContent = `Posts: ${posts.length} | Logs: ${cachedLogs.length} | Verified IPs: ${verifiedIpsList.length}`;
   } catch (err) {
     document.getElementById('status').textContent = 'Error loading data';
     alert(err.message);
@@ -129,10 +157,38 @@ async function delPost(id) {
 
 async function banFromPost(postId) {
   const log = cachedLogs.find(l => l.postId === postId || l.id === postId);
-  if (!log) return alert('Log not found for ' + postId + '. Ban directly from the IP logs list below.');
+  if (!log) return alert('Log not found for ' + postId);
   if (log.ip === 'BOT') return alert('Cannot ban BOT');
   if (!confirm('Ban IP ' + log.ip + '?')) return;
   const r = await fetch('/api/admin', { method: 'POST', headers: headers(), body: JSON.stringify({ action: 'ban', ip: log.ip }) });
+  const d = await r.json();
+  if (d.success) loadAll(); else alert(d.error);
+}
+
+async function verifyIpFromPost(postId) {
+  const log = cachedLogs.find(l => l.postId === postId || l.id === postId);
+  if (!log) return alert('Log not found for ' + postId);
+  if (log.ip === 'BOT') return alert('Cannot verify BOT IP');
+  verifyIp(log.ip, postId);
+}
+
+async function verifyIp(ip, postId) {
+  if (!confirm('Permanently verify IP ' + ip + '? All future messages will have the verified checkmark.')) return;
+  const r = await fetch('/api/admin', { method: 'POST', headers: headers(), body: JSON.stringify({ action: 'verify_ip', ip }) });
+  const d = await r.json();
+  if (d.success) {
+    if (postId) {
+      await fetch('/api/admin', { method: 'POST', headers: headers(), body: JSON.stringify({ action: 'verify', postId, isVerified: true }) });
+    }
+    loadAll();
+  } else {
+    alert(d.error);
+  }
+}
+
+async function unverifyIp(ip) {
+  if (!confirm('Remove permanent verification for IP ' + ip + '?')) return;
+  const r = await fetch('/api/admin', { method: 'POST', headers: headers(), body: JSON.stringify({ action: 'unverify_ip', ip }) });
   const d = await r.json();
   if (d.success) loadAll(); else alert(d.error);
 }

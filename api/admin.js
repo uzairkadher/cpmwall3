@@ -27,6 +27,10 @@ export default async function handler(req, res) {
         const snap = await db.collection("banned").limit(100).get();
         return res.status(200).json(snap.docs.map(d => ({ id: d.id, ...d.data() })));
       }
+      if (action === "verified_ips") {
+        const snap = await db.collection("verified_ips").limit(100).get();
+        return res.status(200).json(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      }
       if (action === "logs") {
         const snap = await db.collection("ip_logs").orderBy("createdAt", "desc").limit(100).get();
         return res.status(200).json(snap.docs.map(d => ({ id: d.id, ...d.data() })));
@@ -47,6 +51,7 @@ export default async function handler(req, res) {
 
     if (req.method === "POST") {
       const { action } = req.body;
+
       if (action === "ban") {
         const { ip, reason } = req.body;
         const safeIp = ip.replace(/[^a-zA-Z0-9.:]/g, "_");
@@ -57,12 +62,39 @@ export default async function handler(req, res) {
         });
         return res.status(200).json({ success: true });
       }
+
       if (action === "unban") {
         const { ip } = req.body;
         const safeIp = ip.replace(/[^a-zA-Z0-9.:]/g, "_");
         await db.collection("banned").doc(safeIp).delete();
         return res.status(200).json({ success: true });
       }
+
+      if (action === "verify_ip") {
+        const { ip } = req.body;
+        if (!ip) return res.status(400).json({ error: "Missing IP" });
+        const safeIp = ip.replace(/[^a-zA-Z0-9.:]/g, "_");
+        await db.collection("verified_ips").doc(safeIp).set({
+          ip,
+          verifiedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+        return res.status(200).json({ success: true });
+      }
+
+      if (action === "unverify_ip") {
+        const { ip } = req.body;
+        if (!ip) return res.status(400).json({ error: "Missing IP" });
+        const safeIp = ip.replace(/[^a-zA-Z0-9.:]/g, "_");
+        await db.collection("verified_ips").doc(safeIp).delete();
+        return res.status(200).json({ success: true });
+      }
+
+      if (action === "verify") {
+        const { postId, isVerified } = req.body;
+        await db.collection("posts").doc(postId).update({ isVerified: Boolean(isVerified) });
+        return res.status(200).json({ success: true });
+      }
+
       if (action === "pin") {
         const { text, name, active } = req.body;
         await db.collection("pinned").doc("current").set({
@@ -71,11 +103,6 @@ export default async function handler(req, res) {
           active: Boolean(active),
           updatedAt: admin.firestore.FieldValue.serverTimestamp()
         });
-        return res.status(200).json({ success: true });
-      }
-      if (action === "verify") {
-        const { postId, isVerified } = req.body;
-        await db.collection("posts").doc(postId).update({ isVerified: Boolean(isVerified) });
         return res.status(200).json({ success: true });
       }
     }
