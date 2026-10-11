@@ -39,6 +39,10 @@ export default async function handler(req, res) {
         const snap = await db.collection("subnet_bans").limit(100).get();
         return res.status(200).json(snap.docs.map(d => ({ id: d.id, ...d.data() })));
       }
+      if (action === "subnet_whitelist") {
+        const snap = await db.collection("subnet_whitelist").limit(100).get();
+        return res.status(200).json(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      }
       if (action === "fingerprint_bans") {
         const snap = await db.collection("fingerprint_bans").limit(100).get();
         return res.status(200).json(snap.docs.map(d => ({ id: d.id, ...d.data() })));
@@ -93,6 +97,33 @@ export default async function handler(req, res) {
 
     if (req.method === "POST") {
       const { action } = req.body;
+
+      // Fix: Chat lock toggle handler
+      if (action === "toggle_chat_lock") {
+        const { locked } = req.body;
+        await db.collection("pinned").doc("current").set({
+          chatLocked: Boolean(locked)
+        }, { merge: true });
+        return res.status(200).json({ success: true, chatLocked: Boolean(locked) });
+      }
+
+      if (action === "whitelist_subnet_ip") {
+        const { ip } = req.body;
+        if (!ip) return res.status(400).json({ error: "Missing IP" });
+        const safeIp = ip.replace(/[^a-zA-Z0-9.:]/g, "_");
+        await db.collection("subnet_whitelist").doc(safeIp).set({
+          ip,
+          whitelistedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+        return res.status(200).json({ success: true, ip });
+      }
+
+      if (action === "remove_subnet_whitelist") {
+        const { ip } = req.body;
+        const safeIp = ip.replace(/[^a-zA-Z0-9.:]/g, "_");
+        await db.collection("subnet_whitelist").doc(safeIp).delete();
+        return res.status(200).json({ success: true });
+      }
 
       if (action === "delete_bulk") {
         const { ids } = req.body;

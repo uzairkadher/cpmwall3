@@ -217,6 +217,21 @@ body {
   border-color: rgba(245, 158, 11, 0.45);
   background: #181512;
 }
+
+.bubble.frame-gold {
+  border: 1.5px solid var(--gold) !important;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.45);
+}
+.bubble.frame-purple {
+  border: 1.5px solid #a855f7 !important;
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.55);
+}
+.bubble.frame-carbon {
+  border: 1.5px solid #64748b !important;
+  background: repeating-linear-gradient(45deg, #141724, #141724 5px, #0e111a 5px, #0e111a 10px) !important;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.7);
+}
+
 .author-line {
   display: flex;
   align-items: center;
@@ -413,6 +428,21 @@ body {
   border-color: #fff;
   transform: scale(1.2);
 }
+.frame-btn {
+  background: #1e243b;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.frame-btn.active {
+  border-color: var(--gold);
+  color: #fff;
+  background: #2b2238;
+}
 .typing-box { font-size: 0.7rem; color: var(--bot); min-height: 12px; padding-left: 4px; flex-shrink: 0; }
 .input-panel {
   background: var(--card);
@@ -423,6 +453,19 @@ body {
   flex-direction: column;
   gap: 5px;
   flex-shrink: 0;
+}
+.typing-progress-wrap {
+  width: 100%;
+  height: 3px;
+  background: #181d30;
+  border-radius: 2px;
+  overflow: hidden;
+}
+.typing-progress-bar {
+  height: 100%;
+  width: 0%;
+  background: #22c55e;
+  transition: width 0.1s linear, background-color 0.2s ease;
 }
 .cooldown-wrap {
   width: 100%;
@@ -535,7 +578,7 @@ body {
     </div>
     <div class="header-actions">
       <button id="alertBtn" type="button" class="top-btn" onclick="toggleAlerts()">🔔 Alerts</button>
-      <button id="soundToggle" type="button" class="top-btn" onclick="toggleSound()">🔇 Sound</button>
+      <button id="soundToggle" type="button" class="top-btn" onclick="cycleSoundFX()">🔊 Ping</button>
     </div>
   </div>
 
@@ -572,13 +615,21 @@ body {
       <button type="button" class="chip" onclick="addTag('#Trade')">#Trade</button>
     </div>
 
-    <div id="vipColorPicker" style="display:none; gap:8px; align-items:center; padding: 2px 4px;">
-      <span style="font-size:10px; color:#fef08a; font-weight:700;">VIP Tag Color:</span>
-      <span class="color-swatch active" style="background:#f59e0b;" onclick="setVipColor('#f59e0b', this)" title="Gold"></span>
-      <span class="color-swatch" style="background:#ef4444;" onclick="setVipColor('#ef4444', this)" title="Neon Red"></span>
-      <span class="color-swatch" style="background:#a855f7;" onclick="setVipColor('#a855f7', this)" title="Purple"></span>
-      <span class="color-swatch" style="background:#22c55e;" onclick="setVipColor('#22c55e', this)" title="Green"></span>
-      <span class="color-swatch" style="background:#00f0ff;" onclick="setVipColor('#00f0ff', this)" title="Cyan"></span>
+    <div id="vipCustomPanel" style="display:none; flex-direction:column; gap:4px; padding: 2px 4px;">
+      <div style="display:flex; gap:8px; align-items:center;">
+        <span style="font-size:10px; color:#fef08a; font-weight:700;">Tag Color:</span>
+        <span class="color-swatch active" style="background:#f59e0b;" onclick="setVipColor('#f59e0b', this)" title="Gold"></span>
+        <span class="color-swatch" style="background:#ef4444;" onclick="setVipColor('#ef4444', this)" title="Neon Red"></span>
+        <span class="color-swatch" style="background:#a855f7;" onclick="setVipColor('#a855f7', this)" title="Purple"></span>
+        <span class="color-swatch" style="background:#22c55e;" onclick="setVipColor('#22c55e', this)" title="Green"></span>
+        <span class="color-swatch" style="background:#00f0ff;" onclick="setVipColor('#00f0ff', this)" title="Cyan"></span>
+      </div>
+      <div style="display:flex; gap:6px; align-items:center;">
+        <span style="font-size:10px; color:#fef08a; font-weight:700;">Bubble Frame:</span>
+        <button type="button" class="frame-btn active" onclick="setVipFrame('gold', this)">Gold Trim</button>
+        <button type="button" class="frame-btn" onclick="setVipFrame('purple', this)">Neon Purple</button>
+        <button type="button" class="frame-btn" onclick="setVipFrame('carbon', this)">Carbon Fiber</button>
+      </div>
     </div>
 
     <div class="emoji-row">
@@ -594,6 +645,10 @@ body {
       <input id="msgInput" placeholder="Type message, room code, or ID..." maxlength="150" autocomplete="off">
     </div>
 
+    <div class="typing-progress-wrap">
+      <div id="typingProgressBar" class="typing-progress-bar"></div>
+    </div>
+
     <div id="cooldownWrap" class="cooldown-wrap">
       <div id="cooldownBar" class="cooldown-bar"></div>
     </div>
@@ -604,7 +659,6 @@ body {
     </div>
   </div>
 </div>
-
 <div id="tipModal" class="modal-back">
   <div class="modal-window">
     <h3>☕ Support CPM Community</h3>
@@ -650,7 +704,7 @@ body {
         <span style="color:#38bdf8;">✓</span> <b>Site-Wide VIP Badge:</b> Displays VIP tag on public wall and lounge
       </div>
       <div style="font-size: 0.73rem; color: #f1f5f9; display: flex; align-items: center; gap: 6px;">
-        <span style="color:#f59e0b;">✓</span> <b>Animated Neon Tag Glow:</b> Pulsing glow on your driver name
+        <span style="color:#f59e0b;">✓</span> <b>Custom Tag Frames:</b> Gold trim, purple neon, or carbon borders
       </div>
       <div style="font-size: 0.73rem; color: #f1f5f9; display: flex; align-items: center; gap: 6px;">
         <span style="color:#4ade80;">✓</span> <b>250 Characters:</b> Write longer specs and car trade descriptions
@@ -663,7 +717,7 @@ body {
       </div>
     </div>
 
-    <input id="vipPassInput" placeholder="Enter VIP Passcode" style="background:#0d101d; border:1px solid var(--border); color:#fff; padding:9px; border-radius:8px;">
+    <input id="vipPassInput" placeholder="Enter VIP Passcode or ADMIN_KEY" style="background:#0d101d; border:1px solid var(--border); color:#fff; padding:9px; border-radius:8px;">
     <button id="vipUnlockBtn" type="button" class="send-btn" style="background:linear-gradient(135deg, #f59e0b, #d97706); color:#000;" onclick="unlockVip()">Unlock VIP Room</button>
 
     <a href="https://wa.me/923558182875?text=Hello%20Admin%2C%20I%20want%20to%20buy%20the%20VIP%20Room%20Passcode" target="_blank" class="sbtn" style="background:#25d366; text-align:center; padding:8px;">Get VIP Pass ($1 / 300 PKR)</a>
@@ -701,7 +755,8 @@ const onlineCountEl = document.getElementById('onlineCount');
 const alertBtn = document.getElementById('alertBtn');
 const cooldownWrap = document.getElementById('cooldownWrap');
 const cooldownBar = document.getElementById('cooldownBar');
-const vipColorPicker = document.getElementById('vipColorPicker');
+const vipCustomPanel = document.getElementById('vipCustomPanel');
+const typingProgressBar = document.getElementById('typingProgressBar');
 
 const tabPublic = document.getElementById('tabPublic');
 const tabVip = document.getElementById('tabVip');
@@ -713,7 +768,8 @@ userNameInput.value = localStorage.getItem('cpm_name') || '';
 let currentRoom = 'public';
 let activeVipKey = localStorage.getItem('cpm_vip_key') || '';
 let currentVipColor = localStorage.getItem('cpm_vip_color') || '#f59e0b';
-let soundEnabled = localStorage.getItem('cpm_sound') === 'true';
+let currentVipFrame = localStorage.getItem('cpm_vip_frame') || 'gold';
+let soundMode = localStorage.getItem('cpm_sound_mode') || 'ping';
 let alertsEnabled = localStorage.getItem('cpm_alerts') === 'true';
 let audioCtx = null;
 let isInitialLoad = true;
@@ -729,10 +785,10 @@ function updateVipUIState() {
   const isVip = Boolean(activeVipKey);
   if (isVip) {
     msgInput.maxLength = 250;
-    if (vipColorPicker) vipColorPicker.style.display = 'flex';
+    if (vipCustomPanel) vipCustomPanel.style.display = 'flex';
   } else {
     msgInput.maxLength = 150;
-    if (vipColorPicker) vipColorPicker.style.display = 'none';
+    if (vipCustomPanel) vipCustomPanel.style.display = 'none';
   }
   updateCharCounterDisplay();
 }
@@ -741,12 +797,20 @@ function updateCharCounterDisplay() {
   const max = activeVipKey ? 250 : 150;
   const len = msgInput.value.length;
   charCount.textContent = `${len}/${max}`;
-  if (len > max - 10) {
-    charCount.style.color = '#ef4444';
-  } else if (len > max - 35) {
-    charCount.style.color = '#f97316';
-  } else {
-    charCount.style.color = 'var(--muted)';
+
+  const pct = Math.min(100, (len / max) * 100);
+  if (typingProgressBar) {
+    typingProgressBar.style.width = `${pct}%`;
+    if (pct > 90) {
+      typingProgressBar.style.backgroundColor = '#ef4444';
+      charCount.style.color = '#ef4444';
+    } else if (pct > 70) {
+      typingProgressBar.style.backgroundColor = '#f97316';
+      charCount.style.color = '#f97316';
+    } else {
+      typingProgressBar.style.backgroundColor = '#22c55e';
+      charCount.style.color = 'var(--muted)';
+    }
   }
 }
 
@@ -766,6 +830,13 @@ window.setVipColor = (color, el) => {
   currentVipColor = color;
   localStorage.setItem('cpm_vip_color', color);
   document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+  if (el) el.classList.add('active');
+};
+
+window.setVipFrame = (frame, el) => {
+  currentVipFrame = frame;
+  localStorage.setItem('cpm_vip_frame', frame);
+  document.querySelectorAll('.frame-btn').forEach(b => b.classList.remove('active'));
   if (el) el.classList.add('active');
 };
 
@@ -791,7 +862,7 @@ window.switchRoom = (room) => {
 window.unlockVip = async () => {
   const entered = (document.getElementById('vipPassInput').value || '').trim();
   const name = (userNameInput.value || '').trim();
-  if (!entered) return alert('Enter VIP Passcode');
+  if (!entered) return alert('Enter VIP Passcode or ADMIN_KEY');
 
   const unlockBtn = document.getElementById('vipUnlockBtn');
   if (unlockBtn) {
@@ -816,9 +887,12 @@ window.unlockVip = async () => {
     if (res.ok) {
       activeVipKey = entered;
       localStorage.setItem('cpm_vip_key', entered);
+      if (entered.length > 5) {
+        localStorage.setItem('cpm_admin_key', entered);
+      }
       vipModal.style.display = 'none';
       updateVipUIState();
-      alert('VIP Lounge unlocked (Active for 30 days)! Verified Driver Badge and 250 chars granted.');
+      alert('Unlocked successfully!');
       switchRoom('vip');
     } else {
       alert(data.error || 'Failed to unlock VIP room.');
@@ -873,42 +947,109 @@ function initAudio() {
   if (audioCtx.state === 'suspended') audioCtx.resume();
 }
 
-function playPing() {
-  if (!soundEnabled) return;
-  try {
-    initAudio();
+function playClassicPing() {
+  initAudio();
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.15);
+  gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.2);
+}
+
+function playTurboBlowOff() {
+  initAudio();
+  const bufferSize = audioCtx.sampleRate * 0.35;
+  const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) {
+    data[i] = Math.random() * 2 - 1;
+  }
+  const noise = audioCtx.createBufferSource();
+  noise.buffer = buffer;
+
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.setValueAtTime(2600, audioCtx.currentTime);
+  filter.frequency.exponentialRampToValueAtTime(700, audioCtx.currentTime + 0.35);
+
+  const gain = audioCtx.createGain();
+  gain.gain.setValueAtTime(0.6, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+
+  noise.connect(filter);
+  filter.connect(gain);
+  gain.connect(audioCtx.destination);
+  noise.start();
+}
+
+function playTwoStepBackfire() {
+  initAudio();
+  [0, 0.08, 0.16].forEach((delay) => {
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(880, audioCtx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.15);
-    gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(140, audioCtx.currentTime + delay);
+    osc.frequency.exponentialRampToValueAtTime(35, audioCtx.currentTime + delay + 0.05);
+
+    gain.gain.setValueAtTime(0.7, audioCtx.currentTime + delay);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + delay + 0.06);
+
     osc.connect(gain);
     gain.connect(audioCtx.destination);
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.2);
-    if (navigator.vibrate) navigator.vibrate(80);
+    osc.start(audioCtx.currentTime + delay);
+    osc.stop(audioCtx.currentTime + delay + 0.06);
+  });
+}
+
+function playAlertSound() {
+  if (soundMode === 'mute') return;
+  try {
+    if (soundMode === 'bov') playTurboBlowOff();
+    else if (soundMode === 'twostep') playTwoStepBackfire();
+    else playClassicPing();
+
+    if (navigator.vibrate) navigator.vibrate(60);
   } catch {}
 }
 
 document.addEventListener('click', () => { initAudio(); }, { once: true });
 document.addEventListener('touchstart', () => { initAudio(); }, { once: true });
 
-function updateSoundBtn() {
+function updateSoundButtonUI() {
   const btn = document.getElementById('soundToggle');
-  if (btn) {
-    btn.className = soundEnabled ? 'top-btn active' : 'top-btn';
-    btn.textContent = soundEnabled ? '🔊 Sound' : '🔇 Sound';
+  if (!btn) return;
+  if (soundMode === 'ping') {
+    btn.className = 'top-btn active';
+    btn.textContent = '🔊 Ping';
+  } else if (soundMode === 'bov') {
+    btn.className = 'top-btn active';
+    btn.textContent = '💨 Blow-Off';
+  } else if (soundMode === 'twostep') {
+    btn.className = 'top-btn active';
+    btn.textContent = '🔥 2-Step';
+  } else {
+    btn.className = 'top-btn';
+    btn.textContent = '🔇 Mute';
   }
 }
-window.toggleSound = () => {
-  soundEnabled = !soundEnabled;
-  localStorage.setItem('cpm_sound', soundEnabled);
-  updateSoundBtn();
-  if (soundEnabled) initAudio();
+
+window.cycleSoundFX = () => {
+  if (soundMode === 'ping') soundMode = 'bov';
+  else if (soundMode === 'bov') soundMode = 'twostep';
+  else if (soundMode === 'twostep') soundMode = 'mute';
+  else soundMode = 'ping';
+
+  localStorage.setItem('cpm_sound_mode', soundMode);
+  updateSoundButtonUI();
+  playAlertSound();
 };
-updateSoundBtn();
+updateSoundButtonUI();
 
 function updateAlertBtn() {
   if (!alertBtn) return;
@@ -1015,7 +1156,6 @@ function buildBubble(id, data, isTemporary) {
   const isBot = Boolean(data.isBot || data.name === 'Apex_Racer');
   const isMe = Boolean(currentName && data.name === currentName);
 
-  // Silent shadowban: only author sees their own shadowbanned post
   if (data.isShadowbanned && !isMe) {
     const emptyEl = document.createElement('div');
     emptyEl.style.display = 'none';
@@ -1024,9 +1164,10 @@ function buildBubble(id, data, isTemporary) {
 
   const postRoom = data.room || 'public';
   const isVip = Boolean(data.isVip || postRoom === 'vip');
+  const frameClass = data.frameStyle ? `frame-${data.frameStyle}` : '';
 
   const bubble = document.createElement('div');
-  bubble.className = `bubble ${isBot ? 'bot' : isMe ? 'me' : ''} ${isVip ? 'vip-post' : ''}`;
+  bubble.className = `bubble ${isBot ? 'bot' : isMe ? 'me' : ''} ${isVip ? 'vip-post' : ''} ${frameClass}`;
   if (id) bubble.id = `post-${id}`;
   if (isTemporary) bubble.setAttribute('data-pending', `${data.name}-${data.message}`);
 
@@ -1267,7 +1408,7 @@ onSnapshot(q, (snap) => {
       }
 
       feedEl.prepend(buildBubble(id, data, false));
-      playPing();
+      playAlertSound();
 
       if (feedEl.scrollTop > 80) {
         jumpBtn.style.display = 'block';
@@ -1353,7 +1494,8 @@ function startCooldown(seconds) {
 }
 
 window.sendPost = async () => {
-  if (isChatPaused) {
+  const adminKey = localStorage.getItem('cpm_admin_key') || '';
+  if (isChatPaused && !adminKey) {
     alert("Chat is temporarily paused by admin.");
     return;
   }
@@ -1364,7 +1506,7 @@ window.sendPost = async () => {
     alert("Please enter a valid name (2+ chars) and message.");
     return;
   }
-  if (message === lastPostedMsg && Date.now() - lastPostTimestamp < 60000) {
+  if (message === lastPostedMsg && Date.now() - lastPostTimestamp < 60000 && !adminKey) {
     alert("Duplicate message. Please wait before resending.");
     return;
   }
@@ -1373,19 +1515,22 @@ window.sendPost = async () => {
 
   const isVip = Boolean(activeVipKey);
   const chosenColor = isVip ? currentVipColor : null;
+  const chosenFrame = isVip ? currentVipFrame : null;
+
   const optimisticEl = buildBubble(null, {
     name,
     message,
     createdAt: new Date(),
     room: currentRoom,
     isVip,
-    nameColor: chosenColor
+    nameColor: chosenColor,
+    frameStyle: chosenFrame
   }, true);
 
   const placeholder = document.getElementById('emptyRoomNotice');
   if (placeholder) placeholder.remove();
   feedEl.prepend(optimisticEl);
-  playPing();
+  playAlertSound();
 
   sendBtn.disabled = true;
   sendBtn.textContent = "Posting...";
@@ -1400,8 +1545,10 @@ window.sendPost = async () => {
         message,
         clientInfo,
         room: currentRoom,
-        vipKey: activeVipKey || '',
-        nameColor: chosenColor
+                vipKey: activeVipKey || '',
+        adminKey: adminKey,
+        nameColor: chosenColor,
+        frameStyle: chosenFrame
       })
     });
     const data = await res.json().catch(() => ({}));
@@ -1412,8 +1559,13 @@ window.sendPost = async () => {
       msgInput.value = '';
       updateCharCounterDisplay();
 
-      const cooldownTime = isVip ? 2 : 10;
-      startCooldown(cooldownTime);
+      const cooldownTime = adminKey ? 0 : (isVip ? 2 : 10);
+      if (cooldownTime > 0) {
+        startCooldown(cooldownTime);
+      } else {
+        sendBtn.disabled = false;
+        sendBtn.textContent = "Post to Wall";
+      }
 
       if (message.toLowerCase().includes('@apex')) {
         typingEl.textContent = 'Apex_Racer is typing...';

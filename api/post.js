@@ -11,9 +11,10 @@ if (!admin.apps.length) {
 }
 const db = admin.firestore();
 
-const RESERVED = ["admin", "apex_racer", "system", "moderator", "cpm_bot"];
+const RESERVED = ["apex_racer", "cpm_bot"];
 const LINK_REGEX = /(https?:\/\/|www\.|discord\.gg|t\.me|telegram\.me|chat\.whatsapp\.com|\.com|\.gg|\.xyz|\.top)/i;
 const ALLOWED_COLORS = ["#ef4444", "#f59e0b", "#a855f7", "#22c55e", "#00f0ff"];
+const ALLOWED_FRAMES = ["gold", "purple", "carbon"];
 
 const STATIC_BLOCKED_WORDS = [
   "free coins", "hack cpm", "mod apk", "cpm hack", "coin generator",
@@ -175,7 +176,7 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   try {
-    const { action, postId, name, message, clientInfo, room, vipKey, nameColor } = req.body || {};
+    const { action, postId, name, message, clientInfo, room, vipKey, adminKey, nameColor, frameStyle } = req.body || {};
     const rawIp = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || "").split(',')[0].trim() || "unknown";
     const safeIp = rawIp.replace(/[^a-zA-Z0-9.:]/g, '_');
     const isVpnDetected = checkVpnIndicators(req);
@@ -184,50 +185,61 @@ export default async function handler(req, res) {
     const client = clientInfo || {};
     const fingerprint = getDeviceFingerprint(client, ua);
 
-    // 1. Check Subnet Ban
+    // Verify if this request belongs to the real admin
+    const passedKey = adminKey || req.headers['x-admin-key'] || (vipKey === process.env.ADMIN_KEY ? vipKey : null);
+    const isRealAdmin = Boolean(process.env.ADMIN_KEY && passedKey && String(passedKey).trim() === String(process.env.ADMIN_KEY).trim());
+
+    // 1. Subnet Ban Check (with Whitelist Exemption)
     const subnet = getSubnet24(rawIp);
-    if (subnet) {
-      const subnetDoc = await db.collection("subnet_bans").doc(subnet.replace(/\*/g, '0')).get();
-      if (subnetDoc.exists) {
-        return res.status(403).json({ error: "Your mobile network subnet is banned from posting." });
+    if (subnet && !isRealAdmin) {
+      const whitelistDoc = await db.collection("subnet_whitelist").doc(safeIp).get();
+      if (!whitelistDoc.exists) {
+        const subnetDoc = await db.collection("subnet_bans").doc(subnet.replace(/\*/g, '0')).get();
+        if (subnetDoc.exists) {
+          return res.status(403).json({ error: "Your mobile network subnet is banned from posting." });
+        }
       }
     }
 
-    // 2. Check Device Hardware Fingerprint Ban
-    if (fingerprint) {
+    // 2. Hardware Fingerprint Ban Check
+    if (fingerprint && !isRealAdmin) {
       const fpDoc = await db.collection("fingerprint_bans").doc(fingerprint).get();
       if (fpDoc.exists) {
         return res.status(403).json({ error: "Your device hardware signature has been permanently blocked." });
       }
     }
 
-    // 3. Check Standard IP Ban
-    const banSnap = await db.collection("banned").doc(safeIp).get();
-    if (banSnap.exists) {
-      const banData = banSnap.data();
-      const until = banData.bannedUntil?._seconds ? banData.bannedUntil._seconds * 1000 : null;
-      if (!until || until > Date.now()) {
-        const reasonText = banData.reason ? `: ${banData.reason}` : "";
-        return res.status(403).json({ error: `You are banned${reasonText}` });
-      } else {
-        await db.collection("banned").doc(safeIp).delete().catch(() => {});
+    // 3. Regular IP Ban Check
+    if (!isRealAdmin) {
+      const banSnap = await db.collection("banned").doc(safeIp).get();
+      if (banSnap.exists) {
+        const banData = banSnap.data();
+        const until = banData.bannedUntil?._seconds ? banData.bannedUntil._seconds * 1000 : null;
+        if (!until || until > Date.now()) {
+          const reasonText = banData.reason ? `: ${banData.reason}` : "";
+          return res.status(403).json({ error: `You are banned${reasonText}` });
+        } else {
+          await db.collection("banned").doc(safeIp).delete().catch(() => {});
+        }
       }
     }
 
     const pinDoc = await db.collection("pinned").doc("current").get();
     const pinData = pinDoc.exists ? pinDoc.data() : {};
 
-    // 4. Handle VIP Unlock Action
+    // 4. Handle VIP Unlock Action (Admin key can unlock directly)
     if (action === "unlock_vip") {
       const vipBan = await db.collection("vip_banned").doc(safeIp).get();
-      if (vipBan.exists) return res.status(403).json({ error: "Your access to VIP Lounge is blocked." });
+      if (vipBan.exists && !isRealAdmin) return res.status(403).json({ error: "Your access to VIP Lounge is blocked." });
 
       const validVipKey = pinData.vipKey || "VIP777";
-      if (!vipKey || String(vipKey).trim() !== String(validVipKey).trim()) {
+      const keyMatches = (vipKey && String(vipKey).trim() === String(validVipKey).trim()) || isRealAdmin;
+
+      if (!keyMatches) {
         return res.status(403).json({ error: "Invalid VIP Access Passcode." });
       }
 
-      const cleanName = (name || "VIP Driver").trim().substring(0, 20);
+      const cleanName = (name || (isRealAdmin ? "Administration Team" : "VIP Driver")).trim().substring(0, 20);
       const countryCode = (req.headers['x-vercel-ip-country'] || req.headers['cf-ipcountry'] || '').toUpperCase();
       let countryName = 'Unknown';
       if (countryCode && countryCode.length === 2) {
@@ -238,13 +250,13 @@ export default async function handler(req, res) {
         }
       }
       const city = req.headers['x-vercel-ip-city'] || '';
-      const expiresAt = admin.firestore.Timestamp.fromMillis(Date.now() + 30 * 24 * 3600 * 1000);
+      const expiresAt = admin.firestore.Timestamp.fromMillis(Date.now() + 365 * 24 * 3600 * 1000);
 
       const batch = db.batch();
       batch.set(db.collection("verified_ips").doc(safeIp), {
         ip: rawIp,
         verifiedAt: admin.firestore.FieldValue.serverTimestamp(),
-        source: "vip_passcode"
+        source: isRealAdmin ? "admin_login" : "vip_passcode"
       }, { merge: true });
 
       batch.set(db.collection("vip_members").doc(safeIp), {
@@ -258,12 +270,13 @@ export default async function handler(req, res) {
         countryCode: countryCode || 'UN',
         city: city || 'Unknown City',
         isVpn: isVpnDetected,
+        isAdmin: isRealAdmin,
         unlockedAt: admin.firestore.FieldValue.serverTimestamp(),
         expiresAt: expiresAt
       }, { merge: true });
 
       await batch.commit();
-      return res.status(200).json({ success: true, message: "VIP Lounge unlocked (Active for 30 days)!" });
+      return res.status(200).json({ success: true, message: isRealAdmin ? "Admin privileges active!" : "VIP Lounge unlocked (Active for 30 days)!" });
     }
 
     if (action === "like") {
@@ -289,11 +302,12 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: true });
     }
 
-    if (pinData.chatLocked) {
-      return res.status(403).json({ error: "Chat is temporarily paused by admin." });
+    // Chat Lock enforcement: Only real admin can bypass
+    if (pinData.chatLocked && !isRealAdmin) {
+      return res.status(403).json({ error: "Chat is temporarily locked by admin." });
     }
 
-    // Check VIP status & Expiration
+    // Check VIP Membership
     const memberDoc = await db.collection("vip_members").doc(safeIp).get();
     let isVipUser = false;
     if (memberDoc.exists) {
@@ -308,12 +322,15 @@ export default async function handler(req, res) {
     if (vipKey && String(vipKey).trim() === String(validVipKey).trim()) {
       isVipUser = true;
     }
+    if (isRealAdmin) {
+      isVipUser = true;
+    }
 
     const verifiedSnap = await db.collection("verified_ips").doc(safeIp).get();
-    const isIpVerified = verifiedSnap.exists || isVipUser;
+    const isIpVerified = verifiedSnap.exists || isVipUser || isRealAdmin;
 
-    // 5. Panic Raid Mode Check
-    if (pinData.raidMode && !isVipUser && !isIpVerified) {
+    // Panic Raid Mode Check
+    if (pinData.raidMode && !isVipUser && !isIpVerified && !isRealAdmin) {
       return res.status(403).json({ error: "Panic Raid Mode is active: Only Verified & VIP drivers can post right now." });
     }
 
@@ -330,14 +347,14 @@ export default async function handler(req, res) {
     if (cleanName.length < 2) return res.status(400).json({ error: "Name too short" });
     if (RESERVED.includes(cleanName.toLowerCase())) return res.status(400).json({ error: "Name reserved" });
 
-    // 6. Name Impersonation Auto-Block
-    if (isNameImpersonating(cleanName)) {
+    // Name Impersonation Auto-Block: Bypass if user is the real admin
+    if (isNameImpersonating(cleanName) && !isRealAdmin) {
       return res.status(400).json({ error: "This driver tag resembles official staff handles and cannot be used." });
     }
 
-    // 7. Profanity Strike Counter (Auto-Ban on 3 Strikes)
+    // Profanity Filter
     const isBlocked = await containsBlockedContent(cleanMsg);
-    if (isBlocked) {
+    if (isBlocked && !isRealAdmin) {
       const strikeRef = db.collection("strikes").doc(safeIp);
       const strikeDoc = await strikeRef.get();
       const strikeCount = (strikeDoc.exists ? strikeDoc.data().count || 0 : 0) + 1;
@@ -363,20 +380,22 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: `Message blocked. Strike ${strikeCount}/3 recorded. 3 strikes will trigger an automatic 24-hour ban.` });
     }
 
-    // 8. Silent Shadowban Check
+    // Silent Shadowban Check
     const shadowDoc = await db.collection("shadowbanned").doc(safeIp).get();
-    const isShadowbanned = shadowDoc.exists;
+    const isShadowbanned = shadowDoc.exists && !isRealAdmin;
 
     // Rate Limiting
     const dynamicSlowMode = pinData.slowModeSeconds ? Number(pinData.slowModeSeconds) : 10;
-    const cooldownWindow = isVipUser ? 2 : dynamicSlowMode;
-    const rateRef = db.collection("rateLimits").doc(safeIp);
-    const rateSnap = await rateRef.get();
-    if (rateSnap.exists) {
-      const last = rateSnap.data().lastPost?._seconds || rateSnap.data().lastPost?.seconds || 0;
-      const now = Math.floor(Date.now() / 1000);
-      if (now - last < cooldownWindow) {
-        return res.status(429).json({ error: `Slow down ${cooldownWindow - (now - last)}s` });
+    const cooldownWindow = isRealAdmin ? 0 : (isVipUser ? 2 : dynamicSlowMode);
+    if (cooldownWindow > 0) {
+      const rateRef = db.collection("rateLimits").doc(safeIp);
+      const rateSnap = await rateRef.get();
+      if (rateSnap.exists) {
+        const last = rateSnap.data().lastPost?._seconds || rateSnap.data().lastPost?.seconds || 0;
+        const now = Math.floor(Date.now() / 1000);
+        if (now - last < cooldownWindow) {
+          return res.status(429).json({ error: `Slow down ${cooldownWindow - (now - last)}s` });
+        }
       }
     }
 
@@ -391,7 +410,8 @@ export default async function handler(req, res) {
     }
     const city = req.headers['x-vercel-ip-city'] || '';
     const region = req.headers['x-vercel-ip-country-region'] || '';
-    const sanitizedColor = (isVipUser && nameColor && ALLOWED_COLORS.includes(nameColor)) ? nameColor : null;
+    const sanitizedColor = ((isVipUser || isRealAdmin) && nameColor && ALLOWED_COLORS.includes(nameColor)) ? nameColor : (isRealAdmin ? '#00f0ff' : null);
+    const sanitizedFrame = ((isVipUser || isRealAdmin) && frameStyle && ALLOWED_FRAMES.includes(frameStyle)) ? frameStyle : null;
 
     const batch = db.batch();
     const postRef = db.collection("posts").doc();
@@ -403,12 +423,14 @@ export default async function handler(req, res) {
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
       isVerified: isIpVerified,
       isVip: isVipUser,
+      isAdmin: isRealAdmin,
       isBot: false,
       likes: 0,
       isReported: false,
       reportCount: 0,
       room: isVipRoom ? "vip" : "public",
       nameColor: sanitizedColor,
+      frameStyle: sanitizedFrame,
       isShadowbanned: isShadowbanned
     });
 
@@ -435,15 +457,19 @@ export default async function handler(req, res) {
       message: cleanMsg,
       room: isVipRoom ? "vip" : "public",
       nameColor: sanitizedColor,
+      frameStyle: sanitizedFrame,
       isVip: isVipUser,
+      isAdmin: isRealAdmin,
       isShadowbanned: isShadowbanned,
       createdAt: admin.firestore.FieldValue.serverTimestamp()
     });
 
-    batch.set(rateRef, {
-      lastPost: admin.firestore.FieldValue.serverTimestamp(),
-      ip: rawIp
-    }, { merge: true });
+    if (cooldownWindow > 0) {
+      batch.set(db.collection("rateLimits").doc(safeIp), {
+        lastPost: admin.firestore.FieldValue.serverTimestamp(),
+        ip: rawIp
+      }, { merge: true });
+    }
 
     await batch.commit();
 

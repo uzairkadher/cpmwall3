@@ -331,6 +331,11 @@ mark {
 </div>
 
 <div class="card">
+  <h4>Subnet Whitelist Exemptions</h4>
+  <div id="subnetWhitelistView">Login to load exemptions</div>
+</div>
+
+<div class="card">
   <h4>Banned Network Subnets (/24)</h4>
   <div id="subnetBansList">Login to load subnet bans</div>
 </div>
@@ -364,17 +369,52 @@ mark {
 let ADMIN_KEY = localStorage.getItem('cpm_admin_key') || '';
 let cachedPosts = [], cachedLogs = [], cachedVisitors = [], cachedBanned = [], cachedVerified = [], cachedFilters = [];
 let cachedVipMembers = [], cachedVipBanned = [], cachedPayments = [], cachedSubnetBans = [], cachedFpBans = [];
-let cachedShadowbanned = [], cachedNotes = {}, cachedStrikes = [];
+let cachedSubnetWhitelist = [], cachedShadowbanned = [], cachedNotes = {}, cachedStrikes = [];
 let refreshTimer = null;
 let activeBanIp = '';
 let isChatCurrentlyLocked = false;
 let isRaidModeActive = false;
 let selectedPostIds = new Set();
+let audioCtx = null;
+let lastSirenPlayedTime = 0;
 
 if (ADMIN_KEY) {
   const kInput = document.getElementById('adminKey');
   if (kInput) kInput.value = ADMIN_KEY;
 }
+
+function initAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+function playReportSiren() {
+  if (Date.now() - lastSirenPlayedTime < 25000) return;
+  lastSirenPlayedTime = Date.now();
+
+  try {
+    initAudio();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sawtooth';
+
+    const t = audioCtx.currentTime;
+    osc.frequency.setValueAtTime(800, t);
+    osc.frequency.setValueAtTime(600, t + 0.25);
+    osc.frequency.setValueAtTime(800, t + 0.5);
+    osc.frequency.setValueAtTime(600, t + 0.75);
+
+    gain.gain.setValueAtTime(0.5, t);
+    gain.gain.exponentialRampToValueAtTime(0.01, t + 1.1);
+
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(t);
+    osc.stop(t + 1.1);
+  } catch {}
+}
+
+document.addEventListener('click', () => { initAudio(); }, { once: true });
 
 function getFlagEmoji(cc) {
   if (!cc || cc.length !== 2 || cc === 'UN') return '🌐';
@@ -491,7 +531,6 @@ function updateRaidUI(active) {
     btn.textContent = '🚨 Raid Mode: OFF';
   }
 }
-
 async function saveSlowMode() {
   ADMIN_KEY = (document.getElementById('adminKey').value || '').trim();
   if (!ADMIN_KEY) return setStatus('Enter admin key first', true);
@@ -724,6 +763,7 @@ async function saveVipKey() {
     setStatus('Network error: ' + err.message, true);
   }
 }
+
 async function banVip(ip) {
   if (!confirm(`Block IP ${ip} from accessing VIP Lounge?`)) return;
   try {
@@ -781,6 +821,39 @@ async function unbanSubnet(subnet) {
     if (d.success) loadAll(true);
   } catch (err) {
     setStatus('Unban failed: ' + err.message, true);
+  }
+}
+
+async function whitelistSubnetIp(ip) {
+  if (!confirm(`Exempt IP ${ip} from any carrier subnet ban?`)) return;
+  try {
+    const r = await fetch('/api/admin', {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify({ action: 'whitelist_subnet_ip', ip })
+    });
+    const d = await r.json();
+    if (d.success) {
+      setStatus(`Whitelisted ${ip}`);
+      loadAll(true);
+    }
+  } catch (err) {
+    setStatus('Whitelist error: ' + err.message, true);
+  }
+}
+
+async function removeSubnetWhitelist(ip) {
+  if (!confirm(`Remove subnet whitelist exemption for ${ip}?`)) return;
+  try {
+    const r = await fetch('/api/admin', {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify({ action: 'remove_subnet_whitelist', ip })
+    });
+    const d = await r.json();
+    if (d.success) loadAll(true);
+  } catch (err) {
+    setStatus('Error: ' + err.message, true);
   }
 }
 
@@ -865,7 +938,7 @@ async function loadAll(isBackground = false) {
   }
 
   try {
-    const [pR, bR, lR, vR, pinR, visR, fR, vipR, vipBanR, payR, subR, fpR, shR, nR, sR] = await Promise.all([
+    const [pR, bR, lR, vR, pinR, visR, fR, vipR, vipBanR, payR, subR, fpR, shR, nR, sR, subWhiteR] = await Promise.all([
       fetch(`/api/admin?action=posts&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
       fetch(`/api/admin?action=banned&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
       fetch(`/api/admin?action=logs&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
@@ -880,7 +953,8 @@ async function loadAll(isBackground = false) {
       fetch(`/api/admin?action=fingerprint_bans&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
       fetch(`/api/admin?action=shadowbanned&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
       fetch(`/api/admin?action=notes&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
-      fetch(`/api/admin?action=strikes&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() })
+      fetch(`/api/admin?action=strikes&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
+      fetch(`/api/admin?action=subnet_whitelist&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() })
     ]);
 
     if (pR.status === 401) {
@@ -905,6 +979,7 @@ async function loadAll(isBackground = false) {
     const shBans = await shR.json();
     const notes = await nR.json();
     const strikes = await sR.json();
+    const subWhite = await subWhiteR.json();
 
     cachedPosts = Array.isArray(posts) ? posts : [];
     cachedBanned = Array.isArray(banned) ? banned : [];
@@ -920,6 +995,12 @@ async function loadAll(isBackground = false) {
     cachedNotes = (notes && typeof notes === 'object') ? notes : {};
     cachedStrikes = Array.isArray(strikes) ? strikes : [];
     cachedFilters = (filters && Array.isArray(filters.words)) ? filters.words : [];
+    cachedSubnetWhitelist = Array.isArray(subWhite) ? subWhite : [];
+
+    const hasCriticalReports = cachedPosts.some(p => p.isReported && (p.reportCount >= 3));
+    if (hasCriticalReports) {
+      playReportSiren();
+    }
 
     updateStats();
     renderFilters();
@@ -1042,6 +1123,7 @@ function exportBackup() {
     bannedIps: cachedBanned,
     subnetBans: cachedSubnetBans,
     fingerprintBans: cachedFpBans,
+    subnetWhitelist: cachedSubnetWhitelist,
     shadowbanned: cachedShadowbanned,
     notes: cachedNotes,
     blockedWords: cachedFilters
@@ -1093,6 +1175,7 @@ function applyFilter() {
   const q = (document.getElementById('searchInput').value || '').trim().toLowerCase();
   const shadowSet = new Set(cachedShadowbanned.map(s => s.ip || s.id));
   const verifiedIpSet = new Set(cachedVerified.map(v => v.ip || v.id.replace(/_/g, '.')));
+  const subWhiteSet = new Set(cachedSubnetWhitelist.map(w => w.ip || w.id.replace(/_/g, '.')));
 
   const filteredPosts = cachedPosts.filter(p => !q || (p.name && p.name.toLowerCase().includes(q)) || (p.message && p.message.toLowerCase().includes(q)) || (p.id && p.id.includes(q)));
   document.getElementById('posts').innerHTML = filteredPosts.map(p => `
@@ -1172,6 +1255,7 @@ function applyFilter() {
 
   document.getElementById('logs').innerHTML = cachedLogs.map(l => {
     const isShadow = shadowSet.has(l.ip);
+    const isSubWhite = subWhiteSet.has(l.ip);
     const safeIpKey = (l.ip || '').replace(/[^a-zA-Z0-9]/g, '_');
     const existingNote = cachedNotes[safeIpKey] || '';
     return `
@@ -1179,6 +1263,7 @@ function applyFilter() {
         <b>${highlight(l.name, q)}</b> | IP: <code>${highlight(l.ip, q)}</code>
         ${l.isVpn ? '<span class="badge badge-vpn">⚠️ VPN</span>' : ''}
         ${isShadow ? '<span class="badge badge-shadow">SHADOWBANNED</span>' : ''}
+        ${isSubWhite ? '<span class="badge" style="background:#16a34a;">SUBNET EXEMPT</span>' : ''}
         <div class="detail-grid">
           <span class="badge badge-loc">${getFlagEmoji(l.countryCode)} ${esc(l.country)}</span>
           ${l.subnet ? `<span class="badge badge-spec">Subnet: ${esc(l.subnet)}</span>` : ''}
@@ -1190,6 +1275,7 @@ function applyFilter() {
         </div>
         <button type="button" class="danger" onclick="openBanModal('${esc(l.ip)}')">Ban IP</button>
         ${l.subnet && l.subnet !== 'N/A' ? `<button type="button" class="orange" onclick="banSubnet('${esc(l.subnet)}')">Ban /24 Subnet</button>` : ''}
+        ${!isSubWhite ? `<button type="button" class="green" onclick="whitelistSubnetIp('${esc(l.ip)}')">Whitelist Subnet</button>` : `<button type="button" class="orange" onclick="removeSubnetWhitelist('${esc(l.ip)}')">Remove Subnet Exemption</button>`}
         ${l.fingerprint ? `<button type="button" class="danger" style="background:#7f1d1d;" onclick="banFingerprint('${esc(l.fingerprint)}')">Ban Device</button>` : ''}
         <button type="button" onclick="toggleShadowban('${esc(l.ip)}', ${isShadow})">${isShadow ? 'Un-Shadowban' : 'Shadowban'}</button>
       </div>
@@ -1197,11 +1283,18 @@ function applyFilter() {
   }).join('') || 'No logs tracked';
 
   document.getElementById('verifiedIps').innerHTML = cachedVerified.map(v => `
-        <div class="post">
+    <div class="post">
       <code>${highlight(v.ip || v.id, q)}</code>
       <button type="button" class="orange" onclick="unverifyIp('${esc(v.ip || v.id)}')">Remove Verification</button>
     </div>
   `).join('') || 'None';
+
+  document.getElementById('subnetWhitelistView').innerHTML = cachedSubnetWhitelist.map(w => `
+    <div class="post">
+      <code>${esc(w.ip || w.id)}</code> <span class="badge" style="background:#16a34a;">EXEMPT</span>
+      <button type="button" class="orange" onclick="removeSubnetWhitelist('${esc(w.ip || w.id)}')">Remove Exemption</button>
+    </div>
+  `).join('') || 'No whitelisted IPs';
 
   document.getElementById('subnetBansList').innerHTML = cachedSubnetBans.map(s => `
     <div class="post">
@@ -1274,7 +1367,7 @@ function promptCustomBan() {
     headers: headers(),
     body: JSON.stringify({ action: 'ban', ip, reason, hours })
   }).then(r => r.json()).then(d => {
-    if (d.success) loadAll(true);
+    if (d.success) loadAll(true); else setStatus(d.error || 'Ban failed', true);
   }).catch(err => {
     setStatus('Ban failed: ' + err.message, true);
   });
