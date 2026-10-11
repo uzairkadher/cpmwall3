@@ -35,6 +35,18 @@ export default async function handler(req, res) {
         const snap = await db.collection("banned").limit(100).get();
         return res.status(200).json(snap.docs.map(d => ({ id: d.id, ...d.data() })));
       }
+      if (action === "subnet_bans") {
+        const snap = await db.collection("subnet_bans").limit(100).get();
+        return res.status(200).json(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      }
+      if (action === "fingerprint_bans") {
+        const snap = await db.collection("fingerprint_bans").limit(100).get();
+        return res.status(200).json(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      }
+      if (action === "shadowbanned") {
+        const snap = await db.collection("shadowbanned").limit(100).get();
+        return res.status(200).json(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      }
       if (action === "verified_ips") {
         const snap = await db.collection("verified_ips").limit(100).get();
         return res.status(200).json(snap.docs.map(d => ({ id: d.id, ...d.data() })));
@@ -53,11 +65,20 @@ export default async function handler(req, res) {
       }
       if (action === "filters") {
         const doc = await db.collection("settings").doc("filters").get();
-        const words = doc.exists ? (doc.data().words || []) : [];
-        return res.status(200).json({ words });
+        return res.status(200).json({ words: doc.exists ? (doc.data().words || []) : [] });
       }
       if (action === "payments") {
         const snap = await db.collection("payments").orderBy("createdAt", "desc").limit(100).get();
+        return res.status(200).json(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      }
+      if (action === "notes") {
+        const snap = await db.collection("ip_notes").limit(200).get();
+        const notesObj = {};
+        snap.forEach(d => { notesObj[d.id] = d.data().note; });
+        return res.status(200).json(notesObj);
+      }
+      if (action === "strikes") {
+        const snap = await db.collection("strikes").limit(100).get();
         return res.status(200).json(snap.docs.map(d => ({ id: d.id, ...d.data() })));
       }
     }
@@ -72,6 +93,99 @@ export default async function handler(req, res) {
 
     if (req.method === "POST") {
       const { action } = req.body;
+
+      if (action === "delete_bulk") {
+        const { ids } = req.body;
+        if (!Array.isArray(ids) || !ids.length) return res.status(400).json({ error: "No ids provided" });
+        const batch = db.batch();
+        ids.forEach(id => {
+          batch.delete(db.collection("posts").doc(id));
+          batch.delete(db.collection("ip_logs").doc(id));
+        });
+        await batch.commit();
+        return res.status(200).json({ success: true, count: ids.length });
+      }
+
+      if (action === "toggle_raid_mode") {
+        const { raidMode } = req.body;
+        await db.collection("pinned").doc("current").set({
+          raidMode: Boolean(raidMode)
+        }, { merge: true });
+        return res.status(200).json({ success: true, raidMode: Boolean(raidMode) });
+      }
+
+      if (action === "ban_subnet") {
+        const { subnet } = req.body;
+        if (!subnet) return res.status(400).json({ error: "Subnet required" });
+        const docId = subnet.replace(/\*/g, '0');
+        await db.collection("subnet_bans").doc(docId).set({
+          subnet,
+          bannedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+        return res.status(200).json({ success: true, subnet });
+      }
+
+      if (action === "unban_subnet") {
+        const { subnet } = req.body;
+        const docId = subnet.replace(/\*/g, '0');
+        await db.collection("subnet_bans").doc(docId).delete();
+        return res.status(200).json({ success: true });
+      }
+
+      if (action === "ban_fingerprint") {
+        const { fingerprint } = req.body;
+        if (!fingerprint) return res.status(400).json({ error: "Fingerprint required" });
+        await db.collection("fingerprint_bans").doc(fingerprint).set({
+          fingerprint,
+          bannedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+        return res.status(200).json({ success: true });
+      }
+
+      if (action === "unban_fingerprint") {
+        const { fingerprint } = req.body;
+        await db.collection("fingerprint_bans").doc(fingerprint).delete();
+        return res.status(200).json({ success: true });
+      }
+
+      if (action === "shadowban") {
+        const { ip } = req.body;
+        if (!ip) return res.status(400).json({ error: "Missing IP" });
+        const safeIp = ip.replace(/[^a-zA-Z0-9.:]/g, "_");
+        await db.collection("shadowbanned").doc(safeIp).set({
+          ip,
+          shadowbannedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+        return res.status(200).json({ success: true });
+      }
+
+      if (action === "unshadowban") {
+        const { ip } = req.body;
+        const safeIp = ip.replace(/[^a-zA-Z0-9.:]/g, "_");
+        await db.collection("shadowbanned").doc(safeIp).delete();
+        return res.status(200).json({ success: true });
+      }
+
+      if (action === "save_note") {
+        const { ip, note } = req.body;
+        if (!ip) return res.status(400).json({ error: "Missing IP" });
+        const safeIp = ip.replace(/[^a-zA-Z0-9.:]/g, "_");
+        await db.collection("ip_notes").doc(safeIp).set({
+          ip,
+          note: String(note || "").trim(),
+          updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+        return res.status(200).json({ success: true });
+      }
+
+      if (action === "generate_vip_code") {
+        const rand = Math.floor(1000 + Math.random() * 9000);
+        const code = `CPM-${rand}`;
+        await db.collection("pinned").doc("current").set({
+          vipKey: code
+        }, { merge: true });
+        return res.status(200).json({ success: true, vipKey: code });
+      }
 
       if (action === "set_slow_mode") {
         const seconds = Math.max(1, Math.min(60, Number(req.body.seconds) || 10));
@@ -118,52 +232,12 @@ export default async function handler(req, res) {
 
       if (action === "delete_payment") {
         const { paymentId } = req.body;
-        if (!paymentId) return res.status(400).json({ error: "Missing paymentId" });
         await db.collection("payments").doc(paymentId).delete();
         return res.status(200).json({ success: true });
       }
 
-      if (action === "set_vip_key") {
-        const { vipKey } = req.body;
-        await db.collection("pinned").doc("current").set({
-          vipKey: String(vipKey || "VIP777").trim()
-        }, { merge: true });
-        return res.status(200).json({ success: true, vipKey: String(vipKey || "VIP777").trim() });
-      }
-
-      if (action === "ban_vip") {
-        const { ip } = req.body;
-        if (!ip) return res.status(400).json({ error: "Missing IP" });
-        const safeIp = ip.replace(/[^a-zA-Z0-9.:]/g, "_");
-        const batch = db.batch();
-        batch.set(db.collection("vip_banned").doc(safeIp), {
-          ip,
-          bannedAt: admin.firestore.FieldValue.serverTimestamp()
-        });
-        batch.delete(db.collection("vip_members").doc(safeIp));
-        await batch.commit();
-        return res.status(200).json({ success: true });
-      }
-
-      if (action === "unban_vip") {
-        const { ip } = req.body;
-        if (!ip) return res.status(400).json({ error: "Missing IP" });
-        const safeIp = ip.replace(/[^a-zA-Z0-9.:]/g, "_");
-        await db.collection("vip_banned").doc(safeIp).delete();
-        return res.status(200).json({ success: true });
-      }
-
-      if (action === "toggle_chat_lock") {
-        const { locked } = req.body;
-        await db.collection("pinned").doc("current").set({
-          chatLocked: Boolean(locked)
-        }, { merge: true });
-        return res.status(200).json({ success: true, chatLocked: Boolean(locked) });
-      }
-
       if (action === "ban") {
         const { ip, reason, hours } = req.body;
-        if (!ip) return res.status(400).json({ error: "Missing IP" });
         const safeIp = ip.replace(/[^a-zA-Z0-9.:]/g, "_");
         let bannedUntil = null;
         if (hours && Number(hours) > 0) {
@@ -179,22 +253,18 @@ export default async function handler(req, res) {
       }
 
       if (action === "unban") {
-        const { ip } = req.body;
-        const safeIp = ip.replace(/[^a-zA-Z0-9.:]/g, "_");
+        const safeIp = req.body.ip.replace(/[^a-zA-Z0-9.:]/g, "_");
         await db.collection("banned").doc(safeIp).delete();
         return res.status(200).json({ success: true });
       }
 
       if (action === "purge_ip") {
         const { ip } = req.body;
-        if (!ip) return res.status(400).json({ error: "Missing IP" });
         const logsSnap = await db.collection("ip_logs").where("ip", "==", ip).get();
         const batch = db.batch();
         logsSnap.forEach(d => {
           const lData = d.data();
-          if (lData.postId) {
-            batch.delete(db.collection("posts").doc(lData.postId));
-          }
+          if (lData.postId) batch.delete(db.collection("posts").doc(lData.postId));
           batch.delete(d.ref);
         });
         await batch.commit();
@@ -202,52 +272,36 @@ export default async function handler(req, res) {
       }
 
       if (action === "dismiss_report") {
-        const { postId } = req.body;
-        if (!postId) return res.status(400).json({ error: "Missing postId" });
-        await db.collection("posts").doc(postId).update({ isReported: false, reportCount: 0 });
+        await db.collection("posts").doc(req.body.postId).update({ isReported: false, reportCount: 0 });
         return res.status(200).json({ success: true });
       }
 
       if (action === "add_filter") {
-        const { word } = req.body;
-        if (!word) return res.status(400).json({ error: "Word required" });
         await db.collection("settings").doc("filters").set({
-          words: admin.firestore.FieldValue.arrayUnion(word.trim().toLowerCase())
+          words: admin.firestore.FieldValue.arrayUnion(req.body.word.trim().toLowerCase())
         }, { merge: true });
         return res.status(200).json({ success: true });
       }
 
       if (action === "remove_filter") {
-        const { word } = req.body;
-        if (!word) return res.status(400).json({ error: "Word required" });
         await db.collection("settings").doc("filters").update({
-          words: admin.firestore.FieldValue.arrayRemove(word.trim().toLowerCase())
+          words: admin.firestore.FieldValue.arrayRemove(req.body.word.trim().toLowerCase())
         });
         return res.status(200).json({ success: true });
       }
 
       if (action === "verify_ip") {
-        const { ip } = req.body;
-        if (!ip) return res.status(400).json({ error: "Missing IP" });
-        const safeIp = ip.replace(/[^a-zA-Z0-9.:]/g, "_");
+        const safeIp = req.body.ip.replace(/[^a-zA-Z0-9.:]/g, "_");
         await db.collection("verified_ips").doc(safeIp).set({
-          ip,
+          ip: req.body.ip,
           verifiedAt: admin.firestore.FieldValue.serverTimestamp()
         });
         return res.status(200).json({ success: true });
       }
 
       if (action === "unverify_ip") {
-        const { ip } = req.body;
-        if (!ip) return res.status(400).json({ error: "Missing IP" });
-        const safeIp = ip.replace(/[^a-zA-Z0-9.:]/g, "_");
+        const safeIp = req.body.ip.replace(/[^a-zA-Z0-9.:]/g, "_");
         await db.collection("verified_ips").doc(safeIp).delete();
-        return res.status(200).json({ success: true });
-      }
-
-      if (action === "verify") {
-        const { postId, isVerified } = req.body;
-        await db.collection("posts").doc(postId).update({ isVerified: Boolean(isVerified) });
         return res.status(200).json({ success: true });
       }
 

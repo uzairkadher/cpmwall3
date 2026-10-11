@@ -376,7 +376,6 @@ body {
   cursor: pointer;
   user-select: none;
   -webkit-user-select: none;
-  -webkit-touch-callout: none;
   flex-shrink: 0;
 }
 .emoji-row {
@@ -671,6 +670,7 @@ body {
     <button type="button" class="close-modal-btn" onclick="cancelVipModal()">Cancel</button>
   </div>
 </div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, onSnapshot, query, orderBy, limit, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -818,7 +818,7 @@ window.unlockVip = async () => {
       localStorage.setItem('cpm_vip_key', entered);
       vipModal.style.display = 'none';
       updateVipUIState();
-      alert('VIP Lounge unlocked! Verified Driver Badge, 250 chars limit, and Glowing Tag granted.');
+      alert('VIP Lounge unlocked (Active for 30 days)! Verified Driver Badge and 250 chars granted.');
       switchRoom('vip');
     } else {
       alert(data.error || 'Failed to unlock VIP room.');
@@ -836,7 +836,6 @@ window.unlockVip = async () => {
 window.cancelVipModal = () => {
   vipModal.style.display = 'none';
 };
-
 function filterFeedByRoom() {
   const bubbles = feedEl.querySelectorAll('.bubble');
   let visibleCount = 0;
@@ -984,6 +983,7 @@ function timeAgo(date) {
   if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
   return date.toLocaleDateString();
 }
+
 function renderMessageText(container, text, isVipPost) {
   container.innerHTML = '';
   const idRegex = /\b(\d{6,8}|[a-zA-Z]{2}\d{6}|[a-zA-Z]{3}\d{4})\b/g;
@@ -1014,6 +1014,14 @@ function buildBubble(id, data, isTemporary) {
   const currentName = (userNameInput.value || '').trim();
   const isBot = Boolean(data.isBot || data.name === 'Apex_Racer');
   const isMe = Boolean(currentName && data.name === currentName);
+
+  // Silent shadowban: only author sees their own shadowbanned post
+  if (data.isShadowbanned && !isMe) {
+    const emptyEl = document.createElement('div');
+    emptyEl.style.display = 'none';
+    return emptyEl;
+  }
+
   const postRoom = data.room || 'public';
   const isVip = Boolean(data.isVip || postRoom === 'vip');
 
