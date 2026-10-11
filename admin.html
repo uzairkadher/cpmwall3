@@ -1,115 +1,99 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="robots" content="noindex, nofollow">
-<title>CPM Admin Portal</title>
+<title>Admin - EMPIRE STUDIO</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
 <style>
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 body {
-  background: #05070e;
-  color: #fff;
-  font-family: system-ui, sans-serif;
-  padding: 14px;
   margin: 0;
-  -webkit-touch-callout: none;
+  padding: 14px;
   min-height: 100vh;
+  background: radial-gradient(900px at 50% -20%, rgba(255,184,0,.3), transparent), radial-gradient(700px at 100% 100%, rgba(255,217,90,.15), transparent), #07070A;
+  color: #fff;
+  font-family: Inter, sans-serif;
+  -webkit-touch-callout: none;
 }
 #loginOverlay {
   position: fixed;
   inset: 0;
-  background: radial-gradient(circle at center, #1a150b 0%, #05070e 100%);
+  background: radial-gradient(900px at 50% -20%, rgba(255,184,0,.3), transparent), radial-gradient(700px at 100% 100%, rgba(255,217,90,.15), transparent), #07070A;
   z-index: 9999;
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 20px;
 }
-.glass-card {
-  background: rgba(20, 20, 25, 0.75);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(245, 158, 11, 0.3);
-  box-shadow: 0 0 40px rgba(245, 158, 11, 0.15), inset 0 0 20px rgba(255, 255, 255, 0.03);
-  border-radius: 24px;
-  max-width: 380px;
-  width: 100%;
-  padding: 30px 24px;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-}
-.logo-circle {
-  width: 72px;
-  height: 72px;
-  background: radial-gradient(circle, #fde047 0%, #f59e0b 60%, #b45309 100%);
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  box-shadow: 0 0 25px rgba(245, 158, 11, 0.6);
-  font-weight: 900;
-  font-size: 1.5rem;
-  color: #000;
-  letter-spacing: 1px;
-  margin-bottom: 4px;
-}
-.login-title {
-  font-size: 1.35rem;
-  font-weight: 800;
-  color: #fff;
-  letter-spacing: 0.5px;
-  margin: 0;
-}
-.login-sub {
-  font-size: 0.78rem;
-  color: #a1a1aa;
-  margin-top: -8px;
-}
-.input-group {
-  width: 100%;
+.card-luxury {
   position: relative;
-  margin-top: 6px;
-}
-.glass-input {
   width: 100%;
-  background: rgba(10, 12, 18, 0.8);
-  border: 1px solid rgba(245, 158, 11, 0.35);
-  border-radius: 12px;
-  padding: 12px 16px;
-  color: #fff;
-  font-size: 0.95rem;
-  outline: none;
-  transition: border-color 0.2s;
+  max-width: 380px;
+  background: linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.03));
+  border: 1px solid rgba(255,217,90,.35);
+  border-radius: 28px;
+  padding: 28px 24px 18px;
+  box-shadow: 0 0 0 1px rgba(255,217,90,.08), 0 0 80px rgba(255,184,0,.25), inset 0 1px 0 rgba(255,255,255,.2);
+  backdrop-filter: blur(20px);
+  text-align: center;
 }
-.glass-input:focus {
-  border-color: #f59e0b;
-  box-shadow: 0 0 10px rgba(245, 158, 11, 0.2);
-}
-.login-btn {
-  width: 100%;
-  background: linear-gradient(135deg, #fde047 0%, #f59e0b 100%);
-  color: #000;
-  border: none;
-  border-radius: 12px;
-  padding: 12px;
+.logo-wrap { display: grid; place-items: center; margin-bottom: 14px; }
+.logo-luxury {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  background: radial-gradient(180deg, #FFD95A, #FF9A00);
+  display: grid;
+  place-items: center;
+  font-family: Syne, sans-serif;
   font-weight: 800;
-  font-size: 0.95rem;
+  font-size: 28px;
+  color: black;
+  box-shadow: 0 0 40px rgba(255,184,0,.8), inset 0 2px 0 rgba(255,255,255,.6);
+}
+.card-luxury h1 { font-family: Syne, sans-serif; color: white; font-size: 24px; letter-spacing: 1px; margin: 0; }
+.sub-luxury { margin-top: 8px; color: #d6c79f; font-size: 13px; display: flex; gap: 6px; justify-content: center; align-items: center; }
+.input-wrap { position: relative; margin-top: 26px; }
+.input-wrap input {
+  width: 100%;
+  background: rgba(0,0,0,.5);
+  border: 1px solid rgba(255,217,90,.35);
+  border-radius: 16px;
+  padding: 16px 46px;
+  color: white;
+  outline: none;
+  font-size: 14px;
+  transition: .2s;
+  box-sizing: border-box;
+}
+.input-wrap input:focus { border-color: #FFD95A; box-shadow: 0 0 0 4px rgba(255,217,90,.15), 0 0 20px rgba(255,217,90,.3); }
+.icon { position: absolute; top: 50%; transform: translateY(-50%); color: #FFD95A; font-size: 16px; }
+.icon.left { left: 16px; }
+.icon.right { right: 16px; cursor: pointer; }
+.login-btn-luxury {
+  margin-top: 22px;
+  width: 100%;
+  background: linear-gradient(180deg, #FFE68A, #FFB800);
+  border: none;
+  padding: 16px;
+  border-radius: 18px;
+  font-weight: 800;
+  font-size: 18px;
   cursor: pointer;
-  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
-  transition: transform 0.1s, filter 0.1s;
-  margin-top: 4px;
+  box-shadow: 0 10px 30px rgba(255,184,0,.4), inset 0 1px 0 rgba(255,255,255,.6);
+  transition: .15s;
+  color: #000;
 }
-.login-btn:active { transform: scale(0.98); filter: brightness(0.9); }
-#loginError {
-  color: #ef4444;
-  font-size: 0.78rem;
-  min-height: 18px;
-  font-weight: 600;
-}
+.login-btn-luxury:active { transform: scale(.98); }
+.trust { display: flex; justify-content: space-between; margin-top: 24px; padding: 14px 6px; border-top: 1px solid rgba(255,255,255,.06); text-align: left; }
+.trust div { display: flex; gap: 8px; align-items: center; font-size: 11px; color: #9a9a9a; }
+.trust b { color: #d6c79f; font-size: 12px; display: block; }
+.foot { margin-top: 14px; text-align: center; color: #b49c6a; font-size: 11px; display: flex; gap: 6px; justify-content: center; align-items: center; }
+.dot { width: 5px; height: 5px; background: #FFD95A; border-radius: 50%; box-shadow: 0 0 8px #FFD95A; }
+#loginError { color: #ef4444; font-size: 12px; margin-top: 8px; font-weight: 600; min-height: 16px; }
+
 .card { background: #111; border: 1px solid #222; border-radius: 12px; padding: 14px; margin-bottom: 12px; }
 input, textarea, select { width: 100%; box-sizing: border-box; padding: 9px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 8px; margin: 5px 0; font-size: 13px; }
 button { background: #3b82f6; color: #fff; border: 0; padding: 8px 14px; border-radius: 8px; margin: 2px; font-weight: 700; font-size: 12px; cursor: pointer; }
@@ -142,16 +126,27 @@ mark { background: #facc15; color: #000; padding: 0 2px; border-radius: 2px; fon
 <body ontouchstart="">
 
 <div id="loginOverlay">
-  <div class="glass-card">
-    <div class="logo-circle">ES</div>
-    <h2 class="login-title">EMPIRE STUDIO</h2>
-    <div class="login-sub">🔒 Private Admin Access Only</div>
-    <div class="input-group">
-      <input id="loginKeyInput" type="password" class="glass-input" placeholder="Enter Admin Password" autocomplete="current-password" onkeydown="if(event.key==='Enter') verifyAdminLogin()">
+  <div class="card-luxury">
+    <div class="logo-wrap"><div class="logo-luxury">ES</div></div>
+    <h1>EMPIRE STUDIO</h1>
+    <div class="sub-luxury">🔒 Private Admin Access Only</div>
+    
+    <div class="input-wrap">
+      <span class="icon left">🔒</span>
+      <input type="password" id="loginKeyInput" placeholder="Enter Admin Password" onkeydown="if(event.key==='Enter') verifyAdminLogin()">
+      <span class="icon right" onclick="let i=document.getElementById('loginKeyInput'); i.type=i.type==='password'?'text':'password'">👁️</span>
     </div>
+
     <div id="loginError"></div>
-    <button type="button" class="login-btn" onclick="verifyAdminLogin()">LOGIN</button>
-    <div style="font-size: 0.7rem; color: #71717a; margin-top: 6px;">Car Parking Multiplayer Tools • v2.1.0</div>
+
+    <button class="login-btn-luxury" onclick="verifyAdminLogin()">Login</button>
+
+    <div class="trust">
+      <div>👆 <span><b>Biometric</b>Secure</span></div>
+      <div>🛡️ <span><b>Shield</b>Secured</span></div>
+    </div>
+
+    <div class="foot"><span class="dot"></span> Car Parking Multiplayer Tools • v2.1.0</div>
   </div>
 </div>
 
@@ -246,7 +241,7 @@ mark { background: #facc15; color: #000; padding: 0 2px; border-radius: 2px; fon
 
 <div class="card">
   <h4>📢 Canned Broadcast Presets</h4>
-  <div class="preset-row">
+  <div class="preset-row" style="display:flex; flex-wrap:wrap; gap:5px; margin:6px 0;">
     <button type="button" onclick="loadPreset('drag')">🏁 Drag Meet</button>
     <button type="button" onclick="loadPreset('maint')">⚠️ Maintenance</button>
     <button type="button" onclick="loadPreset('w16')">🎁 W16 Giveaway</button>
@@ -773,16 +768,16 @@ async function unbanVip(ip) {
 async function banSubnet(subnet) {
   if (!confirm(`Ban entire /24 subnet (${subnet})? All mobile rotations on this prefix will be blocked.`)) return;
   try {
-    const r = await fetch('/api/admin', {
-      method: 'POST',
-          headers: headers(),
-      body: JSON.stringify({ action: 'ban_subnet', subnet })
-    });
-    const d = await r.json();
-    if (d.success) loadAll(true);
-  } catch (err) {
-    setStatus('Subnet ban failed: ' + err.message, true);
-  }
+  const r = await fetch('/api/admin', {
+    method: 'POST',
+    headers: headers(),
+    body: JSON.stringify({ action: 'ban_subnet', subnet })
+  });
+  const d = await r.json();
+  if (d.success) loadAll(true);
+} catch (err) {
+  setStatus('Subnet ban failed: ' + err.message, true);
+}
 }
 
 async function unbanSubnet(subnet) {
@@ -914,7 +909,7 @@ async function updateQuotaDisplay() {
     document.getElementById('writesPercentText').textContent = `${writePct}%`;
     const writesBar = document.getElementById('writesBar');
     writesBar.style.width = `${writePct}%`;
-    writesBar.style.backgroundColor = writePct > 80 ? '#ef4444' : (writePct > 60 ? '#f97316' : '#f59e0b');
+    writesBar.style.backgroundColor = writesPct > 80 ? '#ef4444' : (writesPct > 60 ? '#f97316' : '#f59e0b');
 
     document.getElementById('quotaCard').style.display = 'block';
   } catch {}
@@ -1190,7 +1185,7 @@ function applyFilter() {
     return `
       <div class="post">
         <b>${highlight(m.name, q)}</b> <code>${highlight(m.ip, q)}</code> - <b>${expiryStr}</b>
-        <div class="detail-grid">
+        <div class="detail-grid" style="display:flex; flex-wrap:wrap; gap:4px; margin:5px 0;">
           <span class="badge badge-loc">${getFlagEmoji(m.countryCode)} ${esc(m.city ? m.city + ', ' + m.country : m.country)}</span>
           ${m.isVpn ? '<span class="badge badge-vpn">⚠️ VPN</span>' : ''}
           ${m.device ? `<span class="badge badge-dev">📱 ${esc(m.device)}</span>` : ''}
@@ -1213,7 +1208,7 @@ function applyFilter() {
     return `
       <div class="post">
         IP: <code>${highlight(v.ip, q)}</code> ${isVerified ? '<span class="badge" style="background:#16a34a;">VERIFIED</span>' : ''}
-        <div class="detail-grid">
+        <div class="detail-grid" style="display:flex; flex-wrap:wrap; gap:4px; margin:5px 0;">
           <span class="badge badge-loc">${getFlagEmoji(v.countryCode)} ${esc(v.city ? v.city + ', ' + v.country : v.country)}</span>
           ${v.device ? `<span class="badge badge-dev">📱 ${esc(v.device)}</span>` : ''}
           ${v.os ? `<span class="badge badge-dev">${esc(v.os)}</span>` : ''}
@@ -1234,165 +1229,165 @@ function applyFilter() {
         ${l.isVpn ? '<span class="badge badge-vpn">⚠️ VPN</span>' : ''}
         ${isShadow ? '<span class="badge badge-shadow">SHADOWBANNED</span>' : ''}
         ${isSubWhite ? '<span class="badge" style="background:#16a34a;">SUBNET EXEMPT</span>' : ''}
-        <div class="detail-grid">
+        <div class="detail-grid" style="display:flex; flex-wrap:wrap; gap:4px; margin:5px 0;">
           <span class="badge badge-loc">${getFlagEmoji(l.countryCode)} ${esc(l.country)}</span>
           ${l.subnet ? `<span class="badge badge-spec">Subnet: ${esc(l.subnet)}</span>` : ''}
-          ${l.device ? `<span class="badge badge-dev">${esc(l.device)}</span>` : ''}
-        </div>
-        <div style="margin:4px 0;">
-              <input id="note-${safeIpKey}" value="${esc(existingNote)}" placeholder="Internal note..." style="width:75%; display:inline-block;">
-          <button type="button" class="green" onclick="saveAdminNote('${esc(l.ip)}')">Save Note</button>
-        </div>
-        <button type="button" class="danger" onclick="openBanModal('${esc(l.ip)}')">Ban IP</button>
-        ${l.subnet && l.subnet !== 'N/A' ? `<button type="button" class="orange" onclick="banSubnet('${esc(l.subnet)}')">Ban /24 Subnet</button>` : ''}
-        ${!isSubWhite ? `<button type="button" class="green" onclick="whitelistSubnetIp('${esc(l.ip)}')">Whitelist Subnet</button>` : `<button type="button" class="orange" onclick="removeSubnetWhitelist('${esc(l.ip)}')">Remove Subnet Exemption</button>`}
-        ${l.fingerprint ? `<button type="button" class="danger" style="background:#7f1d1d;" onclick="banFingerprint('${esc(l.fingerprint)}')">Ban Device</button>` : ''}
-        <button type="button" onclick="toggleShadowban('${esc(l.ip)}', ${isShadow})">${isShadow ? 'Un-Shadowban' : 'Shadowban'}</button>
+                  ${l.device ? `<span class="badge badge-dev">${esc(l.device)}</span>` : ''}
       </div>
-    `;
-  }).join('') || 'No logs tracked';
-
-  document.getElementById('verifiedIps').innerHTML = cachedVerified.map(v => `
-    <div class="post">
-      <code>${highlight(v.ip || v.id, q)}</code>
-      <button type="button" class="orange" onclick="unverifyIp('${esc(v.ip || v.id)}')">Remove Verification</button>
-    </div>
-  `).join('') || 'None';
-
-  document.getElementById('subnetWhitelistView').innerHTML = cachedSubnetWhitelist.map(w => `
-    <div class="post">
-      <code>${esc(w.ip || w.id)}</code> <span class="badge" style="background:#16a34a;">EXEMPT</span>
-      <button type="button" class="orange" onclick="removeSubnetWhitelist('${esc(w.ip || w.id)}')">Remove Exemption</button>
-    </div>
-  `).join('') || 'No whitelisted IPs';
-
-  document.getElementById('subnetBansList').innerHTML = cachedSubnetBans.map(s => `
-    <div class="post">
-      <code>${esc(s.subnet || s.id)}</code> <span class="badge" style="background:#ef4444;">SUBNET BAN</span>
-      <button type="button" class="green" onclick="unbanSubnet('${esc(s.subnet || s.id)}')">Unban Subnet</button>
-    </div>
-  `).join('') || 'None';
-
-  document.getElementById('fpBansList').innerHTML = cachedFpBans.map(f => `
-    <div class="post">
-      <code>${esc(f.fingerprint || f.id)}</code> <span class="badge" style="background:#ef4444;">DEVICE BAN</span>
-      <button type="button" class="green" onclick="unbanFingerprint('${esc(f.fingerprint || f.id)}')">Unban Device</button>
-    </div>
-  `).join('') || 'None';
-
-  document.getElementById('banned').innerHTML = cachedBanned.map(b => {
-    let expStr = 'Permanent';
-    if (b.bannedUntil) {
-      const expDate = b.bannedUntil._seconds ? new Date(b.bannedUntil._seconds * 1000) : new Date(b.bannedUntil);
-      expStr = 'Expires: ' + expDate.toLocaleString();
-    }
-    return `
-      <div class="post">
-        <code>${highlight(b.ip || b.id, q)}</code> (Reason: <b>${esc(b.reason || 'spam')}</b>, ${expStr})
-        <button type="button" onclick="unban('${esc(b.ip || b.id)}')">Unban</button>
+      <div style="margin:4px 0;">
+        <input id="note-${safeIpKey}" value="${esc(existingNote)}" placeholder="Internal note..." style="width:75%; display:inline-block;">
+        <button type="button" class="green" onclick="saveAdminNote('${esc(l.ip)}')">Save Note</button>
       </div>
-    `;
-  }).join('') || 'None';
+      <button type="button" class="danger" onclick="openBanModal('${esc(l.ip)}')">Ban IP</button>
+      ${l.subnet && l.subnet !== 'N/A' ? `<button type="button" class="orange" onclick="banSubnet('${esc(l.subnet)}')">Ban /24 Subnet</button>` : ''}
+      ${!isSubWhite ? `<button type="button" class="green" onclick="whitelistSubnetIp('${esc(l.ip)}')">Whitelist Subnet</button>` : `<button type="button" class="orange" onclick="removeSubnetWhitelist('${esc(l.ip)}')">Remove Subnet Exemption</button>`}
+      ${l.fingerprint ? `<button type="button" class="danger" style="background:#7f1d1d;" onclick="banFingerprint('${esc(l.fingerprint)}')">Ban Device</button>` : ''}
+      <button type="button" onclick="toggleShadowban('${esc(l.ip)}', ${isShadow})">${isShadow ? 'Un-Shadowban' : 'Shadowban'}</button>
+    </div>
+  `;
+}).join('') || 'No logs tracked';
+
+document.getElementById('verifiedIps').innerHTML = cachedVerified.map(v => `
+  <div class="post">
+    <code>${highlight(v.ip || v.id, q)}</code>
+    <button type="button" class="orange" onclick="unverifyIp('${esc(v.ip || v.id)}')">Remove Verification</button>
+  </div>
+`).join('') || 'None';
+
+document.getElementById('subnetWhitelistView').innerHTML = cachedSubnetWhitelist.map(w => `
+  <div class="post">
+    <code>${esc(w.ip || w.id)}</code> <span class="badge" style="background:#16a34a;">EXEMPT</span>
+    <button type="button" class="orange" onclick="removeSubnetWhitelist('${esc(w.ip || w.id)}')">Remove Exemption</button>
+  </div>
+`).join('') || 'No whitelisted IPs';
+
+document.getElementById('subnetBansList').innerHTML = cachedSubnetBans.map(s => `
+  <div class="post">
+    <code>${esc(s.subnet || s.id)}</code> <span class="badge" style="background:#ef4444;">SUBNET BAN</span>
+    <button type="button" class="green" onclick="unbanSubnet('${esc(s.subnet || s.id)}')">Unban Subnet</button>
+  </div>
+`).join('') || 'None';
+
+document.getElementById('fpBansList').innerHTML = cachedFpBans.map(f => `
+  <div class="post">
+    <code>${esc(f.fingerprint || f.id)}</code> <span class="badge" style="background:#ef4444;">DEVICE BAN</span>
+    <button type="button" class="green" onclick="unbanFingerprint('${esc(f.fingerprint || f.id)}')">Unban Device</button>
+  </div>
+`).join('') || 'None';
+
+document.getElementById('banned').innerHTML = cachedBanned.map(b => {
+  let expStr = 'Permanent';
+  if (b.bannedUntil) {
+    const expDate = b.bannedUntil._seconds ? new Date(b.bannedUntil._seconds * 1000) : new Date(b.bannedUntil);
+    expStr = 'Expires: ' + expDate.toLocaleString();
+  }
+  return `
+    <div class="post">
+      <code>${highlight(b.ip || b.id, q)}</code> (Reason: <b>${esc(b.reason || 'spam')}</b>, ${expStr})
+      <button type="button" onclick="unban('${esc(b.ip || b.id)}')">Unban</button>
+    </div>
+  `;
+}).join('') || 'None';
 }
 
 function openBanModal(ip) {
-  activeBanIp = ip;
-  document.getElementById('modalIpDisplay').textContent = ip;
-  document.getElementById('banModal').style.display = 'flex';
+activeBanIp = ip;
+document.getElementById('modalIpDisplay').textContent = ip;
+document.getElementById('banModal').style.display = 'flex';
 }
 
 function closeBanModal() {
-  activeBanIp = '';
-  document.getElementById('banModal').style.display = 'none';
+activeBanIp = '';
+document.getElementById('banModal').style.display = 'none';
 }
 
 async function executeBanPreset(reason, hours) {
-  if (!activeBanIp) return;
-  const ip = activeBanIp;
-  closeBanModal();
-  try {
-    const r = await fetch('/api/admin', {
-      method: 'POST',
-      headers: headers(),
-      body: JSON.stringify({ action: 'ban', ip, reason, hours })
-    });
-    const d = await r.json();
-    if (d.success) loadAll(true);
-  } catch (err) {
-    setStatus('Ban failed: ' + err.message, true);
-  }
-}
-
-function promptCustomBan() {
-  const ip = activeBanIp;
-  closeBanModal();
-  const reason = prompt(`Enter ban reason for IP ${ip}:`, 'Custom reason');
-  if (reason === null) return;
-  const hoursStr = prompt('Ban duration in hours (0 for permanent):', '0');
-  if (hoursStr === null) return;
-  const hours = parseFloat(hoursStr) || 0;
-  fetch('/api/admin', {
+if (!activeBanIp) return;
+const ip = activeBanIp;
+closeBanModal();
+try {
+  const r = await fetch('/api/admin', {
     method: 'POST',
     headers: headers(),
     body: JSON.stringify({ action: 'ban', ip, reason, hours })
-  }).then(r => r.json()).then(d => {
-    if (d.success) loadAll(true); else setStatus(d.error || 'Ban failed', true);
-  }).catch(err => {
-    setStatus('Ban failed: ' + err.message, true);
   });
+  const d = await r.json();
+  if (d.success) loadAll(true);
+} catch (err) {
+  setStatus('Ban failed: ' + err.message, true);
+}
+}
+
+function promptCustomBan() {
+const ip = activeBanIp;
+closeBanModal();
+const reason = prompt(`Enter ban reason for IP ${ip}:`, 'Custom reason');
+if (reason === null) return;
+const hoursStr = prompt('Ban duration in hours (0 for permanent):', '0');
+if (hoursStr === null) return;
+const hours = parseFloat(hoursStr) || 0;
+fetch('/api/admin', {
+  method: 'POST',
+  headers: headers(),
+  body: JSON.stringify({ action: 'ban', ip, reason, hours })
+}).then(r => r.json()).then(d => {
+  if (d.success) loadAll(true); else setStatus(d.error || 'Ban failed', true);
+}).catch(err => {
+  setStatus('Ban failed: ' + err.message, true);
+});
 }
 
 async function delPost(id) {
-  if (!confirm('Delete post ' + id + '?')) return;
-  try {
-    const r = await fetch(`/api/admin?id=${id}`, { method: 'DELETE', headers: headers() });
-    const d = await r.json();
-    if (d.success) loadAll(true);
-  } catch (err) {
-    setStatus('Delete failed: ' + err.message, true);
-  }
+if (!confirm('Delete post ' + id + '?')) return;
+try {
+  const r = await fetch(`/api/admin?id=${id}`, { method: 'DELETE', headers: headers() });
+  const d = await r.json();
+  if (d.success) loadAll(true);
+} catch (err) {
+  setStatus('Delete failed: ' + err.message, true);
+}
 }
 
 function banFromPost(postId) {
-  const log = cachedLogs.find(l => l.postId === postId || l.id === postId);
-  if (!log) return setStatus('Log not found for post ' + postId, true);
-  if (log.ip === 'BOT') return setStatus('Cannot ban BOT', true);
-  openBanModal(log.ip);
+const log = cachedLogs.find(l => l.postId === postId || l.id === postId);
+if (!log) return setStatus('Log not found for post ' + postId, true);
+if (log.ip === 'BOT') return setStatus('Cannot ban BOT', true);
+openBanModal(log.ip);
 }
 
 async function unban(ip) {
-  if (!confirm('Unban ' + ip + '?')) return;
-  try {
-    const r = await fetch('/api/admin', { method: 'POST', headers: headers(), body: JSON.stringify({ action: 'unban', ip }) });
-    const d = await r.json();
-    if (d.success) loadAll(true);
-  } catch (err) {
-    setStatus('Unban failed: ' + err.message, true);
-  }
+if (!confirm('Unban ' + ip + '?')) return;
+try {
+  const r = await fetch('/api/admin', { method: 'POST', headers: headers(), body: JSON.stringify({ action: 'unban', ip }) });
+  const d = await r.json();
+  if (d.success) loadAll(true);
+} catch (err) {
+  setStatus('Unban failed: ' + err.message, true);
+}
 }
 
 async function unverifyIp(ip) {
-  if (!confirm('Remove verification for IP ' + ip + '?')) return;
-  try {
-    const r = await fetch('/api/admin', { method: 'POST', headers: headers(), body: JSON.stringify({ action: 'unverify_ip', ip }) });
-    const d = await r.json();
-    if (d.success) loadAll(true);
-  } catch (err) {
-    setStatus('Unverify failed: ' + err.message, true);
-  }
+if (!confirm('Remove verification for IP ' + ip + '?')) return;
+try {
+  const r = await fetch('/api/admin', { method: 'POST', headers: headers(), body: JSON.stringify({ action: 'unverify_ip', ip }) });
+  const d = await r.json();
+  if (d.success) loadAll(true);
+} catch (err) {
+  setStatus('Unverify failed: ' + err.message, true);
+}
 }
 
 async function pin(active) {
-  const text = (document.getElementById('pinText').value || '').trim();
-  const name = (document.getElementById('pinName').value || '').trim() || 'Administration Team';
-  if (active && !text) return setStatus('Enter text before publishing pin', true);
-  try {
-    const r = await fetch('/api/admin', { method: 'POST', headers: headers(), body: JSON.stringify({ action: 'pin', text, name, active }) });
-    const d = await r.json();
-    if (d.success) loadAll(true);
-  } catch (err) {
-    setStatus('Pin failed: ' + err.message, true);
-  }
+const text = (document.getElementById('pinText').value || '').trim();
+const name = (document.getElementById('pinName').value || '').trim() || 'Administration Team';
+if (active && !text) return setStatus('Enter text before publishing pin', true);
+try {
+  const r = await fetch('/api/admin', { method: 'POST', headers: headers(), body: JSON.stringify({ action: 'pin', text, name, active }) });
+  const d = await r.json();
+  if (d.success) loadAll(true);
+} catch (err) {
+  setStatus('Pin failed: ' + err.message, true);
+}
 }
 </script>
 </body>
