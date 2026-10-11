@@ -185,11 +185,9 @@ export default async function handler(req, res) {
     const client = clientInfo || {};
     const fingerprint = getDeviceFingerprint(client, ua);
 
-    // Verify if this request belongs to the real admin
     const passedKey = adminKey || req.headers['x-admin-key'] || (vipKey === process.env.ADMIN_KEY ? vipKey : null);
     const isRealAdmin = Boolean(process.env.ADMIN_KEY && passedKey && String(passedKey).trim() === String(process.env.ADMIN_KEY).trim());
 
-    // 1. Subnet Ban Check (with Whitelist Exemption)
     const subnet = getSubnet24(rawIp);
     if (subnet && !isRealAdmin) {
       const whitelistDoc = await db.collection("subnet_whitelist").doc(safeIp).get();
@@ -201,7 +199,6 @@ export default async function handler(req, res) {
       }
     }
 
-    // 2. Hardware Fingerprint Ban Check
     if (fingerprint && !isRealAdmin) {
       const fpDoc = await db.collection("fingerprint_bans").doc(fingerprint).get();
       if (fpDoc.exists) {
@@ -209,7 +206,6 @@ export default async function handler(req, res) {
       }
     }
 
-    // 3. Regular IP Ban Check
     if (!isRealAdmin) {
       const banSnap = await db.collection("banned").doc(safeIp).get();
       if (banSnap.exists) {
@@ -227,7 +223,6 @@ export default async function handler(req, res) {
     const pinDoc = await db.collection("pinned").doc("current").get();
     const pinData = pinDoc.exists ? pinDoc.data() : {};
 
-    // 4. Handle VIP Unlock Action (Admin key can unlock directly)
     if (action === "unlock_vip") {
       const vipBan = await db.collection("vip_banned").doc(safeIp).get();
       if (vipBan.exists && !isRealAdmin) return res.status(403).json({ error: "Your access to VIP Lounge is blocked." });
@@ -302,12 +297,10 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: true });
     }
 
-    // Chat Lock enforcement: Only real admin can bypass
     if (pinData.chatLocked && !isRealAdmin) {
       return res.status(403).json({ error: "Chat is temporarily locked by admin." });
     }
 
-    // Check VIP Membership
     const memberDoc = await db.collection("vip_members").doc(safeIp).get();
     let isVipUser = false;
     if (memberDoc.exists) {
@@ -329,7 +322,6 @@ export default async function handler(req, res) {
     const verifiedSnap = await db.collection("verified_ips").doc(safeIp).get();
     const isIpVerified = verifiedSnap.exists || isVipUser || isRealAdmin;
 
-    // Panic Raid Mode Check
     if (pinData.raidMode && !isVipUser && !isIpVerified && !isRealAdmin) {
       return res.status(403).json({ error: "Panic Raid Mode is active: Only Verified & VIP drivers can post right now." });
     }
@@ -347,12 +339,10 @@ export default async function handler(req, res) {
     if (cleanName.length < 2) return res.status(400).json({ error: "Name too short" });
     if (RESERVED.includes(cleanName.toLowerCase())) return res.status(400).json({ error: "Name reserved" });
 
-    // Name Impersonation Auto-Block: Bypass if user is the real admin
     if (isNameImpersonating(cleanName) && !isRealAdmin) {
       return res.status(400).json({ error: "This driver tag resembles official staff handles and cannot be used." });
     }
 
-    // Profanity Filter
     const isBlocked = await containsBlockedContent(cleanMsg);
     if (isBlocked && !isRealAdmin) {
       const strikeRef = db.collection("strikes").doc(safeIp);
@@ -380,11 +370,9 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: `Message blocked. Strike ${strikeCount}/3 recorded. 3 strikes will trigger an automatic 24-hour ban.` });
     }
 
-    // Silent Shadowban Check
     const shadowDoc = await db.collection("shadowbanned").doc(safeIp).get();
     const isShadowbanned = shadowDoc.exists && !isRealAdmin;
 
-    // Rate Limiting
     const dynamicSlowMode = pinData.slowModeSeconds ? Number(pinData.slowModeSeconds) : 10;
     const cooldownWindow = isRealAdmin ? 0 : (isVipUser ? 2 : dynamicSlowMode);
     if (cooldownWindow > 0) {

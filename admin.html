@@ -228,6 +228,35 @@ mark {
     <div class="stat-box"><div id="statBanned" class="stat-val">0</div><div class="stat-label">Bans</div></div>
   </div>
 </div>
+
+<div class="card" id="quotaCard" style="display:none;">
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <h4>📊 Firebase Daily Quota Monitor (Spark Free Tier)</h4>
+    <span id="quotaResetText" style="font-size:10px; color:#94a3b8;">Resets at 12:00 AM</span>
+  </div>
+  <div style="margin-top:10px;">
+    <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;">
+      <span>Document Reads: <b id="readsCountText" style="color:#38bdf8;">0 / 50,000</b></span>
+      <span id="readsPercentText" style="font-weight:700;">0%</span>
+    </div>
+    <div style="width:100%; height:8px; background:#1e243b; border-radius:4px; overflow:hidden;">
+      <div id="readsBar" style="width:0%; height:100%; background:#38bdf8; transition:width 0.3s ease;"></div>
+    </div>
+  </div>
+  <div style="margin-top:12px;">
+    <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;">
+      <span>Document Writes: <b id="writesCountText" style="color:#f59e0b;">0 / 20,000</b></span>
+      <span id="writesPercentText" style="font-weight:700;">0%</span>
+    </div>
+    <div style="width:100%; height:8px; background:#1e243b; border-radius:4px; overflow:hidden;">
+      <div id="writesBar" style="width:0%; height:100%; background:#f59e0b; transition:width 0.3s ease;"></div>
+    </div>
+  </div>
+  <div id="quotaWarningBadge" style="display:none; margin-top:10px; background:#7f1d1d; color:#fecaca; padding:6px 10px; border-radius:6px; font-size:11px; font-weight:700;">
+    ⚠️ High usage detected. Consider enabling Panic Raid Mode or increasing slow mode cooldown.
+  </div>
+</div>
+
 <div class="card">
   <h4>⏱️ Dynamic Slow-Mode Cooldown</h4>
   <div class="slider-wrap">
@@ -296,6 +325,7 @@ mark {
   <input id="searchInput" placeholder="Filter posts, IPs, devices, messages..." oninput="applyFilter()">
   <div id="posts">Login to load posts</div>
 </div>
+
 <div class="card">
   <h4 style="color:#f59e0b;">⭐ VIP Members & Expirations (30 Days Tracker)</h4>
   <div id="vipMembers">Login to load VIP members</div>
@@ -364,7 +394,6 @@ mark {
     <button type="button" class="danger" style="margin-top: 6px;" onclick="closeBanModal()">Cancel</button>
   </div>
 </div>
-
 <script>
 let ADMIN_KEY = localStorage.getItem('cpm_admin_key') || '';
 let cachedPosts = [], cachedLogs = [], cachedVisitors = [], cachedBanned = [], cachedVerified = [], cachedFilters = [];
@@ -531,6 +560,7 @@ function updateRaidUI(active) {
     btn.textContent = '🚨 Raid Mode: OFF';
   }
 }
+
 async function saveSlowMode() {
   ADMIN_KEY = (document.getElementById('adminKey').value || '').trim();
   if (!ADMIN_KEY) return setStatus('Enter admin key first', true);
@@ -920,6 +950,37 @@ async function saveAdminNote(ip) {
   }
 }
 
+async function updateQuotaDisplay() {
+  try {
+    const r = await fetch(`/api/admin?action=quota&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() });
+    if (!r.ok) return;
+    const d = await r.json();
+
+    const readPct = Math.min(100, Math.round((d.reads / d.readLimit) * 100));
+    const writePct = Math.min(100, Math.round((d.writes / d.writeLimit) * 100));
+
+    document.getElementById('readsCountText').textContent = `${d.reads.toLocaleString()} / 50,000`;
+    document.getElementById('readsPercentText').textContent = `${readPct}%`;
+    const readsBar = document.getElementById('readsBar');
+    readsBar.style.width = `${readPct}%`;
+    readsBar.style.backgroundColor = readPct > 80 ? '#ef4444' : (readPct > 60 ? '#f97316' : '#38bdf8');
+
+    document.getElementById('writesCountText').textContent = `${d.writes.toLocaleString()} / 20,000`;
+    document.getElementById('writesPercentText').textContent = `${writePct}%`;
+    const writesBar = document.getElementById('writesBar');
+    writesBar.style.width = `${writePct}%`;
+    writesBar.style.backgroundColor = writePct > 80 ? '#ef4444' : (writePct > 60 ? '#f97316' : '#f59e0b');
+
+    const warningEl = document.getElementById('quotaWarningBadge');
+    if (readPct > 75 || writePct > 75) {
+      warningEl.style.display = 'block';
+    } else {
+      warningEl.style.display = 'none';
+    }
+    document.getElementById('quotaCard').style.display = 'block';
+  } catch {}
+}
+
 async function loadAll(isBackground = false) {
   const keyInput = document.getElementById('adminKey');
   const loadBtn = document.getElementById('loadBtn');
@@ -941,7 +1002,7 @@ async function loadAll(isBackground = false) {
     const [pR, bR, lR, vR, pinR, visR, fR, vipR, vipBanR, payR, subR, fpR, shR, nR, sR, subWhiteR] = await Promise.all([
       fetch(`/api/admin?action=posts&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
       fetch(`/api/admin?action=banned&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
-      fetch(`/api/admin?action=logs&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
+            fetch(`/api/admin?action=logs&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
       fetch(`/api/admin?action=verified_ips&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
       fetch(`/api/admin?action=pinned&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
       fetch(`/api/admin?action=visitors&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
@@ -1003,6 +1064,7 @@ async function loadAll(isBackground = false) {
     }
 
     updateStats();
+    await updateQuotaDisplay();
     renderFilters();
     renderPayments();
     applyFilter();
@@ -1375,7 +1437,7 @@ function promptCustomBan() {
 
 async function delPost(id) {
   if (!confirm('Delete post ' + id + '?')) return;
-  try {
+    try {
     const r = await fetch(`/api/admin?id=${id}`, { method: 'DELETE', headers: headers() });
     const d = await r.json();
     if (d.success) loadAll(true);

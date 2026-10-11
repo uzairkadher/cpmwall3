@@ -910,6 +910,7 @@ window.unlockVip = async () => {
 window.cancelVipModal = () => {
   vipModal.style.display = 'none';
 };
+
 function filterFeedByRoom() {
   const bubbles = feedEl.querySelectorAll('.bubble');
   let visibleCount = 0;
@@ -1368,7 +1369,7 @@ onSnapshot(doc(db, "pinned", "current"), (snap) => {
   pinnedBox.style.display = 'none';
 }, () => {});
 
-const q = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(500));
+const q = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(100));
 onSnapshot(q, (snap) => {
   if (snap.empty) {
     if (!hasLoadedPosts) {
@@ -1428,7 +1429,7 @@ onSnapshot(q, (snap) => {
 
   filterFeedByRoom();
 
-  while (feedEl.children.length > 500) {
+  while (feedEl.children.length > 100) {
     feedEl.removeChild(feedEl.lastChild);
   }
 }, () => {});
@@ -1545,7 +1546,7 @@ window.sendPost = async () => {
         message,
         clientInfo,
         room: currentRoom,
-                vipKey: activeVipKey || '',
+        vipKey: activeVipKey || '',
         adminKey: adminKey,
         nameColor: chosenColor,
         frameStyle: chosenFrame

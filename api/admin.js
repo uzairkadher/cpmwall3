@@ -23,6 +23,29 @@ export default async function handler(req, res) {
         const snap = await db.collection("posts").orderBy("createdAt", "desc").limit(100).get();
         return res.status(200).json(snap.docs.map(d => ({ id: d.id, ...d.data() })));
       }
+      if (action === "quota") {
+        const now = new Date();
+        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const startTimestamp = admin.firestore.Timestamp.fromDate(startOfDay);
+
+        const [postsToday, visitorsToday] = await Promise.all([
+          db.collection("posts").where("createdAt", ">=", startTimestamp).count().get(),
+          db.collection("visitors").where("lastSeen", ">=", startTimestamp).count().get()
+        ]);
+
+        const writesToday = (postsToday.data().count * 2) + visitorsToday.data().count;
+        const estimatedReads = (visitorsToday.data().count * 105) + (postsToday.data().count * 3);
+
+        return res.status(200).json({
+          reads: estimatedReads,
+          readLimit: 50000,
+          writes: writesToday,
+          writeLimit: 20000,
+          deletes: 0,
+          deleteLimit: 20000,
+          lastReset: startOfDay.toISOString()
+        });
+      }
       if (action === "vip_members") {
         const snap = await db.collection("vip_members").orderBy("unlockedAt", "desc").limit(100).get();
         return res.status(200).json(snap.docs.map(d => ({ id: d.id, ...d.data() })));
@@ -98,7 +121,6 @@ export default async function handler(req, res) {
     if (req.method === "POST") {
       const { action } = req.body;
 
-      // Fix: Chat lock toggle handler
       if (action === "toggle_chat_lock") {
         const { locked } = req.body;
         await db.collection("pinned").doc("current").set({
