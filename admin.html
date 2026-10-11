@@ -4,209 +4,167 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="robots" content="noindex, nofollow">
-<title>CPM Admin Panel</title>
+<title>CPM Admin Portal</title>
 <style>
-* {
-  box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent;
-}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 body {
-  background: #0a0a0a;
+  background: #05070e;
   color: #fff;
   font-family: system-ui, sans-serif;
   padding: 14px;
   margin: 0;
   -webkit-touch-callout: none;
+  min-height: 100vh;
 }
-.card {
-  background: #111;
-  border: 1px solid #222;
-  border-radius: 12px;
-  padding: 14px;
-  margin-bottom: 12px;
+#loginOverlay {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at center, #1a150b 0%, #05070e 100%);
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
 }
-input, textarea, select {
+.glass-card {
+  background: rgba(20, 20, 25, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  box-shadow: 0 0 40px rgba(245, 158, 11, 0.15), inset 0 0 20px rgba(255, 255, 255, 0.03);
+  border-radius: 24px;
+  max-width: 380px;
   width: 100%;
-  box-sizing: border-box;
-  padding: 9px;
-  background: #1a1a1a;
-  border: 1px solid #333;
-  color: #fff;
-  border-radius: 8px;
-  margin: 5px 0;
-  font-size: 13px;
+  padding: 30px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
 }
-button {
-  background: #3b82f6;
+.logo-circle {
+  width: 72px;
+  height: 72px;
+  background: radial-gradient(circle, #fde047 0%, #f59e0b 60%, #b45309 100%);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 0 25px rgba(245, 158, 11, 0.6);
+  font-weight: 900;
+  font-size: 1.5rem;
+  color: #000;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+.login-title {
+  font-size: 1.35rem;
+  font-weight: 800;
   color: #fff;
-  border: 0;
-  padding: 8px 14px;
-  border-radius: 8px;
-  margin: 2px;
-  font-weight: 700;
-  font-size: 12px;
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+.login-sub {
+  font-size: 0.78rem;
+  color: #a1a1aa;
+  margin-top: -8px;
+}
+.input-group {
+  width: 100%;
+  position: relative;
+  margin-top: 6px;
+}
+.glass-input {
+  width: 100%;
+  background: rgba(10, 12, 18, 0.8);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: 12px;
+  padding: 12px 16px;
+  color: #fff;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.glass-input:focus {
+  border-color: #f59e0b;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.2);
+}
+.login-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #fde047 0%, #f59e0b 100%);
+  color: #000;
+  border: none;
+  border-radius: 12px;
+  padding: 12px;
+  font-weight: 800;
+  font-size: 0.95rem;
   cursor: pointer;
-  touch-action: manipulation;
-  user-select: none;
-  -webkit-user-select: none;
-  transition: transform 0.08s ease, filter 0.08s ease;
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+  transition: transform 0.1s, filter 0.1s;
+  margin-top: 4px;
 }
-button:active {
-  transform: scale(0.95);
-  filter: brightness(0.8);
+.login-btn:active { transform: scale(0.98); filter: brightness(0.9); }
+#loginError {
+  color: #ef4444;
+  font-size: 0.78rem;
+  min-height: 18px;
+  font-weight: 600;
 }
+.card { background: #111; border: 1px solid #222; border-radius: 12px; padding: 14px; margin-bottom: 12px; }
+input, textarea, select { width: 100%; box-sizing: border-box; padding: 9px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 8px; margin: 5px 0; font-size: 13px; }
+button { background: #3b82f6; color: #fff; border: 0; padding: 8px 14px; border-radius: 8px; margin: 2px; font-weight: 700; font-size: 12px; cursor: pointer; }
 button.danger { background: #dc2626; }
 button.green { background: #16a34a; }
 button.orange { background: #ea580c; }
 button.purple { background: #9333ea; }
-.post {
-  border-bottom: 1px solid #222;
-  padding: 10px 0;
-  position: relative;
-}
-.post:last-child { border-bottom: 0; }
-code {
-  background: #1e293b;
-  padding: 2px 5px;
-  border-radius: 4px;
-  color: #38bdf8;
-  font-family: monospace;
-  font-size: 11px;
-}
-mark {
-  background: #facc15;
-  color: #000;
-  padding: 0 2px;
-  border-radius: 2px;
-  font-weight: 700;
-}
-.badge {
-  background: #333;
-  padding: 2px 5px;
-  border-radius: 4px;
-  font-size: 10px;
-  margin-right: 4px;
-  cursor: pointer;
-}
+.post { border-bottom: 1px solid #222; padding: 10px 0; position: relative; }
+code { background: #1e293b; padding: 2px 5px; border-radius: 4px; color: #38bdf8; font-family: monospace; font-size: 11px; }
+mark { background: #facc15; color: #000; padding: 0 2px; border-radius: 2px; font-weight: 700; }
+.badge { background: #333; padding: 2px 5px; border-radius: 4px; font-size: 10px; margin-right: 4px; cursor: pointer; }
 .badge-loc { background: #4c1d95; color: #d8b4fe; }
 .badge-dev { background: #064e3b; color: #6ee7b7; }
 .badge-spec { background: #1e293b; color: #94a3b8; }
-.badge-batt { background: #713f12; color: #fde047; }
-.badge-count { background: #0284c7; color: #fff; font-weight: 700; }
-.badge-vip { background: #854d0e; color: #fef08a; font-weight: 700; }
 .badge-vpn { background: #991b1b; color: #fecaca; font-weight: 700; }
 .badge-shadow { background: #475569; color: #f8fafc; font-weight: 700; }
-.detail-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin: 5px 0;
-}
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-  gap: 6px;
-  margin-top: 8px;
-}
-.stat-box {
-  background: #18181b;
-  border: 1px solid #27272a;
-  border-radius: 8px;
-  padding: 8px;
-  text-align: center;
-}
-.stat-val {
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: #38bdf8;
-}
-.stat-label {
-  font-size: 0.72rem;
-  color: #a1a1aa;
-  margin-top: 2px;
-}
-.preset-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  margin: 6px 0;
-}
-.filter-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 8px;
-}
-.filter-tag {
-  background: #27272a;
-  color: #fca5a5;
-  border: 1px solid #7f1d1d;
-  padding: 3px 8px;
-  border-radius: 6px;
-  font-size: 11px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-.filter-tag span {
-  cursor: pointer;
-  color: #fff;
-  font-weight: 700;
-}
-.modal-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.75);
-  z-index: 50;
-  justify-content: center;
-  align-items: center;
-  padding: 16px;
-}
-.modal-card {
-  background: #18181b;
-  border: 1px solid #333;
-  border-radius: 14px;
-  max-width: 380px;
-  width: 100%;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.preset-btn {
-  background: #27272a;
-  color: #fff;
-  border: 1px solid #3f3f46;
-  padding: 9px;
-  border-radius: 8px;
-  text-align: left;
-  font-size: 0.85rem;
-  margin: 2px 0;
-}
-.slider-wrap {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 6px;
-}
-.slider-wrap input[type=range] {
-  flex: 1;
-  margin: 0;
-}
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 6px; margin-top: 8px; }
+.stat-box { background: #18181b; border: 1px solid #27272a; border-radius: 8px; padding: 8px; text-align: center; }
+.stat-val { font-size: 1.15rem; font-weight: 700; color: #38bdf8; }
+.stat-label { font-size: 0.72rem; color: #a1a1aa; margin-top: 2px; }
+.filter-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.filter-tag { background: #27272a; color: #fca5a5; border: 1px solid #7f1d1d; padding: 3px 8px; border-radius: 6px; font-size: 11px; display: inline-flex; align-items: center; gap: 6px; }
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75); z-index: 50; justify-content: center; align-items: center; padding: 16px; }
+.modal-card { background: #18181b; border: 1px solid #333; border-radius: 14px; max-width: 380px; width: 100%; padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+.preset-btn { background: #27272a; color: #fff; border: 1px solid #3f3f46; padding: 9px; border-radius: 8px; text-align: left; font-size: 0.85rem; margin: 2px 0; }
+.slider-wrap { display: flex; align-items: center; gap: 12px; margin-top: 6px; }
+.slider-wrap input[type=range] { flex: 1; margin: 0; }
 </style>
 </head>
 <body ontouchstart="">
+
+<div id="loginOverlay">
+  <div class="glass-card">
+    <div class="logo-circle">ES</div>
+    <h2 class="login-title">EMPIRE STUDIO</h2>
+    <div class="login-sub">🔒 Private Admin Access Only</div>
+    <div class="input-group">
+      <input id="loginKeyInput" type="password" class="glass-input" placeholder="Enter Admin Password" autocomplete="current-password" onkeydown="if(event.key==='Enter') verifyAdminLogin()">
+    </div>
+    <div id="loginError"></div>
+    <button type="button" class="login-btn" onclick="verifyAdminLogin()">LOGIN</button>
+    <div style="font-size: 0.7rem; color: #71717a; margin-top: 6px;">Car Parking Multiplayer Tools • v2.1.0</div>
+  </div>
+</div>
+
 <h3>CPM Admin Dashboard</h3>
 
 <div class="card">
-  <input id="adminKey" type="password" placeholder="Enter ADMIN_KEY" autocomplete="current-password">
   <div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:4px;">
-    <button id="loadBtn" type="button" onclick="loadAll()">Load Data</button>
+    <button id="loadBtn" type="button" onclick="loadAll()">Refresh Data</button>
     <button id="raidBtn" type="button" class="danger" onclick="toggleRaidMode()">🚨 Raid Mode: OFF</button>
     <button id="lockToggleBtn" type="button" class="danger" onclick="toggleChatLock()">Lock Chat</button>
     <button type="button" class="green" onclick="generateVipReply()">⚡ 1-Click VIP Generator</button>
     <button type="button" class="green" onclick="exportBackup()">Export JSON</button>
+    <button type="button" class="danger" style="background:#52525b;" onclick="logoutAdmin()">🔒 Lock Panel</button>
   </div>
   <div style="margin-top:6px; display:flex; justify-content:space-between; align-items:center;">
     <span id="status" style="font-size:12px; color:#94a3b8; font-weight:600;"></span>
@@ -252,11 +210,7 @@ mark {
       <div id="writesBar" style="width:0%; height:100%; background:#f59e0b; transition:width 0.3s ease;"></div>
     </div>
   </div>
-  <div id="quotaWarningBadge" style="display:none; margin-top:10px; background:#7f1d1d; color:#fecaca; padding:6px 10px; border-radius:6px; font-size:11px; font-weight:700;">
-    ⚠️ High usage detected. Consider enabling Panic Raid Mode or increasing slow mode cooldown.
-  </div>
 </div>
-
 <div class="card">
   <h4>⏱️ Dynamic Slow-Mode Cooldown</h4>
   <div class="slider-wrap">
@@ -394,6 +348,7 @@ mark {
     <button type="button" class="danger" style="margin-top: 6px;" onclick="closeBanModal()">Cancel</button>
   </div>
 </div>
+
 <script>
 let ADMIN_KEY = localStorage.getItem('cpm_admin_key') || '';
 let cachedPosts = [], cachedLogs = [], cachedVisitors = [], cachedBanned = [], cachedVerified = [], cachedFilters = [];
@@ -407,9 +362,46 @@ let selectedPostIds = new Set();
 let audioCtx = null;
 let lastSirenPlayedTime = 0;
 
-if (ADMIN_KEY) {
-  const kInput = document.getElementById('adminKey');
-  if (kInput) kInput.value = ADMIN_KEY;
+window.addEventListener('DOMContentLoaded', () => {
+  if (ADMIN_KEY) {
+    verifyAdminLogin(true);
+  }
+});
+
+async function verifyAdminLogin(isAuto = false) {
+  const inputVal = isAuto ? ADMIN_KEY : (document.getElementById('loginKeyInput').value || '').trim();
+  const errEl = document.getElementById('loginError');
+  if (!inputVal) {
+    if (!isAuto) errEl.textContent = 'Please enter admin password';
+    return;
+  }
+
+  errEl.textContent = 'Verifying...';
+  try {
+    const r = await fetch(`/api/admin?action=posts&key=${encodeURIComponent(inputVal)}`, {
+      headers: { 'Content-Type': 'application/json', 'x-admin-key': inputVal }
+    });
+    if (r.ok) {
+      ADMIN_KEY = inputVal;
+      localStorage.setItem('cpm_admin_key', ADMIN_KEY);
+      document.getElementById('loginOverlay').style.display = 'none';
+      loadAll();
+    } else {
+      errEl.textContent = 'Incorrect password. Try again.';
+      localStorage.removeItem('cpm_admin_key');
+    }
+  } catch (err) {
+    errEl.textContent = 'Connection error: ' + err.message;
+  }
+}
+
+function logoutAdmin() {
+  localStorage.removeItem('cpm_admin_key');
+  ADMIN_KEY = '';
+  if (refreshTimer) clearInterval(refreshTimer);
+  document.getElementById('loginKeyInput').value = '';
+  document.getElementById('loginError').textContent = '';
+  document.getElementById('loginOverlay').style.display = 'flex';
 }
 
 function initAudio() {
@@ -420,22 +412,18 @@ function initAudio() {
 function playReportSiren() {
   if (Date.now() - lastSirenPlayedTime < 25000) return;
   lastSirenPlayedTime = Date.now();
-
   try {
     initAudio();
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     osc.type = 'sawtooth';
-
     const t = audioCtx.currentTime;
     osc.frequency.setValueAtTime(800, t);
     osc.frequency.setValueAtTime(600, t + 0.25);
     osc.frequency.setValueAtTime(800, t + 0.5);
     osc.frequency.setValueAtTime(600, t + 0.75);
-
     gain.gain.setValueAtTime(0.5, t);
     gain.gain.exponentialRampToValueAtTime(0.01, t + 1.1);
-
     osc.connect(gain);
     gain.connect(audioCtx.destination);
     osc.start(t);
@@ -473,14 +461,6 @@ function highlight(str, q) {
   return safe.replace(new RegExp(`(${escapedQuery})`, 'gi'), '<mark>$1</mark>');
 }
 
-function setFilterBadge(term) {
-  const input = document.getElementById('searchInput');
-  if (input) {
-    input.value = term;
-    applyFilter();
-  }
-}
-
 function updateSliderLabel(val) {
   const el = document.getElementById('sliderVal');
   if (el) el.textContent = `${val}s`;
@@ -491,7 +471,6 @@ function loadPreset(type) {
   const textEl = document.getElementById('pinText');
   if (!nameEl || !textEl) return;
   nameEl.value = "Administration Team";
-
   if (type === 'drag') {
     textEl.value = "🏁 Drag meet starting in Room 4! Bring your sub-6s AWD builds. Clean runs only.";
   } else if (type === 'maint') {
@@ -504,8 +483,6 @@ function loadPreset(type) {
 }
 
 async function generateVipReply() {
-  ADMIN_KEY = (document.getElementById('adminKey').value || '').trim();
-  if (!ADMIN_KEY) return setStatus('Enter admin key first', true);
   try {
     const r = await fetch('/api/admin', {
       method: 'POST',
@@ -527,11 +504,8 @@ async function generateVipReply() {
 }
 
 async function toggleRaidMode() {
-  ADMIN_KEY = (document.getElementById('adminKey').value || '').trim();
-  if (!ADMIN_KEY) return setStatus('Enter admin key first', true);
   const target = !isRaidModeActive;
   if (!confirm(`Switch Panic Raid Mode ${target ? 'ON' : 'OFF'}? When ON, only VIP and verified users can post.`)) return;
-
   try {
     const r = await fetch('/api/admin', {
       method: 'POST',
@@ -562,9 +536,6 @@ function updateRaidUI(active) {
 }
 
 async function saveSlowMode() {
-  ADMIN_KEY = (document.getElementById('adminKey').value || '').trim();
-  if (!ADMIN_KEY) return setStatus('Enter admin key first', true);
-
   const seconds = Number(document.getElementById('slowSlider').value) || 10;
   try {
     const r = await fetch('/api/admin', {
@@ -582,9 +553,6 @@ async function saveSlowMode() {
 
 async function flushLobby(count) {
   if (!confirm(`Are you sure you want to delete the last ${count} messages from the lobby?`)) return;
-  ADMIN_KEY = (document.getElementById('adminKey').value || '').trim();
-  if (!ADMIN_KEY) return setStatus('Enter admin key first', true);
-
   try {
     const r = await fetch('/api/admin', {
       method: 'POST',
@@ -606,10 +574,6 @@ async function flushLobby(count) {
 async function editPostDirect(postId, currentText) {
   const updated = prompt('Edit post message:', currentText);
   if (updated === null || updated.trim() === currentText.trim()) return;
-
-  ADMIN_KEY = (document.getElementById('adminKey').value || '').trim();
-  if (!ADMIN_KEY) return setStatus('Enter admin key first', true);
-
   try {
     const r = await fetch('/api/admin', {
       method: 'POST',
@@ -676,11 +640,7 @@ async function addPayment() {
   const amount = Number(document.getElementById('payAmount').value) || 0;
   const method = document.getElementById('payMethod').value;
   const txId = (document.getElementById('payTxId').value || '').trim();
-
   if (!driverTag || !amount) return setStatus('Enter driver tag and amount', true);
-  ADMIN_KEY = (document.getElementById('adminKey').value || '').trim();
-  if (!ADMIN_KEY) return setStatus('Enter admin key first', true);
-
   try {
     const r = await fetch('/api/admin', {
       method: 'POST',
@@ -721,12 +681,6 @@ async function deletePayment(paymentId) {
 function toggleAutoRefresh(enabled) {
   if (refreshTimer) clearInterval(refreshTimer);
   if (enabled) {
-    ADMIN_KEY = (document.getElementById('adminKey').value || '').trim();
-    if (!ADMIN_KEY) {
-      setStatus('Enter admin key and tap Load Data first', true);
-      document.getElementById('autoRefreshCheck').checked = false;
-      return;
-    }
     refreshTimer = setInterval(() => { loadAll(true); }, 10000);
   }
 }
@@ -745,12 +699,8 @@ function updateLockBtnUI(locked) {
 }
 
 async function toggleChatLock() {
-  ADMIN_KEY = (document.getElementById('adminKey').value || '').trim();
-  if (!ADMIN_KEY) return setStatus('Enter admin key first', true);
-
   const targetState = !isChatCurrentlyLocked;
   if (!confirm(targetState ? 'Lock chat? Visitors cannot post.' : 'Unlock chat? Visitors can post.')) return;
-
   try {
     const r = await fetch('/api/admin', {
       method: 'POST',
@@ -770,12 +720,8 @@ async function toggleChatLock() {
 }
 
 async function saveVipKey() {
-  ADMIN_KEY = (document.getElementById('adminKey').value || '').trim();
-  if (!ADMIN_KEY) return setStatus('Enter admin key first', true);
-
   const vipKey = (document.getElementById('vipKeyInput').value || '').trim();
   if (!vipKey) return setStatus('Enter a VIP passcode to save', true);
-
   try {
     const r = await fetch('/api/admin', {
       method: 'POST',
@@ -829,7 +775,7 @@ async function banSubnet(subnet) {
   try {
     const r = await fetch('/api/admin', {
       method: 'POST',
-      headers: headers(),
+          headers: headers(),
       body: JSON.stringify({ action: 'ban_subnet', subnet })
     });
     const d = await r.json();
@@ -955,7 +901,6 @@ async function updateQuotaDisplay() {
     const r = await fetch(`/api/admin?action=quota&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() });
     if (!r.ok) return;
     const d = await r.json();
-
     const readPct = Math.min(100, Math.round((d.reads / d.readLimit) * 100));
     const writePct = Math.min(100, Math.round((d.writes / d.writeLimit) * 100));
 
@@ -971,27 +916,12 @@ async function updateQuotaDisplay() {
     writesBar.style.width = `${writePct}%`;
     writesBar.style.backgroundColor = writePct > 80 ? '#ef4444' : (writePct > 60 ? '#f97316' : '#f59e0b');
 
-    const warningEl = document.getElementById('quotaWarningBadge');
-    if (readPct > 75 || writePct > 75) {
-      warningEl.style.display = 'block';
-    } else {
-      warningEl.style.display = 'none';
-    }
     document.getElementById('quotaCard').style.display = 'block';
   } catch {}
 }
 
 async function loadAll(isBackground = false) {
-  const keyInput = document.getElementById('adminKey');
   const loadBtn = document.getElementById('loadBtn');
-  ADMIN_KEY = (keyInput.value || '').trim();
-
-  if (!ADMIN_KEY) {
-    setStatus('Enter ADMIN_KEY first', true);
-    return;
-  }
-  localStorage.setItem('cpm_admin_key', ADMIN_KEY);
-
   if (!isBackground) {
     loadBtn.textContent = 'Loading...';
     loadBtn.disabled = true;
@@ -1002,7 +932,7 @@ async function loadAll(isBackground = false) {
     const [pR, bR, lR, vR, pinR, visR, fR, vipR, vipBanR, payR, subR, fpR, shR, nR, sR, subWhiteR] = await Promise.all([
       fetch(`/api/admin?action=posts&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
       fetch(`/api/admin?action=banned&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
-            fetch(`/api/admin?action=logs&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
+      fetch(`/api/admin?action=logs&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
       fetch(`/api/admin?action=verified_ips&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
       fetch(`/api/admin?action=pinned&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
       fetch(`/api/admin?action=visitors&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
@@ -1019,9 +949,7 @@ async function loadAll(isBackground = false) {
     ]);
 
     if (pR.status === 401) {
-      setStatus('Invalid Admin Key. Check password in Vercel.', true);
-      loadBtn.textContent = 'Load Data';
-      loadBtn.disabled = false;
+      logoutAdmin();
       return;
     }
 
@@ -1058,8 +986,7 @@ async function loadAll(isBackground = false) {
     cachedFilters = (filters && Array.isArray(filters.words)) ? filters.words : [];
     cachedSubnetWhitelist = Array.isArray(subWhite) ? subWhite : [];
 
-    const hasCriticalReports = cachedPosts.some(p => p.isReported && (p.reportCount >= 3));
-    if (hasCriticalReports) {
+    if (cachedPosts.some(p => p.isReported && (p.reportCount >= 3))) {
       playReportSiren();
     }
 
@@ -1091,7 +1018,7 @@ async function loadAll(isBackground = false) {
   } catch (err) {
     setStatus('Connection failed: ' + err.message, true);
   } finally {
-    loadBtn.textContent = 'Load Data';
+    loadBtn.textContent = 'Refresh Data';
     loadBtn.disabled = false;
   }
 }
@@ -1100,8 +1027,7 @@ function updateStats() {
   document.getElementById('statPosts').textContent = cachedPosts.length;
   document.getElementById('statVisitors').textContent = cachedVisitors.length;
   document.getElementById('statVip').textContent = cachedVipMembers.length;
-  const totalRev = cachedPayments.reduce((acc, p) => acc + (Number(p.amount) || 0), 0);
-  document.getElementById('statRevenue').textContent = totalRev;
+  document.getElementById('statRevenue').textContent = cachedPayments.reduce((acc, p) => acc + (Number(p.amount) || 0), 0);
   document.getElementById('statReports').textContent = cachedPosts.filter(p => p.isReported).length;
   document.getElementById('statStrikes').textContent = cachedStrikes.length;
   document.getElementById('statBanned').textContent = cachedBanned.length;
@@ -1199,24 +1125,6 @@ function exportBackup() {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-}
-
-async function purgeIp(ip) {
-  if (!confirm(`Delete ALL messages posted by IP ${ip}?`)) return;
-  try {
-    const r = await fetch('/api/admin', {
-      method: 'POST',
-      headers: headers(),
-      body: JSON.stringify({ action: 'purge_ip', ip })
-    });
-    const d = await r.json();
-    if (d.success) {
-      setStatus(`Purged ${d.count} messages from ${ip}`);
-      loadAll(true);
-    }
-  } catch (err) {
-    setStatus('Purge failed: ' + err.message, true);
-  }
 }
 
 async function dismissReport(postId) {
@@ -1332,7 +1240,7 @@ function applyFilter() {
           ${l.device ? `<span class="badge badge-dev">${esc(l.device)}</span>` : ''}
         </div>
         <div style="margin:4px 0;">
-          <input id="note-${safeIpKey}" value="${esc(existingNote)}" placeholder="Internal note (Paid, warnings)..." style="width:75%; display:inline-block;">
+              <input id="note-${safeIpKey}" value="${esc(existingNote)}" placeholder="Internal note..." style="width:75%; display:inline-block;">
           <button type="button" class="green" onclick="saveAdminNote('${esc(l.ip)}')">Save Note</button>
         </div>
         <button type="button" class="danger" onclick="openBanModal('${esc(l.ip)}')">Ban IP</button>
@@ -1420,10 +1328,9 @@ function promptCustomBan() {
   closeBanModal();
   const reason = prompt(`Enter ban reason for IP ${ip}:`, 'Custom reason');
   if (reason === null) return;
-  const hoursStr = prompt('Ban duration in hours (enter 0 for permanent):', '0');
+  const hoursStr = prompt('Ban duration in hours (0 for permanent):', '0');
   if (hoursStr === null) return;
   const hours = parseFloat(hoursStr) || 0;
-
   fetch('/api/admin', {
     method: 'POST',
     headers: headers(),
@@ -1437,7 +1344,7 @@ function promptCustomBan() {
 
 async function delPost(id) {
   if (!confirm('Delete post ' + id + '?')) return;
-    try {
+  try {
     const r = await fetch(`/api/admin?id=${id}`, { method: 'DELETE', headers: headers() });
     const d = await r.json();
     if (d.success) loadAll(true);
