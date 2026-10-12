@@ -155,6 +155,7 @@ mark { background: #facc15; color: #000; padding: 0 2px; border-radius: 2px; fon
 <div class="card">
   <div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:4px;">
     <button id="loadBtn" type="button" onclick="loadAll()">Refresh Data</button>
+    <button type="button" class="purple" onclick="openWallAsAdmin()">🌍 Open Wall as Admin</button>
     <button id="raidBtn" type="button" class="danger" onclick="toggleRaidMode()">🚨 Raid Mode: OFF</button>
     <button id="lockToggleBtn" type="button" class="danger" onclick="toggleChatLock()">Lock Chat</button>
     <button type="button" class="green" onclick="generateVipReply()">⚡ 1-Click VIP Generator</button>
@@ -397,6 +398,15 @@ function logoutAdmin() {
   document.getElementById('loginKeyInput').value = '';
   document.getElementById('loginError').textContent = '';
   document.getElementById('loginOverlay').style.display = 'flex';
+}
+
+function openWallAsAdmin() {
+  if (ADMIN_KEY) {
+    localStorage.setItem('cpm_vip_key', ADMIN_KEY);
+    window.open('/', '_blank');
+  } else {
+    alert("Please log into the admin panel first.");
+  }
 }
 
 function initAudio() {
