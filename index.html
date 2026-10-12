@@ -128,6 +128,14 @@ body {
   border-color: var(--gold);
   color: #fef08a;
 }
+.room-tab.market {
+  background: #111424;
+}
+.room-tab.market.active {
+  background: linear-gradient(135deg, #064e3b, #022c22);
+  border-color: #10b981;
+  color: #a7f3d0;
+}
 
 .pinned {
   background: linear-gradient(90deg, rgba(0, 240, 255, 0.1), rgba(255, 59, 154, 0.1));
@@ -584,6 +592,7 @@ body {
 
   <div class="room-bar">
     <button id="tabPublic" type="button" class="room-tab active" onclick="switchRoom('public')">🌐 Public Wall</button>
+    <button id="tabMarket" type="button" class="room-tab market" onclick="switchRoom('market')">🛒 Marketplace</button>
     <button id="tabVip" type="button" class="room-tab vip" onclick="switchRoom('vip')">🔒 VIP Lounge</button>
   </div>
 
@@ -759,6 +768,7 @@ const vipCustomPanel = document.getElementById('vipCustomPanel');
 const typingProgressBar = document.getElementById('typingProgressBar');
 
 const tabPublic = document.getElementById('tabPublic');
+const tabMarket = document.getElementById('tabMarket');
 const tabVip = document.getElementById('tabVip');
 const tipModal = document.getElementById('tipModal');
 const vipModal = document.getElementById('vipModal');
@@ -841,6 +851,10 @@ window.setVipFrame = (frame, el) => {
 };
 
 window.switchRoom = (room) => {
+  const tabPublic = document.getElementById('tabPublic');
+  const tabMarket = document.getElementById('tabMarket');
+  const tabVip = document.getElementById('tabVip');
+  
   if (room === 'vip') {
     if (!activeVipKey) {
       vipModal.style.display = 'flex';
@@ -848,11 +862,19 @@ window.switchRoom = (room) => {
     }
     currentRoom = 'vip';
     tabPublic.classList.remove('active');
+    tabMarket.classList.remove('active');
     tabVip.classList.add('active');
     document.getElementById('statusLabel').textContent = 'VIP Lounge';
+  } else if (room === 'market') {
+    currentRoom = 'market';
+    tabPublic.classList.remove('active');
+    tabVip.classList.remove('active');
+    tabMarket.classList.add('active');
+    document.getElementById('statusLabel').textContent = 'Car Marketplace';
   } else {
     currentRoom = 'public';
     tabVip.classList.remove('active');
+    tabMarket.classList.remove('active');
     tabPublic.classList.add('active');
     document.getElementById('statusLabel').textContent = 'Lobby Chat';
   }
@@ -918,7 +940,8 @@ function filterFeedByRoom() {
     const bubbleRoom = b.getAttribute('data-room') || 'public';
     const text = b.getAttribute('data-text') || '';
     const name = b.getAttribute('data-name') || '';
-    const matchesRoom = currentRoom === 'vip' ? (bubbleRoom === 'vip') : (bubbleRoom !== 'vip');
+    
+    const matchesRoom = (bubbleRoom === currentRoom); 
     const matchesSearch = !activeSearchQuery || text.includes(activeSearchQuery) || name.includes(activeSearchQuery);
 
     if (matchesRoom && matchesSearch) {
@@ -935,7 +958,9 @@ function filterFeedByRoom() {
       const p = document.createElement('p');
       p.id = 'emptyRoomNotice';
       p.style.cssText = 'text-align:center;color:var(--muted);font-size:0.85rem;margin-top:20px;';
-      p.textContent = currentRoom === 'vip' ? 'VIP Lounge is quiet. Post the first VIP code!' : 'No public messages yet. Be first!';
+      if (currentRoom === 'vip') p.textContent = 'VIP Lounge is quiet. Post the first VIP code!';
+      else if (currentRoom === 'market') p.textContent = 'Marketplace is empty. Be the first to list a car for sale!';
+      else p.textContent = 'No public messages yet. Be first!';
       feedEl.appendChild(p);
     }
   } else if (emptyNotice) {
@@ -1282,7 +1307,7 @@ function buildBubble(id, data, isTemporary) {
     bubble.appendChild(actionsEl);
   }
 
-  const matchesRoom = currentRoom === 'vip' ? (postRoom === 'vip') : (postRoom !== 'vip');
+  const matchesRoom = currentRoom === postRoom;
   bubble.style.display = matchesRoom ? 'flex' : 'none';
 
   return bubble;

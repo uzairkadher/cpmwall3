@@ -121,24 +121,19 @@ function checkVpnIndicators(req) {
   return Boolean(hasMultipleIps || hasProxyHeader || headers["cf-ray"]?.includes("TOR"));
 }
 
-function getHumanFallback(cleanMsg) {
-  const t = cleanMsg.toLowerCase();
-  if (t.includes("supra") || t.includes("gearbox") || t.includes("gear")) {
-    return "For Supra set Final Drive 3.12, 1st 2.66, 2nd 1.90. Shift fast right at redline.";
-  }
-  if (t.includes("drag") || t.includes("launch")) {
-    return "Drop tire pressure to 1.2 bar, turn off TCS, and launch in 2nd gear bro.";
-  }
-  return "What car are you tuning right now bro? Drop specs and room code.";
-}
-
 async function getBotReply(cleanName, cleanMsg) {
   const rawKey = (process.env.GEMINI_API_KEY || "").trim().replace(/^["']|["']$/g, "");
   const stripped = cleanMsg.replace(/@(apex|apex_racer)/gi, "").trim();
 
   if (rawKey) {
     try {
-      const prompt = `You are Apex_Racer, a real human player in the Car Parking Multiplayer game lobby. Talk like a friendly car gamer buddy. Reply to ${cleanName}: "${stripped}". Keep it under 20 words, 1 sentence, natural and simple. Never mention AI or bots.`;
+      const prompt = `You are Apex_Racer, an expert virtual mechanic and real player in Car Parking Multiplayer (CPM). User ${cleanName} says: "${stripped}".
+      RULES:
+      1. If they ask for "random car" or a "random build", suggest a specific CPM car name, exact horsepower, and a quick gear ratio or suspension tip.
+      2. If they ask to "rate my tune" or share gear ratios, act like a street racer analyzing their numbers. Give a rating out of 10 and suggest one specific adjustment.
+      3. Otherwise, talk like a friendly car gamer buddy.
+      Keep it under 35 words. 1-2 sentences max. Never mention AI or bots.`;
+      
       const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${rawKey}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -148,11 +143,28 @@ async function getBotReply(cleanName, cleanMsg) {
       if (resp.ok) {
         const data = await resp.json();
         const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-        if (reply && reply.length <= 150) return reply.replace(/["*]/g, "");
+        if (reply && reply.length <= 200) return reply.replace(/["*]/g, "");
       }
     } catch {}
   }
   return getHumanFallback(stripped || cleanMsg);
+}
+
+function getHumanFallback(cleanMsg) {
+  const t = cleanMsg.toLowerCase();
+  if (t.includes("random car")) {
+    return "Try a 925HP Nissan Silvia S15. Set Final Drive to 3.55. It's an absolute beast if you drop the suspension!";
+  }
+  if (t.includes("rate my tune") || (t.includes("tune") && /\d/.test(t))) {
+    return "Looks decent but your final drive might be too short for top speed. Adjust it down by 0.15 and test again. 7/10.";
+  }
+  if (t.includes("supra") || t.includes("gearbox") || t.includes("gear")) {
+    return "For Supra set Final Drive 3.12, 1st 2.66, 2nd 1.90. Shift fast right at redline.";
+  }
+  if (t.includes("drag") || t.includes("launch")) {
+    return "Drop tire pressure to 1.2 bar, turn off TCS, and launch in 2nd gear bro.";
+  }
+  return "What car are you tuning right now bro? Drop specs and room code.";
 }
 
 export default async function handler(req, res) {
@@ -326,8 +338,11 @@ export default async function handler(req, res) {
       return res.status(403).json({ error: "Panic Raid Mode is active: Only Verified & VIP drivers can post right now." });
     }
 
-    const isVipRoom = room === "vip";
-    if (isVipRoom && !isVipUser) {
+    let finalRoom = "public";
+    if (room === "vip" && isVipUser) finalRoom = "vip";
+    else if (room === "market") finalRoom = "market";
+
+    if (room === "vip" && !isVipUser) {
       return res.status(403).json({ error: "Invalid VIP Access Passcode or membership expired." });
     }
 
@@ -416,7 +431,7 @@ export default async function handler(req, res) {
       likes: 0,
       isReported: false,
       reportCount: 0,
-      room: isVipRoom ? "vip" : "public",
+      room: finalRoom,
       nameColor: sanitizedColor,
       frameStyle: sanitizedFrame,
       isShadowbanned: isShadowbanned
@@ -443,7 +458,7 @@ export default async function handler(req, res) {
       referrer: client.referrer || 'Direct',
       name: cleanName,
       message: cleanMsg,
-      room: isVipRoom ? "vip" : "public",
+      room: finalRoom,
       nameColor: sanitizedColor,
       frameStyle: sanitizedFrame,
       isVip: isVipUser,
@@ -474,7 +489,7 @@ export default async function handler(req, res) {
         likes: 0,
         isReported: false,
         reportCount: 0,
-        room: isVipRoom ? "vip" : "public"
+        room: finalRoom
       });
       botBatch.set(db.collection("ip_logs").doc(botRef.id), {
         postId: botRef.id,
@@ -488,7 +503,7 @@ export default async function handler(req, res) {
         os: "Node.js",
         browser: "AI Engine",
         isVpn: false,
-        room: isVipRoom ? "vip" : "public",
+        room: finalRoom,
         createdAt: admin.firestore.FieldValue.serverTimestamp()
       });
       await botBatch.commit();
