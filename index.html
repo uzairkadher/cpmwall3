@@ -21,7 +21,7 @@
 <meta property="og:image" content="https://cdn-icons-png.flaticon.com/512/3202/3202926.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Syne:wght@700&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg: #080a12;
@@ -67,69 +67,94 @@ body {
   position: relative;
   overflow: hidden;
 }
+
+/* HEADER OPTION C */
 .header {
-  background: linear-gradient(135deg, #1e2240, #151830);
+  background: rgba(21, 24, 37, 0.85);
+  backdrop-filter: blur(15px);
   border: 1px solid var(--border);
+  border-bottom: 2px solid #f59e0b;
   border-radius: 12px;
   padding: 8px 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-shrink: 0;
+  z-index: 50;
+  position: sticky;
+  top: 0;
 }
-.header-left { display: flex; align-items: center; gap: 10px; }
-.header h1 { font-size: 0.9rem; font-weight: 700; }
-.status-sub { display: flex; align-items: center; gap: 6px; font-size: 0.72rem; color: var(--accent); margin-top: 2px; }
-.dot { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; display: inline-block; box-shadow: 0 0 8px #22c55e; }
-.online-pill {
+.header-left-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   background: rgba(34, 197, 94, 0.15);
-  color: #4ade80;
-  border: 1px solid rgba(34, 197, 94, 0.3);
-  padding: 1px 6px;
-  border-radius: 10px;
-  font-size: 10px;
-  font-weight: 600;
-}
-.header-actions { display: flex; gap: 6px; align-items: center; }
-.top-btn {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--muted);
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  padding: 4px 10px;
   border-radius: 20px;
-  padding: 4px 8px;
-  font-size: 11px;
-  cursor: pointer;
-  user-select: none;
-  -webkit-user-select: none;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #4ade80;
 }
-.top-btn.active { border-color: var(--accent); color: var(--accent); }
+.header-center-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.1));
+  border: 1px solid #f59e0b;
+  padding: 3px 10px 3px 4px;
+  border-radius: 20px;
+  cursor: pointer;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.35);
+}
+.header-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: radial-gradient(180deg, #FFD95A, #FF9A00);
+  display: grid;
+  place-items: center;
+  font-family: Syne, sans-serif;
+  font-weight: 800;
+  font-size: 12px;
+  color: #000;
+}
+.header-username {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #fef08a;
+  text-shadow: 0 0 6px rgba(245, 158, 11, 0.6);
+}
+.header-right-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #111424;
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.icon-btn.active { background: rgba(0, 240, 255, 0.15); box-shadow: 0 0 10px rgba(0, 240, 255, 0.4); }
 
-.account-menu {
-  position: absolute;
-  top: 55px;
-  left: 12px;
-  background: #131726;
-  border: 1px solid var(--gold);
-  border-radius: 12px;
-  padding: 12px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-  display: none;
-  flex-direction: column;
-  gap: 8px;
-  z-index: 100;
-  min-width: 180px;
-}
-.account-menu span { font-size: 11px; color: var(--muted); }
-.account-menu b { font-size: 12px; color: #fef08a; }
-.logout-btn {
-  background: #dc2626;
-  color: white;
-  border: none;
-  padding: 6px 10px;
+.announcement-banner {
+  background: linear-gradient(90deg, #991b1b, #7f1d1d);
+  border: 1px solid #ef4444;
   border-radius: 8px;
-  font-size: 11px;
+  padding: 6px 10px;
+  font-size: 0.75rem;
+  color: #fca5a5;
+  display: none;
+  flex-shrink: 0;
   font-weight: 700;
-  cursor: pointer;
 }
 
 .room-bar {
@@ -149,7 +174,6 @@ body {
   cursor: pointer;
   text-align: center;
   user-select: none;
-  -webkit-user-select: none;
   transition: all 0.15s ease;
 }
 .room-tab.active {
@@ -161,9 +185,6 @@ body {
   background: linear-gradient(135deg, #713f12, #451a03);
   border-color: var(--gold);
   color: #fef08a;
-}
-.room-tab.market {
-  background: #111424;
 }
 .room-tab.market.active {
   background: linear-gradient(135deg, #064e3b, #022c22);
@@ -184,6 +205,7 @@ body {
   overflow-y: auto;
 }
 .pinned b { color: #fff; margin-right: 4px; }
+
 .social { display: flex; gap: 5px; flex-shrink: 0; }
 .sbtn {
   flex: 1;
@@ -198,6 +220,7 @@ body {
   cursor: pointer;
   white-space: nowrap;
 }
+
 .filter-row {
   display: flex;
   gap: 6px;
@@ -222,6 +245,7 @@ body {
   cursor: pointer;
   display: none;
 }
+
 .feed {
   display: flex;
   flex-direction: column;
@@ -255,23 +279,20 @@ body {
   box-shadow: 0 0 12px rgba(255, 59, 154, 0.2);
   background: #1e1628;
 }
-.bubble.vip-post {
-  border-color: rgba(245, 158, 11, 0.45);
-  background: #181512;
+.bubble.vip-bubble {
+  background: linear-gradient(135deg, #2b1f0c, #1f1505) !important;
+  border: 1.5px solid #f59e0b !important;
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.5) !important;
 }
 
-.bubble.frame-gold {
-  border: 1.5px solid var(--gold) !important;
-  box-shadow: 0 0 12px rgba(245, 158, 11, 0.45);
-}
-.bubble.frame-purple {
-  border: 1.5px solid #a855f7 !important;
-  box-shadow: 0 0 12px rgba(168, 85, 247, 0.55);
-}
-.bubble.frame-carbon {
-  border: 1.5px solid #64748b !important;
-  background: repeating-linear-gradient(45deg, #141724, #141724 5px, #0e111a 5px, #0e111a 10px) !important;
-  box-shadow: 0 0 8px rgba(0, 0, 0, 0.7);
+.quoted-preview {
+  background: rgba(0, 0, 0, 0.3);
+  border-left: 2px solid var(--accent);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  color: #94a3b8;
+  margin-bottom: 2px;
 }
 
 .author-line {
@@ -306,6 +327,9 @@ body {
   animation: vipGlowPulse 1.8s infinite ease-in-out;
   font-weight: 800;
   letter-spacing: 0.2px;
+  background: linear-gradient(90deg, #f59e0b, #fef08a, #f59e0b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .meta { font-size: 10px; color: var(--muted); }
@@ -330,13 +354,13 @@ body {
   font-weight: 700;
   box-shadow: 0 0 6px rgba(202, 138, 4, 0.6);
 }
-.bot-badge {
-  background: var(--bot);
+.admin-badge {
+  background: #dc2626;
   color: #fff;
-  font-size: 9px;
-  padding: 1px 5px;
+  font-size: 8px;
+  padding: 1px 4px;
   border-radius: 4px;
-  font-weight: 600;
+  font-weight: 700;
 }
 .body {
   font-size: 0.85rem;
@@ -365,20 +389,20 @@ body {
   align-items: center;
   gap: 4px;
   font-size: 11px;
-  user-select: none;
-  -webkit-user-select: none;
 }
 .reaction-btn.liked { color: #f97316; border-color: #f97316; }
-.report-btn {
+.action-icon-btn {
   background: transparent;
   border: none;
-  color: #64748b;
+  color: #94a3b8;
   cursor: pointer;
   font-size: 11px;
   padding: 2px;
-  user-select: none;
-  -webkit-user-select: none;
 }
+.action-icon-btn.delete { color: #ef4444; font-weight: bold; }
+.action-icon-btn.ban { color: #f97316; font-weight: bold; }
+.action-icon-btn.pin { color: #f59e0b; font-weight: bold; }
+
 .room-code {
   background: rgba(0, 240, 255, 0.15);
   color: var(--accent);
@@ -396,6 +420,7 @@ body {
   border: 1px solid var(--gold);
   box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
 }
+
 .jump-btn {
   position: absolute;
   bottom: 130px;
@@ -413,6 +438,7 @@ body {
   display: none;
   z-index: 10;
 }
+
 .chips-bar {
   display: flex;
   gap: 6px;
@@ -431,10 +457,9 @@ body {
   padding: 3px 8px;
   border-radius: 6px;
   cursor: pointer;
-  user-select: none;
-  -webkit-user-select: none;
   flex-shrink: 0;
 }
+
 .emoji-row {
   display: flex;
   gap: 6px;
@@ -451,41 +476,22 @@ body {
   padding: 2px 7px;
   border-radius: 6px;
   cursor: pointer;
-  line-height: 1.2;
-  user-select: none;
-  -webkit-user-select: none;
   flex-shrink: 0;
 }
-.color-swatch {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  border: 2px solid #222;
-  cursor: pointer;
-  display: inline-block;
-  flex-shrink: 0;
-  transition: transform 0.1s ease;
-}
-.color-swatch.active {
-  border-color: #fff;
-  transform: scale(1.2);
-}
-.frame-btn {
-  background: #1e243b;
-  border: 1px solid var(--border);
-  color: var(--muted);
-  font-size: 10px;
-  font-weight: 700;
-  padding: 2px 7px;
+
+.replying-bar {
+  display: none;
+  background: #1a2238;
+  border: 1px solid var(--accent);
   border-radius: 6px;
-  cursor: pointer;
+  padding: 4px 8px;
+  font-size: 11px;
+  color: #cbd5e1;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
 }
-.frame-btn.active {
-  border-color: var(--gold);
-  color: #fff;
-  background: #2b2238;
-}
-.typing-box { font-size: 0.7rem; color: var(--bot); min-height: 12px; padding-left: 4px; flex-shrink: 0; }
+
 .input-panel {
   background: var(--card);
   border: 1px solid var(--border);
@@ -535,8 +541,6 @@ body {
   width: 100%;
 }
 .input-panel input:focus { border-color: var(--accent); }
-.input-panel input:disabled { opacity: 0.5; cursor: not-allowed; }
-#msgInput { flex: 1; min-width: 0; }
 .input-bottom { display: flex; justify-content: space-between; align-items: center; }
 .char-num { font-size: 10px; color: var(--muted); }
 .send-btn {
@@ -548,10 +552,7 @@ body {
   border-radius: 8px;
   cursor: pointer;
   font-size: 0.8rem;
-  user-select: none;
-  -webkit-user-select: none;
 }
-.send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .modal-back {
   display: none;
@@ -584,7 +585,6 @@ body {
   justify-content: space-between;
   align-items: center;
 }
-.tip-info b { font-size: 0.82rem; }
 .copy-pill {
   background: #2563eb;
   color: #fff;
@@ -609,36 +609,29 @@ body {
 </head>
 <body>
 <div class="container">
+  <!-- OPTION C HEADER -->
   <div class="header">
-    <div class="header-left">
-      <div>
-        <h1>Car Parking Multiplayer</h1>
-        <div class="status-sub">
-          <span id="liveDot" class="dot"></span>
-          <span id="statusLabel">Lobby Chat</span>
-          <span id="onlineCount" class="online-pill">1 Online</span>
-        </div>
-      </div>
-      <div id="yourAccountBtn" onclick="toggleAccountMenu()" style="background: linear-gradient(90deg, #d4af37, #f9d976); color:black; padding:5px 12px; border-radius:20px; font-size:12px; font-weight:bold; border:1px solid gold; cursor:pointer; white-space:nowrap;">
-        👤 @<span id="topUsername">Username</span>
-      </div>
+    <div class="header-left-pill">
+      <span class="dot"></span>
+      <span>Lobby Chat | <span id="onlineCount">1 Online</span></span>
     </div>
-    <div class="header-actions">
-      <button id="alertBtn" type="button" class="top-btn" onclick="toggleAlerts()">🔔 Alerts</button>
-      <button id="soundToggle" type="button" class="top-btn" onclick="cycleSoundFX()">🔊 Ping</button>
+    <div class="header-center-chip" onclick="window.location.href='/settings.html'">
+      <div class="header-avatar" id="headerAvatarJ">J</div>
+      <div class="header-username" id="topUsername">@user</div>
+      <span style="font-size:10px; color:#fef08a;">👑 ▼</span>
+    </div>
+    <div class="header-right-actions">
+      <button id="alertBtn" type="button" class="icon-btn" onclick="toggleAlerts()" title="Alerts">🔔</button>
+      <button id="soundToggle" type="button" class="icon-btn active" onclick="cycleSoundFX()" title="Sound">💨</button>
     </div>
   </div>
 
-  <div id="accountMenu" class="account-menu">
-    <span>Logged in as</span>
-    <b id="menuUsername">@username</b>
-    <button type="button" class="logout-btn" onclick="logoutUser()">Logout</button>
-  </div>
+  <div id="announcementBanner" class="announcement-banner"></div>
 
   <div class="room-bar">
     <button id="tabPublic" type="button" class="room-tab active" onclick="switchRoom('public')">🌐 Public Wall</button>
     <button id="tabMarket" type="button" class="room-tab market" onclick="switchRoom('market')">🛒 Marketplace</button>
-    <button id="tabVip" type="button" class="room-tab vip" onclick="switchRoom('vip')">🔒 VIP Lounge</button>
+    <button id="tabVip" type="button" class="room-tab vip" onclick="switchRoom('vip')" style="display:none;">🔒 VIP Lounge</button>
   </div>
 
   <div id="pinnedBox" class="pinned"></div>
@@ -648,7 +641,7 @@ body {
     <button type="button" class="sbtn" style="background:#1d9bf0;" onclick="shareSite()">🔗 Share</button>
     <a class="sbtn" style="background:linear-gradient(45deg,#f09433,#dc2743)" href="https://www.instagram.com/4t_jagga" target="_blank" rel="noopener noreferrer">IG Profile</a>
     <a class="sbtn" style="background:#e1306c" href="https://www.instagram.com/channel/FMW8_rf52qWxlGoC/" target="_blank" rel="noopener noreferrer">IG Channel</a>
-    <a class="sbtn" style="background:#25d366" href="https://wa.me/923558182875?text=I%27m%20from%20cpm%20wall" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+    <a class="sbtn" style="background:#25d366" href="https://wa.me/923558182875?text=Salam%20Jagga%20Bhai%2C%20I%20want%20to%20buy%20VIP" target="_blank" rel="noopener noreferrer">WhatsApp</a>
   </div>
 
   <div class="filter-row">
@@ -661,29 +654,17 @@ body {
   <div id="typing" class="typing-box"></div>
 
   <div class="input-panel">
+    <div id="replyingBar" class="replying-bar">
+      <span id="replyingText">Replying to @user</span>
+      <span onclick="cancelReply()" style="cursor:pointer; font-weight:bold;">✕</span>
+    </div>
+
     <div class="chips-bar">
       <button type="button" class="chip" onclick="tagBot()">+ Tag @Apex_Racer</button>
       <button type="button" class="chip" onclick="addTag('#Gearbox')">#Gearbox</button>
       <button type="button" class="chip" onclick="addTag('#Drag')">#Drag</button>
       <button type="button" class="chip" onclick="addTag('#RoomCode')">#RoomCode</button>
       <button type="button" class="chip" onclick="addTag('#Trade')">#Trade</button>
-    </div>
-
-    <div id="vipCustomPanel" style="display:none; flex-direction:column; gap:4px; padding: 2px 4px;">
-      <div style="display:flex; gap:8px; align-items:center;">
-        <span style="font-size:10px; color:#fef08a; font-weight:700;">Tag Color:</span>
-        <span class="color-swatch active" style="background:#f59e0b;" onclick="setVipColor('#f59e0b', this)" title="Gold"></span>
-        <span class="color-swatch" style="background:#ef4444;" onclick="setVipColor('#ef4444', this)" title="Neon Red"></span>
-        <span class="color-swatch" style="background:#a855f7;" onclick="setVipColor('#a855f7', this)" title="Purple"></span>
-        <span class="color-swatch" style="background:#22c55e;" onclick="setVipColor('#22c55e', this)" title="Green"></span>
-        <span class="color-swatch" style="background:#00f0ff;" onclick="setVipColor('#00f0ff', this)" title="Cyan"></span>
-      </div>
-      <div style="display:flex; gap:6px; align-items:center;">
-        <span style="font-size:10px; color:#fef08a; font-weight:700;">Bubble Frame:</span>
-        <button type="button" class="frame-btn active" onclick="setVipFrame('gold', this)">Gold Trim</button>
-        <button type="button" class="frame-btn" onclick="setVipFrame('purple', this)">Neon Purple</button>
-        <button type="button" class="frame-btn" onclick="setVipFrame('carbon', this)">Carbon Fiber</button>
-      </div>
     </div>
 
     <div class="emoji-row">
@@ -721,67 +702,21 @@ body {
     </p>
 
     <div class="tip-card">
-      <div class="tip-info">
+      <div>
         <b style="color:#f59e0b;">JazzCash (Pakistan)</b>
         <div style="font-size: 0.85rem; font-weight: 600; margin-top: 2px;">03206872177</div>
       </div>
       <button type="button" class="copy-pill" onclick="copyTip('03206872177', this)">Copy</button>
     </div>
 
-    <div class="tip-card">
-      <div class="tip-info" style="min-width: 0; padding-right: 6px;">
-        <b style="color:#38bdf8;">NayaPay IBAN (International)</b>
-        <div style="font-size: 0.68rem; font-family: monospace; word-break: break-all; color: #fff; margin-top: 3px;">PK97NAYA1234503427565802</div>
-      </div>
-      <button type="button" class="copy-pill" onclick="copyTip('PK97NAYA1234503427565802', this)">Copy</button>
-    </div>
-
-    <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 8px; padding: 8px 10px; font-size: 0.72rem; color: #fef08a; line-height: 1.35;">
-      ⚠️ <b>Note:</b> We just receive payments on JazzCash and NayaPay. Please send screenshot after you send money.
-    </div>
-
-    <a href="https://wa.me/923558182875?text=Hello%20Admin%2C%20I%20sent%20a%20tip%20for%20the%20CPM%20wall" target="_blank" class="sbtn" style="background:#25d366; text-align:center; padding:8px;">Send Screenshot on WhatsApp</a>
+    <a href="https://wa.me/923558182875?text=Salam%20Jagga%20Bhai%2C%20I%20sent%20a%20tip%20for%20the%20CPM%20wall" target="_blank" class="sbtn" style="background:#25d366; text-align:center; padding:8px;">Send Screenshot on WhatsApp</a>
     <button type="button" class="close-modal-btn" onclick="closeTipModal()">Close</button>
-  </div>
-</div>
-
-<div id="vipModal" class="modal-back">
-  <div class="modal-window">
-    <h3 style="color:#fef08a;">🔒 VIP Lounge Passcode</h3>
-    <p style="font-size: 0.75rem; color: var(--muted); line-height: 1.35;">
-      Private room for verified racers, custom builds, and high-stakes drag meets.
-    </p>
-
-    <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 6px;">
-      <div style="font-size: 0.72rem; font-weight: 700; color: #fef08a; margin-bottom: 2px;">⭐ VIP Member Perks:</div>
-      <div style="font-size: 0.73rem; color: #f1f5f9; display: flex; align-items: center; gap: 6px;">
-        <span style="color:#38bdf8;">✓</span> <b>Site-Wide VIP Badge:</b> Displays VIP tag on public wall and lounge
-      </div>
-      <div style="font-size: 0.73rem; color: #f1f5f9; display: flex; align-items: center; gap: 6px;">
-        <span style="color:#f59e0b;">✓</span> <b>Custom Tag Frames:</b> Gold trim, purple neon, or carbon borders
-      </div>
-      <div style="font-size: 0.73rem; color: #f1f5f9; display: flex; align-items: center; gap: 6px;">
-        <span style="color:#4ade80;">✓</span> <b>250 Characters:</b> Write longer specs and car trade descriptions
-      </div>
-      <div style="font-size: 0.73rem; color: #f1f5f9; display: flex; align-items: center; gap: 6px;">
-        <span style="color:#eab308;">✓</span> <b>Zero Cooldown Chat:</b> Rapid 2s cooldown instead of 10s
-      </div>
-      <div style="font-size: 0.73rem; color: #f1f5f9; display: flex; align-items: center; gap: 6px;">
-        <span style="color:#f43f5e;">✓</span> <b>Gold Glowing Codes:</b> Highlighted room codes in chat
-      </div>
-    </div>
-
-    <input type="password" id="vipPassInput" placeholder="Enter VIP Passcode or ADMIN_KEY" style="background:#0d101d; border:1px solid var(--border); color:#fff; padding:9px; border-radius:8px; width:100%;">
-    <button id="vipUnlockBtn" type="button" class="send-btn" style="background:linear-gradient(135deg, #f59e0b, #d97706); color:#000; width:100%;" onclick="unlockVip()">Unlock VIP Room</button>
-
-    <a href="https://wa.me/923558182875?text=Hello%20Admin%2C%20I%20want%20to%20buy%20the%20VIP%20Room%20Passcode" target="_blank" class="sbtn" style="background:#25d366; text-align:center; padding:8px;">Get VIP Pass ($1 / 300 PKR)</a>
-    <button type="button" class="close-modal-btn" onclick="cancelVipModal()">Cancel</button>
   </div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, onSnapshot, query, orderBy, limit, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, query, orderBy, limit, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const _k1 = "AIza";
 const _k2 = "SyAOE8v7ANE6vvlHh2ZbiaJ6iHBN4voFcYM";
@@ -796,38 +731,50 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const token = localStorage.getItem('wall_token');
-const username = localStorage.getItem('wall_user');
-if (!token || !username) {
-  localStorage.clear();
-  window.location.href = '/login.html';
-} else {
-  fetch('/api/auth?action=me', {
-    headers: { 'Authorization': `Bearer ${token}` }
-  }).then(r => {
-    if (!r.ok) {
+let currentUser = localStorage.getItem('wall_user') || 'user';
+let isUserVip = false;
+let isUserAdmin = (currentUser === 'jagga');
+
+async function verifyAuthAndProfile() {
+  if (!token) {
+    window.location.href = '/login.html';
+    return;
+  }
+  try {
+    const res = await fetch('/api/user/me', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      currentUser = data.username;
+      localStorage.setItem('wall_user', currentUser);
+      isUserVip = Boolean(data.isVip);
+      isUserAdmin = data.isAdmin || (currentUser === 'jagga');
+
+      document.getElementById('topUsername').textContent = '@' + currentUser;
+      document.getElementById('headerAvatarJ').textContent = currentUser.charAt(0).toUpperCase();
+
+      if (isUserVip || isUserAdmin) {
+        document.getElementById('tabVip').style.display = 'block';
+      }
+      if (data.chatBg) {
+        document.body.style.background = `url(${data.chatBg}) center/cover no-repeat fixed`;
+      }
+    } else {
       localStorage.clear();
       window.location.href = '/login.html';
     }
-  }).catch(() => {});
+  } catch {
+    // fallback offline local
+  }
 }
-
-document.getElementById('topUsername').textContent = username || 'User';
-document.getElementById('menuUsername').textContent = '@' + (username || 'user');
-
-window.toggleAccountMenu = () => {
-  const m = document.getElementById('accountMenu');
-  m.style.display = m.style.display === 'flex' ? 'none' : 'flex';
-};
-
-window.logoutUser = () => {
-  localStorage.clear();
-  window.location.href = '/login.html';
-};
+verifyAuthAndProfile();
 
 const feedEl = document.getElementById('feed');
 const jumpBtn = document.getElementById('jumpBtn');
 const typingEl = document.getElementById('typing');
 const pinnedBox = document.getElementById('pinnedBox');
+const announcementBanner = document.getElementById('announcementBanner');
 const msgInput = document.getElementById('msgInput');
 const sendBtn = document.getElementById('sendBtn');
 const charCount = document.getElementById('charCount');
@@ -837,20 +784,17 @@ const onlineCountEl = document.getElementById('onlineCount');
 const alertBtn = document.getElementById('alertBtn');
 const cooldownWrap = document.getElementById('cooldownWrap');
 const cooldownBar = document.getElementById('cooldownBar');
-const vipCustomPanel = document.getElementById('vipCustomPanel');
 const typingProgressBar = document.getElementById('typingProgressBar');
+const replyingBar = document.getElementById('replyingBar');
+const replyingText = document.getElementById('replyingText');
 
 const tabPublic = document.getElementById('tabPublic');
 const tabMarket = document.getElementById('tabMarket');
 const tabVip = document.getElementById('tabVip');
 const tipModal = document.getElementById('tipModal');
-const vipModal = document.getElementById('vipModal');
 
 let currentRoom = 'public';
-let activeVipKey = localStorage.getItem('cpm_vip_key') || '';
-let currentVipColor = localStorage.getItem('cpm_vip_color') || '#f59e0b';
-let currentVipFrame = localStorage.getItem('cpm_vip_frame') || 'gold';
-let soundMode = localStorage.getItem('cpm_sound_mode') || 'ping';
+let soundMode = localStorage.getItem('cpm_sound_mode') || 'bov';
 let alertsEnabled = localStorage.getItem('cpm_alerts') === 'true';
 let audioCtx = null;
 let isInitialLoad = true;
@@ -861,21 +805,10 @@ let lastPostedMsg = '';
 let lastPostTimestamp = 0;
 let lastPinnedText = '';
 let activeSearchQuery = '';
-
-function updateVipUIState() {
-  const isVip = Boolean(activeVipKey);
-  if (isVip) {
-    msgInput.maxLength = 250;
-    if (vipCustomPanel) vipCustomPanel.style.display = 'flex';
-  } else {
-    msgInput.maxLength = 150;
-    if (vipCustomPanel) vipCustomPanel.style.display = 'none';
-  }
-  updateCharCounterDisplay();
-}
+let replyingToData = null;
 
 function updateCharCounterDisplay() {
-  const max = activeVipKey ? 250 : 150;
+  const max = isUserVip ? 250 : 150;
   const len = msgInput.value.length;
   charCount.textContent = `${len}/${max}`;
 
@@ -885,17 +818,12 @@ function updateCharCounterDisplay() {
     if (pct > 90) {
       typingProgressBar.style.backgroundColor = '#ef4444';
       charCount.style.color = '#ef4444';
-    } else if (pct > 70) {
-      typingProgressBar.style.backgroundColor = '#f97316';
-      charCount.style.color = '#f97316';
     } else {
       typingProgressBar.style.backgroundColor = '#22c55e';
       charCount.style.color = 'var(--muted)';
     }
   }
 }
-
-updateVipUIState();
 
 window.openTipModal = () => { tipModal.style.display = 'flex'; };
 window.closeTipModal = () => { tipModal.style.display = 'none'; };
@@ -907,98 +835,24 @@ window.copyTip = (num, btn) => {
   setTimeout(() => { btn.textContent = orig; }, 1200);
 };
 
-window.setVipColor = (color, el) => {
-  currentVipColor = color;
-  localStorage.setItem('cpm_vip_color', color);
-  document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
-  if (el) el.classList.add('active');
-};
-
-window.setVipFrame = (frame, el) => {
-  currentVipFrame = frame;
-  localStorage.setItem('cpm_vip_frame', frame);
-  document.querySelectorAll('.frame-btn').forEach(b => b.classList.remove('active'));
-  if (el) el.classList.add('active');
-};
-
 window.switchRoom = (room) => {
+  if (room === 'vip' && !isUserVip && !isUserAdmin) {
+    alert('VIP Lounge is restricted to VIP members and Administrator jagga.');
+    return;
+  }
+  currentRoom = room;
+  tabPublic.classList.remove('active');
+  tabMarket.classList.remove('active');
+  tabVip.classList.remove('active');
+
   if (room === 'vip') {
-    if (!activeVipKey) {
-      vipModal.style.display = 'flex';
-      return;
-    }
-    currentRoom = 'vip';
-    tabPublic.classList.remove('active');
-    tabMarket.classList.remove('active');
     tabVip.classList.add('active');
-    document.getElementById('statusLabel').textContent = 'VIP Lounge';
   } else if (room === 'market') {
-    currentRoom = 'market';
-    tabPublic.classList.remove('active');
-    tabVip.classList.remove('active');
     tabMarket.classList.add('active');
-    document.getElementById('statusLabel').textContent = 'Car Marketplace';
   } else {
-    currentRoom = 'public';
-    tabVip.classList.remove('active');
-    tabMarket.classList.remove('active');
     tabPublic.classList.add('active');
-    document.getElementById('statusLabel').textContent = 'Lobby Chat';
   }
   filterFeedByRoom();
-};
-
-window.unlockVip = async () => {
-  const entered = (document.getElementById('vipPassInput').value || '').trim();
-  if (!entered) return alert('Enter VIP Passcode or ADMIN_KEY');
-
-  const unlockBtn = document.getElementById('vipUnlockBtn');
-  if (unlockBtn) {
-    unlockBtn.disabled = true;
-    unlockBtn.textContent = 'Verifying...';
-  }
-
-  try {
-    const clientInfo = await getClientDeviceInfo();
-    const res = await fetch('/api/post', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('wall_token')}`
-      },
-      body: JSON.stringify({
-        action: 'unlock_vip',
-        vipKey: entered,
-        clientInfo
-      })
-    });
-    const data = await res.json().catch(() => ({}));
-
-    if (res.ok) {
-      activeVipKey = entered;
-      localStorage.setItem('cpm_vip_key', entered);
-      if (entered.length > 5) {
-        localStorage.setItem('cpm_admin_key', entered);
-      }
-      vipModal.style.display = 'none';
-      updateVipUIState();
-      alert('Unlocked successfully!');
-      switchRoom('vip');
-    } else {
-      alert(data.error || 'Failed to unlock VIP room.');
-    }
-  } catch {
-    alert('Network error unlocking VIP.');
-  } finally {
-    if (unlockBtn) {
-      unlockBtn.disabled = false;
-      unlockBtn.textContent = 'Unlock VIP Room';
-    }
-  }
-};
-
-window.cancelVipModal = () => {
-  vipModal.style.display = 'none';
 };
 
 function filterFeedByRoom() {
@@ -1026,9 +880,7 @@ function filterFeedByRoom() {
       const p = document.createElement('p');
       p.id = 'emptyRoomNotice';
       p.style.cssText = 'text-align:center;color:var(--muted);font-size:0.85rem;margin-top:20px;';
-      if (currentRoom === 'vip') p.textContent = 'VIP Lounge is quiet. Post the first VIP code!';
-      else if (currentRoom === 'market') p.textContent = 'Marketplace is empty. Be the first to list a car for sale!';
-      else p.textContent = 'No public messages yet. Be first!';
+      p.textContent = 'No messages in this room yet.';
       feedEl.appendChild(p);
     }
   } else if (emptyNotice) {
@@ -1041,21 +893,6 @@ function initAudio() {
   if (audioCtx.state === 'suspended') audioCtx.resume();
 }
 
-function playClassicPing() {
-  initAudio();
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-  osc.type = 'sine';
-  osc.frequency.setValueAtTime(880, audioCtx.currentTime);
-  osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.15);
-  gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
-  osc.start();
-  osc.stop(audioCtx.currentTime + 0.2);
-}
-
 function playTurboBlowOff() {
   initAudio();
   const bufferSize = audioCtx.sampleRate * 0.35;
@@ -1066,146 +903,50 @@ function playTurboBlowOff() {
   }
   const noise = audioCtx.createBufferSource();
   noise.buffer = buffer;
-
   const filter = audioCtx.createBiquadFilter();
   filter.type = 'bandpass';
   filter.frequency.setValueAtTime(2600, audioCtx.currentTime);
   filter.frequency.exponentialRampToValueAtTime(700, audioCtx.currentTime + 0.35);
-
   const gain = audioCtx.createGain();
   gain.gain.setValueAtTime(0.6, audioCtx.currentTime);
   gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
-
   noise.connect(filter);
   filter.connect(gain);
   gain.connect(audioCtx.destination);
   noise.start();
 }
 
-function playTwoStepBackfire() {
-  initAudio();
-  [0, 0.08, 0.16].forEach((delay) => {
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(140, audioCtx.currentTime + delay);
-    osc.frequency.exponentialRampToValueAtTime(35, audioCtx.currentTime + delay + 0.05);
-
-    gain.gain.setValueAtTime(0.7, audioCtx.currentTime + delay);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + delay + 0.06);
-
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start(audioCtx.currentTime + delay);
-    osc.stop(audioCtx.currentTime + delay + 0.06);
-  });
-}
-
 function playAlertSound() {
   if (soundMode === 'mute') return;
   try {
-    if (soundMode === 'bov') playTurboBlowOff();
-    else if (soundMode === 'twostep') playTwoStepBackfire();
-    else playClassicPing();
-
+    playTurboBlowOff();
     if (navigator.vibrate) navigator.vibrate(60);
   } catch {}
 }
 
 document.addEventListener('click', () => { initAudio(); }, { once: true });
-document.addEventListener('touchstart', () => { initAudio(); }, { once: true });
-
-function updateSoundButtonUI() {
-  const btn = document.getElementById('soundToggle');
-  if (!btn) return;
-  if (soundMode === 'ping') {
-    btn.className = 'top-btn active';
-    btn.textContent = '🔊 Ping';
-  } else if (soundMode === 'bov') {
-    btn.className = 'top-btn active';
-    btn.textContent = '💨 Blow-Off';
-  } else if (soundMode === 'twostep') {
-    btn.className = 'top-btn active';
-    btn.textContent = '🔥 2-Step';
-  } else {
-    btn.className = 'top-btn';
-    btn.textContent = '🔇 Mute';
-  }
-}
 
 window.cycleSoundFX = () => {
-  if (soundMode === 'ping') soundMode = 'bov';
-  else if (soundMode === 'bov') soundMode = 'twostep';
-  else if (soundMode === 'twostep') soundMode = 'mute';
-  else soundMode = 'ping';
-
+  soundMode = soundMode === 'bov' ? 'mute' : 'bov';
   localStorage.setItem('cpm_sound_mode', soundMode);
-  updateSoundButtonUI();
-  playAlertSound();
+  const btn = document.getElementById('soundToggle');
+  btn.className = soundMode === 'bov' ? 'icon-btn active' : 'icon-btn';
 };
-updateSoundButtonUI();
 
-function updateAlertBtn() {
-  if (!alertBtn) return;
-  const isGranted = ('Notification' in window) && window.Notification.permission === 'granted';
-  if (alertsEnabled && isGranted) {
-    alertBtn.className = 'top-btn active';
-    alertBtn.textContent = '🔔 Alerts On';
-  } else {
-    alertBtn.className = 'top-btn';
-    alertBtn.textContent = '🔔 Alerts';
-  }
-}
 window.toggleAlerts = async () => {
-  if (!('Notification' in window)) return alert('Notifications not supported on this browser.');
-  if (window.Notification.permission === 'granted') {
-    alertsEnabled = !alertsEnabled;
-    localStorage.setItem('cpm_alerts', alertsEnabled);
-    updateAlertBtn();
-  } else {
-    const res = await window.Notification.requestPermission();
-    if (res === 'granted') {
-      alertsEnabled = true;
-      localStorage.setItem('cpm_alerts', true);
-      updateAlertBtn();
-    } else {
-      alert('Alerts permission was denied.');
-    }
+  if (!('Notification' in window)) return alert('Notifications not supported.');
+  const res = await window.Notification.requestPermission();
+  if (res === 'granted') {
+    alertsEnabled = true;
+    alertBtn.className = 'icon-btn active';
   }
 };
-updateAlertBtn();
-
-async function getClientDeviceInfo() {
-  let batteryStr = null;
-  if (navigator.getBattery) {
-    try {
-      const b = await navigator.getBattery();
-      batteryStr = `${Math.round(b.level * 100)}%${b.charging ? ' (Charging)' : ''}`;
-    } catch {}
-  }
-  return {
-    screen: `${window.screen.width}x${window.screen.height}`,
-    ram: navigator.deviceMemory ? `${navigator.deviceMemory} GB` : null,
-    cores: navigator.hardwareConcurrency ? `${navigator.hardwareConcurrency} Cores` : null,
-    lang: navigator.language || null,
-    network: navigator.connection ? navigator.connection.effectiveType : null,
-    battery: batteryStr,
-    referrer: document.referrer || 'Direct'
-  };
-}
 
 async function pingHeartbeat() {
   try {
-    const info = await getClientDeviceInfo();
-    const r = await fetch('/api/heartbeat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(info)
-    });
+    const r = await fetch('/api/heartbeat', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
     const d = await r.json();
-    if (d && d.online && onlineCountEl) {
-      onlineCountEl.textContent = `${d.online} Online`;
-    }
+    if (d && d.online && onlineCountEl) onlineCountEl.textContent = `${d.online} Online`;
   } catch {}
 }
 pingHeartbeat();
@@ -1215,175 +956,119 @@ function timeAgo(date) {
   const seconds = Math.floor((new Date() - date) / 1000);
   if (seconds < 45) return 'Just now';
   if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
-  return date.toLocaleDateString();
+  return `${Math.floor(seconds / 3600)}h ago`;
 }
 
-function renderMessageText(container, text, isVipPost) {
-  container.innerHTML = '';
-  const idRegex = /\b(\d{6,8}|[a-zA-Z]{2}\d{6}|[a-zA-Z]{3}\d{4})\b/g;
-  const testRegex = /^(\d{6,8}|[a-zA-Z]{2}\d{6}|[a-zA-Z]{3}\d{4})$/;
-  const parts = text.split(idRegex);
+window.setReplyTo = (name, text) => {
+  replyingToData = { name, text };
+  replyingText.textContent = `Replying to @${name}: "${text.substring(0, 30)}..."`;
+  replyingBar.style.display = 'flex';
+  msgInput.focus();
+};
 
-  parts.forEach((part) => {
-    if (testRegex.test(part)) {
-      const chip = document.createElement('span');
-      chip.className = `room-code ${isVipPost ? 'vip-code' : ''}`;
-      chip.textContent = `${part} 📋`;
-      chip.title = 'Click to copy ID';
-      chip.onclick = (e) => {
-        e.stopPropagation();
-        navigator.clipboard.writeText(part);
-        const prev = chip.textContent;
-        chip.textContent = 'Copied!';
-        setTimeout(() => { chip.textContent = prev; }, 1200);
-      };
-      container.appendChild(chip);
-    } else if (part) {
-      container.appendChild(document.createTextNode(part));
-    }
-  });
-}
+window.cancelReply = () => {
+  replyingToData = null;
+  replyingBar.style.display = 'none';
+};
 
 function buildBubble(id, data, isTemporary) {
-  const currentName = username;
-  const isBot = Boolean(data.isBot || data.name === 'Apex_Racer');
-  const isMe = Boolean(currentName && data.name === currentName);
-
-  if (data.isShadowbanned && !isMe) {
-    const emptyEl = document.createElement('div');
-    emptyEl.style.display = 'none';
-    return emptyEl;
-  }
-
-  const postRoom = data.room || 'public';
-  const isVip = Boolean(data.isVip || postRoom === 'vip');
-  const frameClass = data.frameStyle ? `frame-${data.frameStyle}` : '';
+  const isMe = Boolean(currentUser && data.name === currentUser);
+  const isBot = Boolean(data.isBot);
+  const isVipPost = Boolean(data.isVip || isUserVip);
 
   const bubble = document.createElement('div');
-  bubble.className = `bubble ${isBot ? 'bot' : isMe ? 'me' : ''} ${isVip ? 'vip-post' : ''} ${frameClass}`;
+  bubble.className = `bubble ${isBot ? 'bot' : isMe ? 'me' : ''} ${isVipPost ? 'vip-bubble' : ''}`;
   if (id) bubble.id = `post-${id}`;
   if (isTemporary) bubble.setAttribute('data-pending', `${data.name}-${data.message}`);
 
-  bubble.setAttribute('data-room', postRoom);
+  bubble.setAttribute('data-room', data.room || 'public');
   bubble.setAttribute('data-text', (data.message || '').toLowerCase());
   bubble.setAttribute('data-name', (data.name || '').toLowerCase());
+
+  if (data.replyTo) {
+    const qEl = document.createElement('div');
+    qEl.className = 'quoted-preview';
+    qEl.textContent = `@${data.replyTo.name}: ${data.replyTo.text}`;
+    bubble.appendChild(qEl);
+  }
 
   const authorLine = document.createElement('div');
   authorLine.className = 'author-line';
 
   const author = document.createElement('div');
-  author.className = `author ${isVip ? 'vip-glow' : ''}`;
+  author.className = `author ${isVipPost ? 'vip-glow' : ''}`;
   author.textContent = data.name;
 
-  if (data.nameColor) {
-    author.style.color = data.nameColor;
-  } else if (isVip) {
-    author.style.color = '#f59e0b';
-  }
-
-  author.onclick = () => {
-    const tag = `@${data.name} `;
-    if (!msgInput.value.includes(tag)) msgInput.value = tag + msgInput.value;
-    updateCharCounterDisplay();
-    msgInput.focus();
-  };
-
-  if (data.isVerified) {
-    const tick = document.createElement('span');
-    tick.className = 'verified-badge';
-    tick.textContent = '✓';
-    author.appendChild(tick);
-  }
-  if (isVip) {
+  if (data.name === 'jagga') {
+    const adminTag = document.createElement('span');
+    adminTag.className = 'admin-badge';
+    adminTag.textContent = 'ADMIN';
+    author.appendChild(adminTag);
+  } else if (isVipPost) {
     const vipTag = document.createElement('span');
     vipTag.className = 'vip-badge';
-    vipTag.textContent = 'VIP';
+    vipTag.textContent = '👑 VIP';
     author.appendChild(vipTag);
-  }
-  if (isBot) {
-    const botTag = document.createElement('span');
-    botTag.className = 'bot-badge';
-    botTag.textContent = 'BOT';
-    author.appendChild(botTag);
   }
   authorLine.appendChild(author);
 
   const meta = document.createElement('div');
   meta.className = 'meta';
-  let rawDate = new Date();
-  try {
-    const ts = data.createdAt;
-    const sec = ts ? (ts._seconds || ts.seconds) : null;
-    rawDate = sec ? new Date(sec * 1000) : (ts?.toDate ? ts.toDate() : new Date());
-  } catch {}
-  meta.textContent = isTemporary ? 'Just now' : timeAgo(rawDate);
+  meta.textContent = isTemporary ? 'Just now' : timeAgo(data.createdAt?.toDate ? data.createdAt.toDate() : new Date());
   authorLine.appendChild(meta);
 
   const bodyEl = document.createElement('div');
   bodyEl.className = 'body';
-  renderMessageText(bodyEl, data.message || '', isVip);
+  bodyEl.textContent = data.message || '';
 
   bubble.appendChild(authorLine);
   bubble.appendChild(bodyEl);
 
-  if (id && !isTemporary) {
-    const actionsEl = document.createElement('div');
-    actionsEl.className = 'bubble-actions';
+  const actionsEl = document.createElement('div');
+  actionsEl.className = 'bubble-actions';
 
-    const likedKey = `cpm_liked_${id}`;
-    const isLiked = localStorage.getItem(likedKey) === 'true';
+  const likeBtn = document.createElement('button');
+  likeBtn.type = 'button';
+  likeBtn.className = `reaction-btn`;
+  likeBtn.innerHTML = `🔥 <span id="like-${id}">${data.likes || 0}</span>`;
+  likeBtn.onclick = async () => {
+    await fetch('/api/post', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ action: 'like', postId: id })
+    }).catch(() => {});
+  };
+  actionsEl.appendChild(likeBtn);
 
-    const likeBtn = document.createElement('button');
-    likeBtn.type = 'button';
-    likeBtn.className = `reaction-btn ${isLiked ? 'liked' : ''}`;
-    likeBtn.innerHTML = `🔥 <span id="like-${id}">${data.likes || 0}</span>`;
-    likeBtn.onclick = async () => {
-      if (localStorage.getItem(likedKey) === 'true') return;
-      likeBtn.classList.add('liked');
-      localStorage.setItem(likedKey, 'true');
-      const countEl = document.getElementById(`like-${id}`);
-      if (countEl) countEl.textContent = (data.likes || 0) + 1;
-      await fetch('/api/post', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('wall_token')}`
-        },
-        body: JSON.stringify({ action: 'like', postId: id })
-      }).catch(() => {});
+  const replyBtn = document.createElement('button');
+  replyBtn.type = 'button';
+  replyBtn.className = 'action-icon-btn';
+  replyBtn.textContent = '↩️ Reply';
+  replyBtn.onclick = () => setReplyTo(data.name, data.message);
+  actionsEl.appendChild(replyBtn);
+
+  if (currentUser === 'jagga') {
+    const delBtn = document.createElement('button');
+    delBtn.type = 'button';
+    delBtn.className = 'action-icon-btn delete';
+    delBtn.textContent = '🗑️ Delete';
+    delBtn.onclick = async () => {
+      if (!confirm('Delete this message?')) return;
+      await deleteDoc(doc(db, "posts", id));
     };
-    actionsEl.appendChild(likeBtn);
+    actionsEl.appendChild(delBtn);
 
-    if (!isBot) {
-      const reportBtn = document.createElement('button');
-      reportBtn.type = 'button';
-      reportBtn.className = 'report-btn';
-      reportBtn.textContent = '🚩';
-      reportBtn.title = 'Report message to admin';
-      reportBtn.onclick = async () => {
-        if (!confirm('Report this message for inappropriate content?')) return;
-        reportBtn.style.opacity = '0.3';
-        reportBtn.disabled = true;
-        await fetch('/api/post', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('wall_token')}`
-          },
-          body: JSON.stringify({ action: 'report', postId: id })
-        }).catch(() => {});
-        alert('Message reported to administration.');
-      };
-      actionsEl.appendChild(reportBtn);
-    }
-
-    bubble.appendChild(actionsEl);
+    const pinBtn = document.createElement('button');
+    pinBtn.type = 'button';
+    pinBtn.className = 'action-icon-btn pin';
+    pinBtn.textContent = '📌 Announce';
+    pinBtn.onclick = async () => {
+      await updateDoc(doc(db, "pinned", "current"), { text: data.message, name: data.name, active: true, isAnnouncement: true });
+    };
+    actionsEl.appendChild(pinBtn);
   }
 
-  const matchesRoom = currentRoom === postRoom;
-  bubble.style.display = matchesRoom ? 'flex' : 'none';
-
+  bubble.appendChild(actionsEl);
   return bubble;
 }
 
@@ -1404,88 +1089,40 @@ window.scrollToTop = () => {
 };
 
 feedEl.addEventListener('scroll', () => {
-  if (feedEl.scrollTop < 60) {
-    jumpBtn.style.display = 'none';
-  }
+  if (feedEl.scrollTop < 60) jumpBtn.style.display = 'none';
 });
-
-async function loadFeedInstantly() {
-  try {
-    const res = await fetch('/api/post');
-    if (res.ok) {
-      const posts = await res.json();
-      if (Array.isArray(posts) && posts.length > 0 && !hasLoadedPosts) {
-        feedEl.innerHTML = '';
-        posts.forEach(p => feedEl.appendChild(buildBubble(p.id, p, false)));
-        hasLoadedPosts = true;
-        filterFeedByRoom();
-      }
-    }
-  } catch {}
-}
-loadFeedInstantly();
-
-function applyChatPauseState(paused) {
-  isChatPaused = Boolean(paused);
-  if (isChatPaused) {
-    msgInput.disabled = true;
-    msgInput.placeholder = "Chat is temporarily paused by admin...";
-    sendBtn.disabled = true;
-    sendBtn.textContent = "Chat Paused";
-  } else {
-    msgInput.disabled = false;
-    msgInput.placeholder = "Type message, room code, or ID...";
-    if (!isCooldownActive) {
-      sendBtn.disabled = false;
-      sendBtn.textContent = "Post to Wall";
-    }
-  }
-}
 
 onSnapshot(doc(db, "pinned", "current"), (snap) => {
   if (snap.exists()) {
     const d = snap.data();
-    applyChatPauseState(d.chatLocked);
-
     if (d.active && d.text) {
-      pinnedBox.innerHTML = `📌 <b>${d.name || 'Admin'}:</b> ${d.text}`;
-      pinnedBox.style.display = 'block';
-
-      if (alertsEnabled && ('Notification' in window) && window.Notification.permission === 'granted' && d.text !== lastPinnedText) {
-        lastPinnedText = d.text;
-        try {
-          new window.Notification(`Lobby Alert: ${d.name || 'Admin'}`, {
-            body: d.text,
-            icon: "https://cdn-icons-png.flaticon.com/512/3202/3202926.png"
-          });
-        } catch {}
+      if (d.isAnnouncement) {
+        announcementBanner.innerHTML = `🚨 <b>Announcement from ${d.name}:</b> ${d.text}`;
+        announcementBanner.style.display = 'block';
+      } else {
+        pinnedBox.innerHTML = `📌 <b>${d.name}:</b> ${d.text}`;
+        pinnedBox.style.display = 'block';
       }
       return;
     }
-  } else {
-    applyChatPauseState(false);
   }
   pinnedBox.style.display = 'none';
+  announcementBanner.style.display = 'none';
 }, () => {});
 
 const q = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(100));
 onSnapshot(q, (snap) => {
   if (snap.empty) {
-    if (!hasLoadedPosts) {
-      feedEl.innerHTML = '<p id="emptyRoomNotice" style="text-align:center;color:var(--muted);font-size:0.85rem;margin-top:20px;">No messages yet. Be first!</p>';
-    }
+    if (!hasLoadedPosts) feedEl.innerHTML = '<p id="emptyRoomNotice" style="text-align:center;color:var(--muted);font-size:0.85rem;margin-top:20px;">No messages yet.</p>';
     isInitialLoad = false;
     return;
   }
-
   const placeholder = document.getElementById('emptyRoomNotice');
   if (placeholder) placeholder.remove();
 
   if (isInitialLoad || !hasLoadedPosts) {
     feedEl.innerHTML = '';
-    snap.docs.forEach((docSnap) => {
-      feedEl.appendChild(buildBubble(docSnap.id, docSnap.data(), false));
-    });
+    snap.docs.forEach(docSnap => feedEl.appendChild(buildBubble(docSnap.id, docSnap.data(), false)));
     isInitialLoad = false;
     hasLoadedPosts = true;
     filterFeedByRoom();
@@ -1496,23 +1133,9 @@ onSnapshot(q, (snap) => {
     if (change.type === 'added') {
       const id = change.doc.id;
       const data = change.doc.data();
-
-      const existing = document.getElementById(`post-${id}`);
-      if (existing) return;
-
-      const optimistic = document.querySelector(`[data-pending="${data.name}-${data.message}"]`);
-      if (optimistic) {
-        optimistic.id = `post-${id}`;
-        optimistic.removeAttribute('data-pending');
-        return;
-      }
-
+      if (document.getElementById(`post-${id}`)) return;
       feedEl.prepend(buildBubble(id, data, false));
       playAlertSound();
-
-      if (feedEl.scrollTop > 80) {
-        jumpBtn.style.display = 'block';
-      }
     }
     if (change.type === 'modified') {
       const id = change.doc.id;
@@ -1525,198 +1148,56 @@ onSnapshot(q, (snap) => {
       if (el) el.remove();
     }
   });
-
   filterFeedByRoom();
-
-  while (feedEl.children.length > 100) {
-    feedEl.removeChild(feedEl.lastChild);
-  }
 }, () => {});
 
-msgInput.addEventListener('input', () => {
-  updateCharCounterDisplay();
-});
+msgInput.addEventListener('input', () => updateCharCounterDisplay());
 
 window.addTag = (tag) => {
-  if (isChatPaused) return;
-  if (!msgInput.value.includes(tag)) {
-    msgInput.value = (msgInput.value.trim() ? msgInput.value.trim() + ' ' : '') + tag + ' ';
-  }
+  if (!msgInput.value.includes(tag)) msgInput.value += ' ' + tag;
   updateCharCounterDisplay();
   msgInput.focus();
 };
 
 window.tagBot = () => {
-  if (isChatPaused) return;
-  if (!msgInput.value.includes('@Apex_Racer')) {
-    msgInput.value = '@Apex_Racer ' + msgInput.value;
-  }
+  if (!msgInput.value.includes('@Apex_Racer')) msgInput.value = '@Apex_Racer ' + msgInput.value;
   updateCharCounterDisplay();
   msgInput.focus();
 };
 
 window.addEmoji = (emoji) => {
-  if (isChatPaused) return;
-  const max = activeVipKey ? 250 : 150;
-  msgInput.value = (msgInput.value + emoji).substring(0, max);
+  msgInput.value += emoji;
   updateCharCounterDisplay();
   msgInput.focus();
 };
 
-function startCooldown(seconds) {
-  isCooldownActive = true;
-  sendBtn.disabled = true;
-  cooldownWrap.style.display = 'block';
-  cooldownBar.style.width = '100%';
-
-  let remainMs = seconds * 1000;
-  const startMs = Date.now();
-  sendBtn.textContent = `Wait ${seconds}s`;
-
-  const interval = setInterval(() => {
-    const elapsed = Date.now() - startMs;
-    const left = remainMs - elapsed;
-    if (left <= 0) {
-      clearInterval(interval);
-      isCooldownActive = false;
-      cooldownWrap.style.display = 'none';
-      cooldownBar.style.width = '100%';
-      if (!isChatPaused) {
-        sendBtn.disabled = false;
-        sendBtn.textContent = 'Post to Wall';
-      }
-    } else {
-      const pct = Math.max(0, (left / remainMs) * 100);
-      cooldownBar.style.width = `${pct}%`;
-      sendBtn.textContent = `Wait ${Math.ceil(left / 1000)}s`;
-    }
-  }, 100);
-}
-
 window.sendPost = async () => {
-  const adminKey = localStorage.getItem('cpm_admin_key') || '';
-  if (isChatPaused && !adminKey) {
-    alert("Chat is temporarily paused by admin.");
-    return;
-  }
-  const name = username;
   const message = msgInput.value.trim();
+  if (!message) return;
 
-  if (!message) {
-    alert("Please enter a message.");
-    return;
-  }
-  if (message === lastPostedMsg && Date.now() - lastPostTimestamp < 60000 && !adminKey) {
-    alert("Duplicate message. Please wait before resending.");
-    return;
-  }
+  const res = await fetch('/api/post', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+    body: JSON.stringify({ message, room: currentRoom, replyTo: replyingToData })
+  });
 
-  const isVip = Boolean(activeVipKey);
-  const chosenColor = isVip ? currentVipColor : null;
-  const chosenFrame = isVip ? currentVipFrame : null;
-
-  const optimisticEl = buildBubble(null, {
-    name,
-    message,
-    createdAt: new Date(),
-    room: currentRoom,
-    isVip,
-    nameColor: chosenColor,
-    frameStyle: chosenFrame
-  }, true);
-
-  const placeholder = document.getElementById('emptyRoomNotice');
-  if (placeholder) placeholder.remove();
-  feedEl.prepend(optimisticEl);
-  playAlertSound();
-
-  sendBtn.disabled = true;
-  sendBtn.textContent = "Posting...";
-
-  try {
-    const clientInfo = await getClientDeviceInfo();
-    const res = await fetch('/api/post', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('wall_token')}`
-      },
-      body: JSON.stringify({
-        message,
-        clientInfo,
-        room: currentRoom,
-        vipKey: activeVipKey || '',
-        adminKey: adminKey,
-        nameColor: chosenColor,
-        frameStyle: chosenFrame
-      })
-    });
-    const data = await res.json().catch(() => ({}));
-
-    if (res.ok) {
-      lastPostedMsg = message;
-      lastPostTimestamp = Date.now();
-      msgInput.value = '';
-      updateCharCounterDisplay();
-
-      const cooldownTime = adminKey ? 0 : (isVip ? 2 : 10);
-      if (cooldownTime > 0) {
-        startCooldown(cooldownTime);
-      } else {
-        sendBtn.disabled = false;
-        sendBtn.textContent = "Post to Wall";
-      }
-
-      if (message.toLowerCase().includes('@apex')) {
-        typingEl.textContent = 'Apex_Racer is typing...';
-        setTimeout(() => { typingEl.textContent = ''; }, 3500);
-      }
-    } else {
-      optimisticEl.remove();
-      if (res.status === 403 && data.error && data.error.includes("VIP")) {
-        alert(data.error);
-        localStorage.removeItem('cpm_vip_key');
-        activeVipKey = '';
-        updateVipUIState();
-        vipModal.style.display = 'flex';
-      } else {
-        alert(data.error || "Failed to post");
-      }
-      if (!isChatPaused) {
-        sendBtn.disabled = false;
-        sendBtn.textContent = "Post to Wall";
-      }
-    }
-  } catch {
-    optimisticEl.remove();
-    alert("Network error");
-    if (!isChatPaused) {
-      sendBtn.disabled = false;
-      sendBtn.textContent = "Post to Wall";
-    }
+  if (res.ok) {
+    msgInput.value = '';
+    cancelReply();
+    updateCharCounterDisplay();
+  } else {
+    const d = await res.json();
+    alert(d.error || 'Failed to post');
   }
 };
 
-msgInput.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') sendPost();
-});
+msgInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendPost(); });
 
 window.shareSite = async () => {
-  const shareData = {
-    title: 'CPM Community Wall',
-    text: 'Join the live anonymous chat wall for Car Parking Multiplayer players!',
-    url: window.location.href
-  };
-  if (navigator.share) {
-    try { await navigator.share(shareData); } catch {}
-  } else {
-    try {
-      await navigator.clipboard.writeText(window.location.href);
-      alert('Link copied to clipboard!');
-    } catch {
-      prompt('Copy link:', window.location.href);
-    }
-  }
+  try {
+    await navigator.clipboard.writeText(window.location.href);
+    alert('Link copied to clipboard!');
+  } catch {}
 };
 </script>
 </body>

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="robots" content="noindex, nofollow">
+<title>Settings - EMPIRE STUDIO</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body {
+  margin: 0;
+  padding: 16px;
+  min-height: 100vh;
+  background: radial-gradient(900px at 50% -20%, rgba(255,184,0,.3), transparent), radial-gradient(700px at 100% 100%, rgba(255,217,90,.15), transparent), #07070A;
+  color: #fff;
+  font-family: Inter, sans-serif;
+  display: flex;
+  justify-content: center;
+}
+.container {
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #1e2240, #151830);
+  border: 1px solid rgba(255,217,90,0.3);
+  border-radius: 16px;
+  padding: 12px 16px;
+}
+.header-bar h2 { font-family: Syne, sans-serif; font-size: 16px; margin: 0; color: #fef08a; }
+.back-btn {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,217,90,0.3);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.card {
+  background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.02));
+  border: 1px solid rgba(255,217,90,.25);
+  border-radius: 20px;
+  padding: 18px;
+  backdrop-filter: blur(15px);
+}
+.profile-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.avatar-lg {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: radial-gradient(180deg, #FFD95A, #FF9A00);
+  display: grid;
+  place-items: center;
+  font-family: Syne, sans-serif;
+  font-weight: 800;
+  font-size: 24px;
+  color: #000;
+  box-shadow: 0 0 20px rgba(255,184,0,0.5);
+}
+.profile-meta b { font-size: 16px; color: #fff; display: block; }
+.profile-meta span { font-size: 12px; color: #d6c79f; }
+.input-wrap { margin-top: 12px; }
+.input-wrap label { font-size: 11px; color: #d6c79f; font-weight: 600; display: block; margin-bottom: 4px; }
+.input-wrap input {
+  width: 100%;
+  background: rgba(0,0,0,0.5);
+  border: 1px solid rgba(255,217,90,0.3);
+  border-radius: 12px;
+  padding: 10px 14px;
+  color: #fff;
+  font-size: 13px;
+  outline: none;
+}
+.input-wrap input:focus { border-color: #FFD95A; }
+.btn-gold {
+  margin-top: 12px;
+  width: 100%;
+  background: linear-gradient(180deg, #FFE68A, #FFB800);
+  border: none;
+  padding: 12px;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 14px;
+  color: #000;
+  cursor: pointer;
+  box-shadow: 0 5px 20px rgba(255,184,0,0.3);
+}
+.btn-gold:active { transform: scale(0.98); }
+.btn-whatsapp {
+  background: #25d366;
+  color: #fff;
+  text-decoration: none;
+  display: block;
+  text-align: center;
+  padding: 12px;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 14px;
+  margin-top: 10px;
+  box-shadow: 0 5px 20px rgba(37,211,102,0.3);
+}
+.logout-btn {
+  background: #dc2626;
+  color: #fff;
+  border: none;
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  font-weight: 800;
+  font-size: 15px;
+  cursor: pointer;
+  box-shadow: 0 5px 20px rgba(220,38,38,0.4);
+}
+.status-msg { font-size: 11px; margin-top: 6px; font-weight: 600; min-height: 14px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header-bar">
+    <h2>👤 User Settings</h2>
+    <button type="button" class="back-btn" onclick="window.location.href='/'">← Back to Wall</button>
+  </div>
+
+  <div class="card">
+    <div class="profile-info">
+      <div class="avatar-lg" id="avatarLetter">J</div>
+      <div class="profile-meta">
+        <b id="profileUsername">@loading...</b>
+        <span id="profileStatus">Checking status...</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0; font-size:14px; color:#fef08a;">Change Username</h3>
+    <p style="font-size:11px; color:#8b8fa3; margin-top:0;">Note: 30-day cooldown applies between username changes.</p>
+    <div class="input-wrap">
+      <label>NEW USERNAME</label>
+      <input type="text" id="newUsernameInput" placeholder="New unique username">
+    </div>
+    <div id="usernameStatus" class="status-msg"></div>
+    <button type="button" class="btn-gold" onclick="updateUsername()">Update Username</button>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0; font-size:14px; color:#fef08a;">Change Password</h3>
+    <div class="input-wrap">
+      <label>OLD PASSWORD</label>
+      <input type="password" id="oldPassInput" placeholder="Current password">
+    </div>
+    <div class="input-wrap">
+      <label>NEW PASSWORD</label>
+      <input type="password" id="newPassInput" placeholder="At least 6 characters">
+    </div>
+    <div id="passwordStatus" class="status-msg"></div>
+    <button type="button" class="btn-gold" onclick="updatePassword()">Update Password</button>
+  </div>
+
+  <div class="card" id="vipSection" style="display:none;">
+    <h3 style="margin-top:0; font-size:14px; color:#f59e0b;">👑 VIP Lounge Membership</h3>
+    <p style="font-size:11px; color:#d6c79f; line-height:1.4;">Unlock Gold Royal bubbles, VIP Lounge secret room, custom chat color picker, neon frames, and message pinning.</p>
+    <div style="font-size:13px; font-weight:700; color:#22c55e; margin: 8px 0;">Price: 300 PKR ($1)</div>
+    <a id="whatsappVipBtn" href="https://wa.me/923558182875?text=Salam%20Jagga%20Bhai%2C%20I%20want%20to%20buy%20VIP" target="_blank" class="btn-whatsapp">💬 Buy VIP via WhatsApp</a>
+  </div>
+
+  <div class="card">
+    <button type="button" class="logout-btn" onclick="logoutUser()">🔒 Logout Account</button>
+  </div>
+</div>
+
+<script>
+const token = localStorage.getItem('wall_token');
+if (!token) {
+  window.location.href = '/login.html';
+}
+
+async function fetchProfile() {
+  try {
+    const res = await fetch('/api/user/me', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      document.getElementById('profileUsername').textContent = '@' + data.username;
+      document.getElementById('avatarLetter').textContent = data.username.charAt(0).toUpperCase();
+      document.getElementById('profileStatus').textContent = data.isVip ? '👑 VIP Member' : (data.isAdmin ? '🛡️ Administrator' : 'Standard Member');
+      if (!data.isVip) {
+        document.getElementById('vipSection').style.display = 'block';
+      }
+    } else {
+      localStorage.clear();
+      window.location.href = '/login.html';
+    }
+  } catch {
+    localStorage.clear();
+    window.location.href = '/login.html';
+  }
+}
+fetchProfile();
+
+async function updateUsername() {
+  const newUsername = (document.getElementById('newUsernameInput').value || '').trim().toLowerCase();
+  const statusEl = document.getElementById('usernameStatus');
+  statusEl.textContent = 'Updating...';
+  statusEl.style.color = '#38bdf8';
+
+  try {
+    const res = await fetch('/api/user/change-username', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ newUsername })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      localStorage.setItem('wall_user', data.newUsername);
+      statusEl.textContent = 'Username updated successfully!';
+      statusEl.style.color = '#22c55e';
+      setTimeout(() => { fetchProfile(); }, 1000);
+    } else {
+      statusEl.textContent = data.error || 'Failed to update username';
+      statusEl.style.color = '#ef4444';
+    }
+  } catch (err) {
+    statusEl.textContent = 'Network error: ' + err.message;
+    statusEl.style.color = '#ef4444';
+  }
+}
+
+async function updatePassword() {
+  const oldPassword = document.getElementById('oldPassInput').value;
+  const newPassword = document.getElementById('newPassInput').value;
+  const statusEl = document.getElementById('passwordStatus');
+  statusEl.textContent = 'Updating...';
+  statusEl.style.color = '#38bdf8';
+
+  try {
+    const res = await fetch('/api/user/change-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ oldPassword, newPassword })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      statusEl.textContent = 'Password updated successfully!';
+      statusEl.style.color = '#22c55e';
+      document.getElementById('oldPassInput').value = '';
+      document.getElementById('newPassInput').value = '';
+    } else {
+      statusEl.textContent = data.error || 'Failed to update password';
+      statusEl.style.color = '#ef4444';
+    }
+  } catch (err) {
+    statusEl.textContent = 'Network error: ' + err.message;
+    statusEl.style.color = '#ef4444';
+  }
+}
+
+function logoutUser() {
+  localStorage.clear();
+  window.location.href = '/login.html';
+}
+</script>
+</body>
+</html>

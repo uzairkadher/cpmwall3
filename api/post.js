@@ -2,22 +2,14 @@ import crypto from "crypto";
 import admin from "firebase-admin";
 import { verifyJwt } from "./auth.js";
 
-let serviceAccount = null;
 if (!admin.apps.length) {
-  serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_KEY);
   admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
+    credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_KEY))
   });
-} else {
-  serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_KEY || "{}");
 }
 const db = admin.firestore();
 
-const RESERVED = ["apex_racer", "cpm_bot"];
 const LINK_REGEX = /(https?:\/\/|www\.|discord\.gg|t\.me|telegram\.me|chat\.whatsapp\.com|\.com|\.gg|\.xyz|\.top)/i;
-const ALLOWED_COLORS = ["#ef4444", "#f59e0b", "#a855f7", "#22c55e", "#00f0ff"];
-const ALLOWED_FRAMES = ["gold", "purple", "carbon"];
-
 const STATIC_BLOCKED_WORDS = [
   "free coins", "hack cpm", "mod apk", "cpm hack", "coin generator",
   "buy followers", "free w16", "cpm unlimited", "bit.ly", "tinyurl",
@@ -25,25 +17,9 @@ const STATIC_BLOCKED_WORDS = [
   "nigger", "faggot", "scam"
 ];
 
-function isNameImpersonating(name = "") {
-  const normalized = name.toLowerCase()
-    .replace(/0/g, 'o')
-    .replace(/1/g, 'i')
-    .replace(/3/g, 'e')
-    .replace(/4/g, 'a')
-    .replace(/5/g, 's')
-    .replace(/7/g, 't')
-    .replace(/[^a-z]/g, '');
-
-  const protectedWords = ["admin", "administrator", "apex", "apexracer", "moderator", "system", "cpmwall", "jagga", "4tjagga", "cpmofficial"];
-  return protectedWords.some(w => normalized.includes(w));
-}
-
 function getSubnet24(ip = "") {
   const parts = ip.split('.');
-  if (parts.length === 4) {
-    return `${parts[0]}.${parts[1]}.${parts[2]}.*`;
-  }
+  if (parts.length === 4) return `${parts[0]}.${parts[1]}.${parts[2]}.*`;
   return null;
 }
 
@@ -56,117 +32,11 @@ function getDeviceFingerprint(client = {}, ua = "") {
   return `${screen}_${cores}_${ram}_${dev}_${os}`.replace(/[^a-zA-Z0-9_-]/g, '_');
 }
 
-async function sendAlertWebhook(title, message) {
-  const url = process.env.ALERT_WEBHOOK_URL;
-  if (!url) return;
-  try {
-    await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        content: `🚨 **${title}**\n${message}`
-      })
-    });
-  } catch {}
-}
-
 async function containsBlockedContent(text) {
   const lower = text.toLowerCase();
   if (LINK_REGEX.test(lower)) return true;
   if (STATIC_BLOCKED_WORDS.some(word => lower.includes(word))) return true;
-
-  try {
-    const filterDoc = await db.collection("settings").doc("filters").get();
-    if (filterDoc.exists) {
-      const customWords = filterDoc.data().words || [];
-      if (customWords.some(w => lower.includes(w.toLowerCase()))) return true;
-    }
-  } catch {}
-
   return false;
-}
-
-function parseUserAgent(ua = "") {
-  let os = "Unknown OS";
-  if (/windows nt 10/i.test(ua)) os = "Windows 10/11";
-  else if (/android (\d+(\.\d+)?)/i.test(ua)) os = "Android " + (ua.match(/android (\d+(\.\d+)?)/i)?.[1] || "");
-  else if (/iphone os (\d+[_\d]*)/i.test(ua)) os = "iOS " + (ua.match(/iphone os (\d+[_\d]*)/i)?.[1]?.replace(/_/g, '.') || "");
-  else if (/mac os x/i.test(ua)) os = "macOS";
-  else if (/linux/i.test(ua)) os = "Linux";
-
-  let browser = "Browser";
-  if (/instagram/i.test(ua)) browser = "Instagram App";
-  else if (/whatsapp/i.test(ua)) browser = "WhatsApp App";
-  else if (/edg\//i.test(ua)) browser = "Edge";
-  else if (/chrome\//i.test(ua)) browser = "Chrome";
-  else if (/safari\//i.test(ua)) browser = "Safari";
-  else if (/firefox\//i.test(ua)) browser = "Firefox";
-
-  let device = "Desktop";
-  if (/mobile|android|iphone|ipad/i.test(ua)) {
-    device = "Mobile";
-    const model = ua.match(/;\s*([^;)]+)\s*Build\//i);
-    if (model && model[1]) device = model[1].trim();
-    else if (/iphone/i.test(ua)) device = "iPhone";
-    else if (/ipad/i.test(ua)) device = "iPad";
-  }
-
-  return { os, browser, device };
-}
-
-function checkVpnIndicators(req) {
-  const headers = req.headers || {};
-  const xForwardedFor = headers["x-forwarded-for"];
-  const proxyHeaders = ["x-real-ip", "via", "forwarded", "x-cluster-client-ip"];
-  const hasMultipleIps = xForwardedFor && xForwardedFor.includes(",");
-  const hasProxyHeader = proxyHeaders.some(h => Boolean(headers[h]));
-  return Boolean(hasMultipleIps || hasProxyHeader || headers["cf-ray"]?.includes("TOR"));
-}
-
-async function getBotReply(cleanName, cleanMsg) {
-  const rawKey = (process.env.GEMINI_API_KEY || "").trim().replace(/^["']|["']$/g, "");
-  const stripped = cleanMsg.replace(/@(apex|apex_racer)/gi, "").trim();
-
-  if (rawKey) {
-    try {
-      const prompt = `You are Apex_Racer, an expert virtual mechanic and real player in Car Parking Multiplayer (CPM). User ${cleanName} says: "${stripped}".
-      RULES:
-      1. If they ask for "random car" or a "random build", suggest a specific CPM car name, exact horsepower, and a quick gear ratio or suspension tip.
-      2. If they ask to "rate my tune" or share gear ratios, act like a street racer analyzing their numbers. Give a rating out of 10 and suggest one specific adjustment.
-      3. Otherwise, talk like a friendly car gamer buddy.
-      Keep it under 35 words. 1-2 sentences max. Never mention AI or bots.`;
-      
-      const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${rawKey}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
-        signal: AbortSignal.timeout(8000)
-      });
-      if (resp.ok) {
-        const data = await resp.json();
-        const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-        if (reply && reply.length <= 200) return reply.replace(/["*]/g, "");
-      }
-    } catch {}
-  }
-  return getHumanFallback(stripped || cleanMsg);
-}
-
-function getHumanFallback(cleanMsg) {
-  const t = cleanMsg.toLowerCase();
-  if (t.includes("random car")) {
-    return "Try a 925HP Nissan Silvia S15. Set Final Drive to 3.55. It's an absolute beast if you drop the suspension!";
-  }
-  if (t.includes("rate my tune") || (t.includes("tune") && /\d/.test(t))) {
-    return "Looks decent but your final drive might be too short for top speed. Adjust it down by 0.15 and test again. 7/10.";
-  }
-  if (t.includes("supra") || t.includes("gearbox") || t.includes("gear")) {
-    return "For Supra set Final Drive 3.12, 1st 2.66, 2nd 1.90. Shift fast right at redline.";
-  }
-  if (t.includes("drag") || t.includes("launch")) {
-    return "Drop tire pressure to 1.2 bar, turn off TCS, and launch in 2nd gear bro.";
-  }
-  return "What car are you tuning right now bro? Drop specs and room code.";
 }
 
 export default async function handler(req, res) {
@@ -178,9 +48,7 @@ export default async function handler(req, res) {
   if (req.method === "GET") {
     try {
       const snap = await db.collection("posts").orderBy("createdAt", "desc").limit(100).get();
-      const posts = snap.docs
-        .map(d => ({ id: d.id, ...d.data() }))
-        .filter(p => !p.isShadowbanned);
+      const posts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       return res.status(200).json(posts);
     } catch (e) {
       return res.status(500).json({ error: e.message });
@@ -195,331 +63,54 @@ export default async function handler(req, res) {
     if (!token) return res.status(401).json({ error: "Unauthorized: Missing authentication token" });
 
     const decoded = verifyJwt(token);
-    if (!decoded || !decoded.username) return res.status(401).json({ error: "Unauthorized: Invalid or expired token" });
+    if (!decoded || !decoded.username) return res.status(401).json({ error: "Unauthorized: Invalid token" });
 
     const username = decoded.username;
+    const userDoc = await db.collection("users").doc(username).get();
+    const userData = userDoc.exists ? userDoc.data() : {};
+    const isVipUser = Boolean(userData.isVip);
+    const isRealAdmin = (username === "jagga");
 
-    const { action, postId, message, clientInfo, room, vipKey, adminKey, nameColor, frameStyle } = req.body || {};
+    const { action, postId, message, room, replyTo } = req.body || {};
     const rawIp = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || "").split(',')[0].trim() || "unknown";
     const safeIp = rawIp.replace(/[^a-zA-Z0-9.:]/g, '_');
-    const isVpnDetected = checkVpnIndicators(req);
-    const ua = req.headers['user-agent'] || '';
-    const { os, browser, device } = parseUserAgent(ua);
-    const client = clientInfo || {};
-    const baseFp = getDeviceFingerprint(client, ua);
-    const fingerprint = crypto.createHash('sha256').update(baseFp + (process.env.FP_SALT || 'salt')).digest('hex');
-
-    const passedKey = adminKey || req.headers['x-admin-key'] || (vipKey === process.env.ADMIN_KEY ? vipKey : null);
-    const isRealAdmin = Boolean(process.env.ADMIN_KEY && passedKey && String(passedKey).trim() === String(process.env.ADMIN_KEY).trim());
-
-    const subnet = getSubnet24(rawIp);
-    if (subnet && !isRealAdmin) {
-      const whitelistDoc = await db.collection("subnet_whitelist").doc(safeIp).get();
-      if (!whitelistDoc.exists) {
-        const subnetDoc = await db.collection("subnet_bans").doc(subnet.replace(/\*/g, '0')).get();
-        if (subnetDoc.exists) {
-          return res.status(403).json({ error: "Your mobile network subnet is banned from posting." });
-        }
-      }
-    }
-
-    if (fingerprint && !isRealAdmin) {
-      const fpDoc = await db.collection("fingerprint_bans").doc(fingerprint).get();
-      if (fpDoc.exists) {
-        return res.status(403).json({ error: "Your device hardware signature has been permanently blocked." });
-      }
-    }
-
-    if (!isRealAdmin) {
-      const banSnap = await db.collection("banned").doc(safeIp).get();
-      if (banSnap.exists) {
-        const banData = banSnap.data();
-        const until = banData.bannedUntil?._seconds ? banData.bannedUntil._seconds * 1000 : null;
-        if (!until || until > Date.now()) {
-          const reasonText = banData.reason ? `: ${banData.reason}` : "";
-          return res.status(403).json({ error: `You are banned${reasonText}` });
-        } else {
-          await db.collection("banned").doc(safeIp).delete().catch(() => {});
-        }
-      }
-    }
-
-    const pinDoc = await db.collection("pinned").doc("current").get();
-    const pinData = pinDoc.exists ? pinDoc.data() : {};
-
-    if (action === "unlock_vip") {
-      const vipBan = await db.collection("vip_banned").doc(safeIp).get();
-      if (vipBan.exists && !isRealAdmin) return res.status(403).json({ error: "Your access to VIP Lounge is blocked." });
-
-      const validVipKey = pinData.vipKey || "VIP777";
-      const keyMatches = (vipKey && String(vipKey).trim() === String(validVipKey).trim()) || isRealAdmin;
-
-      if (!keyMatches) {
-        return res.status(403).json({ error: "Invalid VIP Access Passcode." });
-      }
-
-      const cleanName = username;
-      const countryCode = (req.headers['x-vercel-ip-country'] || req.headers['cf-ipcountry'] || '').toUpperCase();
-      let countryName = 'Unknown';
-      if (countryCode && countryCode.length === 2) {
-        try {
-          countryName = new Intl.DisplayNames(['en'], { type: 'region' }).of(countryCode) || countryCode;
-        } catch {
-          countryName = countryCode;
-        }
-      }
-      const city = req.headers['x-vercel-ip-city'] || '';
-      const expiresAt = admin.firestore.Timestamp.fromMillis(Date.now() + 365 * 24 * 3600 * 1000);
-
-      const batch = db.batch();
-      batch.set(db.collection("verified_ips").doc(safeIp), {
-        ip: rawIp,
-        verifiedAt: admin.firestore.FieldValue.serverTimestamp(),
-        source: isRealAdmin ? "admin_login" : "vip_passcode"
-      }, { merge: true });
-
-      batch.set(db.collection("vip_members").doc(safeIp), {
-        ip: rawIp,
-        name: cleanName,
-        device,
-        os,
-        browser,
-        fingerprint,
-        country: countryName,
-        countryCode: countryCode || 'UN',
-        city: city || 'Unknown City',
-        isVpn: isVpnDetected,
-        isAdmin: isRealAdmin,
-        unlockedAt: admin.firestore.FieldValue.serverTimestamp(),
-        expiresAt: expiresAt
-      }, { merge: true });
-
-      await batch.commit();
-      return res.status(200).json({ success: true, message: isRealAdmin ? "Admin privileges active!" : "VIP Lounge unlocked (Active for 30 days)!" });
-    }
 
     if (action === "like") {
       if (!postId) return res.status(400).json({ error: "Missing postId" });
-      await db.collection("posts").doc(postId).update({
-        likes: admin.firestore.FieldValue.increment(1)
-      });
+      await db.collection("posts").doc(postId).update({ likes: admin.firestore.FieldValue.increment(1) });
       return res.status(200).json({ success: true });
-    }
-
-    if (action === "report") {
-      if (!postId) return res.status(400).json({ error: "Missing postId" });
-      const pRef = db.collection("posts").doc(postId);
-      await pRef.update({
-        isReported: true,
-        reportCount: admin.firestore.FieldValue.increment(1)
-      });
-      const updatedSnap = await pRef.get();
-      const updatedData = updatedSnap.data();
-      if (updatedData && updatedData.reportCount >= 3) {
-        await sendAlertWebhook("Post Flagged 3+ Times", `Author: ${updatedData.name}\nMessage: "${updatedData.message}"\nPost ID: ${postId}`);
-      }
-      return res.status(200).json({ success: true });
-    }
-
-    if (pinData.chatLocked && !isRealAdmin) {
-      return res.status(403).json({ error: "Chat is temporarily locked by admin." });
-    }
-
-    const memberDoc = await db.collection("vip_members").doc(safeIp).get();
-    let isVipUser = false;
-    if (memberDoc.exists) {
-      const mData = memberDoc.data();
-      if (mData.expiresAt && mData.expiresAt.toDate && mData.expiresAt.toDate() < new Date()) {
-        isVipUser = false;
-      } else {
-        isVipUser = true;
-      }
-    }
-    const validVipKey = pinData.vipKey || "VIP777";
-    if (vipKey && String(vipKey).trim() === String(validVipKey).trim()) {
-      isVipUser = true;
-    }
-    if (isRealAdmin) {
-      isVipUser = true;
-    }
-
-    const verifiedSnap = await db.collection("verified_ips").doc(safeIp).get();
-    const isIpVerified = verifiedSnap.exists || isVipUser || isRealAdmin;
-
-    if (pinData.raidMode && !isVipUser && !isIpVerified && !isRealAdmin) {
-      return res.status(403).json({ error: "Panic Raid Mode is active: Only Verified & VIP drivers can post right now." });
-    }
-
-    let finalRoom = "public";
-    if (room === "vip" && isVipUser) finalRoom = "vip";
-    else if (room === "market") finalRoom = "market";
-
-    if (room === "vip" && !isVipUser) {
-      return res.status(403).json({ error: "Invalid VIP Access Passcode or membership expired." });
     }
 
     if (!message) return res.status(400).json({ error: "Message required" });
-    const cleanName = username;
     const maxChars = isVipUser ? 250 : 150;
     const cleanMsg = message.trim().substring(0, maxChars);
 
-    if (RESERVED.includes(cleanName.toLowerCase())) return res.status(400).json({ error: "Name reserved" });
-
-    if (isNameImpersonating(cleanName) && !isRealAdmin) {
-      return res.status(400).json({ error: "This driver tag resembles official staff handles and cannot be used." });
-    }
-
     const isBlocked = await containsBlockedContent(cleanMsg);
     if (isBlocked && !isRealAdmin) {
-      const strikeRef = db.collection("strikes").doc(safeIp);
-      const strikeDoc = await strikeRef.get();
-      const strikeCount = (strikeDoc.exists ? strikeDoc.data().count || 0 : 0) + 1;
-
-      await strikeRef.set({
-        ip: rawIp,
-        count: strikeCount,
-        lastStrikeAt: admin.firestore.FieldValue.serverTimestamp()
-      }, { merge: true });
-
-      if (strikeCount >= 3) {
-        const bannedUntil = admin.firestore.Timestamp.fromMillis(Date.now() + 24 * 3600 * 1000);
-        await db.collection("banned").doc(safeIp).set({
-          ip: rawIp,
-          reason: "Automated: 3 profanity strikes reached",
-          bannedAt: admin.firestore.FieldValue.serverTimestamp(),
-          bannedUntil
-        });
-        await sendAlertWebhook("Automated 24h Ban", `IP ${rawIp} hit 3 profanity strikes and was automatically banned.`);
-        return res.status(403).json({ error: "You received 3 strikes for prohibited words and are banned for 24 hours." });
-      }
-
-      return res.status(400).json({ error: `Message blocked. Strike ${strikeCount}/3 recorded. 3 strikes will trigger an automatic 24-hour ban.` });
+      return res.status(400).json({ error: "Message blocked due to prohibited content." });
     }
 
-    const shadowDoc = await db.collection("shadowbanned").doc(safeIp).get();
-    const isShadowbanned = shadowDoc.exists && !isRealAdmin;
-
-    const dynamicSlowMode = pinData.slowModeSeconds ? Number(pinData.slowModeSeconds) : 10;
-    const cooldownWindow = isRealAdmin ? 0 : (isVipUser ? 2 : dynamicSlowMode);
-    if (cooldownWindow > 0) {
-      const rateRef = db.collection("rateLimits").doc(safeIp);
-      const rateSnap = await rateRef.get();
-      if (rateSnap.exists) {
-        const last = rateSnap.data().lastPost?._seconds || rateSnap.data().lastPost?.seconds || 0;
-        const now = Math.floor(Date.now() / 1000);
-        if (now - last < cooldownWindow) {
-          return res.status(429).json({ error: `Slow down ${cooldownWindow - (now - last)}s` });
-        }
-      }
-    }
-
-    const countryCode = (req.headers['x-vercel-ip-country'] || req.headers['cf-ipcountry'] || '').toUpperCase();
-    let countryName = 'Unknown';
-    if (countryCode && countryCode.length === 2) {
-      try {
-        countryName = new Intl.DisplayNames(['en'], { type: 'region' }).of(countryCode) || countryCode;
-      } catch {
-        countryName = countryCode;
-      }
-    }
-    const city = req.headers['x-vercel-ip-city'] || '';
-    const region = req.headers['x-vercel-ip-country-region'] || '';
-    const sanitizedColor = ((isVipUser || isRealAdmin) && nameColor && ALLOWED_COLORS.includes(nameColor)) ? nameColor : (isRealAdmin ? '#00f0ff' : null);
-    const sanitizedFrame = ((isVipUser || isRealAdmin) && frameStyle && ALLOWED_FRAMES.includes(frameStyle)) ? frameStyle : null;
+    let finalRoom = "public";
+    if (room === "vip" && (isVipUser || isRealAdmin)) finalRoom = "vip";
+    else if (room === "market") finalRoom = "market";
 
     const batch = db.batch();
     const postRef = db.collection("posts").doc();
-    const logRef = db.collection("ip_logs").doc(postRef.id);
 
     batch.set(postRef, {
-      name: cleanName,
+      name: username,
+      userId: username,
       message: cleanMsg,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      isVerified: isIpVerified,
+      isVerified: true,
       isVip: isVipUser,
       isAdmin: isRealAdmin,
-      isBot: false,
       likes: 0,
-      isReported: false,
-      reportCount: 0,
       room: finalRoom,
-      nameColor: sanitizedColor,
-      frameStyle: sanitizedFrame,
-      isShadowbanned: isShadowbanned
+      replyTo: replyTo || null
     });
-
-    batch.set(logRef, {
-      postId: postRef.id,
-      ip: rawIp,
-      subnet: subnet || 'N/A',
-      fingerprint: fingerprint,
-      country: countryName,
-      countryCode: countryCode || 'UN',
-      city: city || 'Unknown City',
-      region: region,
-      device: device,
-      os: os,
-      browser: browser,
-      isVpn: isVpnDetected,
-      battery: client.battery || 'N/A',
-      ram: client.ram || 'N/A',
-      cores: client.cores || 'N/A',
-      screen: client.screen || 'N/A',
-      network: client.network || 'N/A',
-      referrer: client.referrer || 'Direct',
-      name: cleanName,
-      message: cleanMsg,
-      room: finalRoom,
-      nameColor: sanitizedColor,
-      frameStyle: sanitizedFrame,
-      isVip: isVipUser,
-      isAdmin: isRealAdmin,
-      isShadowbanned: isShadowbanned,
-      createdAt: admin.firestore.FieldValue.serverTimestamp()
-    });
-
-    if (cooldownWindow > 0) {
-      batch.set(db.collection("rateLimits").doc(safeIp), {
-        lastPost: admin.firestore.FieldValue.serverTimestamp(),
-        ip: rawIp
-      }, { merge: true });
-    }
 
     await batch.commit();
-
-    if (cleanMsg.toLowerCase().includes("@apex") && !isShadowbanned) {
-      const botText = await getBotReply(cleanName, cleanMsg);
-      const botRef = db.collection("posts").doc();
-      const botBatch = db.batch();
-      botBatch.set(botRef, {
-        name: "Apex_Racer",
-        message: botText,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-        isBot: true,
-        isVerified: true,
-        likes: 0,
-        isReported: false,
-        reportCount: 0,
-        room: finalRoom
-      });
-      botBatch.set(db.collection("ip_logs").doc(botRef.id), {
-        postId: botRef.id,
-        name: "Apex_Racer",
-        message: botText,
-        ip: "BOT",
-        country: "Server",
-        countryCode: "UN",
-        city: "Cloud",
-        device: "Server Bot",
-        os: "Node.js",
-        browser: "AI Engine",
-        isVpn: false,
-        room: finalRoom,
-        createdAt: admin.firestore.FieldValue.serverTimestamp()
-      });
-      await botBatch.commit();
-    }
-
     return res.status(200).json({ success: true });
   } catch (e) {
     return res.status(500).json({ error: e.message || "Server error" });
