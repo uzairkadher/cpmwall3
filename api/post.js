@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import admin from "firebase-admin";
 
 let serviceAccount = null;
@@ -195,7 +196,8 @@ export default async function handler(req, res) {
     const ua = req.headers['user-agent'] || '';
     const { os, browser, device } = parseUserAgent(ua);
     const client = clientInfo || {};
-    const fingerprint = getDeviceFingerprint(client, ua);
+    const baseFp = getDeviceFingerprint(client, ua);
+    const fingerprint = crypto.createHash('sha256').update(baseFp + (process.env.FP_SALT || 'salt')).digest('hex');
 
     const passedKey = adminKey || req.headers['x-admin-key'] || (vipKey === process.env.ADMIN_KEY ? vipKey : null);
     const isRealAdmin = Boolean(process.env.ADMIN_KEY && passedKey && String(passedKey).trim() === String(process.env.ADMIN_KEY).trim());

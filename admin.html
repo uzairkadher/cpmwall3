@@ -256,7 +256,7 @@ mark { background: #facc15; color: #000; padding: 0 2px; border-radius: 2px; fon
 
   <div style="margin-top: 14px; border-top: 1px solid #222; padding-top: 10px;">
     <h4>Private VIP Room Passcode</h4>
-    <input id="vipKeyInput" placeholder="Set VIP Key (e.g. VIP777)">
+    <input type="password" id="vipKeyInput" placeholder="Set VIP Key (e.g. VIP777)">
     <button type="button" class="green" onclick="saveVipKey()">Save VIP Passcode</button>
     <div id="currentVipKey" style="margin-top: 4px; font-size: 13px; color: #38bdf8;"></div>
   </div>
@@ -374,7 +374,7 @@ async function verifyAdminLogin(isAuto = false) {
 
   errEl.textContent = 'Verifying...';
   try {
-    const r = await fetch(`/api/admin?action=posts&key=${encodeURIComponent(inputVal)}`, {
+    const r = await fetch(`/api/admin?action=posts`, {
       headers: { 'Content-Type': 'application/json', 'x-admin-key': inputVal }
     });
     if (r.ok) {
@@ -686,7 +686,7 @@ async function deletePayment(paymentId) {
 function toggleAutoRefresh(enabled) {
   if (refreshTimer) clearInterval(refreshTimer);
   if (enabled) {
-    refreshTimer = setInterval(() => { loadAll(true); }, 10000);
+    // Manual refresh only - zero auto read cost
   }
 }
 
@@ -903,7 +903,7 @@ async function saveAdminNote(ip) {
 
 async function updateQuotaDisplay() {
   try {
-    const r = await fetch(`/api/admin?action=quota&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() });
+    const r = await fetch(`/api/admin?action=quota`, { headers: headers() });
     if (!r.ok) return;
     const d = await r.json();
     const readPct = Math.min(100, Math.round((d.reads / d.readLimit) * 100));
@@ -935,22 +935,22 @@ async function loadAll(isBackground = false) {
 
   try {
     const [pR, bR, lR, vR, pinR, visR, fR, vipR, vipBanR, payR, subR, fpR, shR, nR, sR, subWhiteR] = await Promise.all([
-      fetch(`/api/admin?action=posts&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
-      fetch(`/api/admin?action=banned&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
-      fetch(`/api/admin?action=logs&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
-      fetch(`/api/admin?action=verified_ips&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
-      fetch(`/api/admin?action=pinned&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
-      fetch(`/api/admin?action=visitors&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
-      fetch(`/api/admin?action=filters&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
-      fetch(`/api/admin?action=vip_members&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
-      fetch(`/api/admin?action=vip_banned&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
-      fetch(`/api/admin?action=payments&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
-      fetch(`/api/admin?action=subnet_bans&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
-      fetch(`/api/admin?action=fingerprint_bans&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
-      fetch(`/api/admin?action=shadowbanned&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
-      fetch(`/api/admin?action=notes&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
-      fetch(`/api/admin?action=strikes&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() }),
-      fetch(`/api/admin?action=subnet_whitelist&key=${encodeURIComponent(ADMIN_KEY)}`, { headers: headers() })
+      fetch(`/api/admin?action=posts`, { headers: headers() }),
+      fetch(`/api/admin?action=banned`, { headers: headers() }),
+      fetch(`/api/admin?action=logs`, { headers: headers() }),
+      fetch(`/api/admin?action=verified_ips`, { headers: headers() }),
+      fetch(`/api/admin?action=pinned`, { headers: headers() }),
+      fetch(`/api/admin?action=visitors`, { headers: headers() }),
+      fetch(`/api/admin?action=filters`, { headers: headers() }),
+      fetch(`/api/admin?action=vip_members`, { headers: headers() }),
+      fetch(`/api/admin?action=vip_banned`, { headers: headers() }),
+      fetch(`/api/admin?action=payments`, { headers: headers() }),
+      fetch(`/api/admin?action=subnet_bans`, { headers: headers() }),
+      fetch(`/api/admin?action=fingerprint_bans`, { headers: headers() }),
+      fetch(`/api/admin?action=shadowbanned`, { headers: headers() }),
+      fetch(`/api/admin?action=notes`, { headers: headers() }),
+      fetch(`/api/admin?action=strikes`, { headers: headers() }),
+      fetch(`/api/admin?action=subnet_whitelist`, { headers: headers() })
     ]);
 
     if (pR.status === 401) {
@@ -1194,7 +1194,7 @@ function applyFilter() {
     }
     return `
       <div class="post">
-        <b>${highlight(m.name, q)}</b> <code>${highlight(m.ip, q)}</code> - <b>${expiryStr}</b>
+        <b>${highlight(m.name, q)}</b> <code>${highlight((m.ip || '').slice(0,7) + '***', q)}</code> - <b>${expiryStr}</b>
         <div class="detail-grid" style="display:flex; flex-wrap:wrap; gap:4px; margin:5px 0;">
           <span class="badge badge-loc">${getFlagEmoji(m.countryCode)} ${esc(m.city ? m.city + ', ' + m.country : m.country)}</span>
           ${m.isVpn ? '<span class="badge badge-vpn">⚠️ VPN</span>' : ''}
@@ -1208,7 +1208,7 @@ function applyFilter() {
 
   document.getElementById('vipBannedList').innerHTML = cachedVipBanned.map(b => `
     <div class="post">
-      <code>${highlight(b.ip || b.id, q)}</code> <span class="badge" style="background:#ef4444;">VIP BLOCKED</span>
+      <code>${highlight((b.ip || b.id || '').slice(0,7) + '***', q)}</code> <span class="badge" style="background:#ef4444;">VIP BLOCKED</span>
       <button type="button" class="green" onclick="unbanVip('${esc(b.ip || b.id)}')">Unblock</button>
     </div>
   `).join('') || '<div style="color:#94a3b8; font-size:12px;">None</div>';
@@ -1217,7 +1217,7 @@ function applyFilter() {
     const isVerified = verifiedIpSet.has(v.ip);
     return `
       <div class="post">
-        IP: <code>${highlight(v.ip, q)}</code> ${isVerified ? '<span class="badge" style="background:#16a34a;">VERIFIED</span>' : ''}
+        IP: <code>${highlight((v.ip || '').slice(0,7) + '***', q)}</code> ${isVerified ? '<span class="badge" style="background:#16a34a;">VERIFIED</span>' : ''}
         <div class="detail-grid" style="display:flex; flex-wrap:wrap; gap:4px; margin:5px 0;">
           <span class="badge badge-loc">${getFlagEmoji(v.countryCode)} ${esc(v.city ? v.city + ', ' + v.country : v.country)}</span>
           ${v.device ? `<span class="badge badge-dev">📱 ${esc(v.device)}</span>` : ''}
@@ -1235,7 +1235,7 @@ function applyFilter() {
     const existingNote = cachedNotes[safeIpKey] || '';
     return `
       <div class="post">
-        <b>${highlight(l.name, q)}</b> | IP: <code>${highlight(l.ip, q)}</code>
+        <b>${highlight(l.name, q)}</b> | IP: <code>${highlight((l.ip || '').slice(0,7) + '***', q)}</code>
         ${l.isVpn ? '<span class="badge badge-vpn">⚠️ VPN</span>' : ''}
         ${isShadow ? '<span class="badge badge-shadow">SHADOWBANNED</span>' : ''}
         ${isSubWhite ? '<span class="badge" style="background:#16a34a;">SUBNET EXEMPT</span>' : ''}
@@ -1259,7 +1259,7 @@ function applyFilter() {
 
 document.getElementById('verifiedIps').innerHTML = cachedVerified.map(v => `
   <div class="post">
-    <code>${highlight(v.ip || v.id, q)}</code>
+    <code>${highlight((v.ip || v.id || '').slice(0,7) + '***', q)}</code>
     <button type="button" class="orange" onclick="unverifyIp('${esc(v.ip || v.id)}')">Remove Verification</button>
   </div>
 `).join('') || 'None';
@@ -1293,7 +1293,7 @@ document.getElementById('banned').innerHTML = cachedBanned.map(b => {
   }
   return `
     <div class="post">
-      <code>${highlight(b.ip || b.id, q)}</code> (Reason: <b>${esc(b.reason || 'spam')}</b>, ${expStr})
+      <code>${highlight((b.ip || b.id || '').slice(0,7) + '***', q)}</code> (Reason: <b>${esc(b.reason || 'spam')}</b>, ${expStr})
       <button type="button" onclick="unban('${esc(b.ip || b.id)}')">Unban</button>
     </div>
   `;
