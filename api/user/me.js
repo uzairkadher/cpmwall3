@@ -10,11 +10,9 @@ const db = admin.firestore();
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
   if (req.method === "OPTIONS") return res.status(200).end();
-
-  if (req.method !== "GET") return res.status(405).json({ error: "Method not allowed" });
 
   try {
     const authHeader = req.headers["authorization"] || "";
@@ -25,14 +23,28 @@ export default async function handler(req, res) {
     if (!decoded || !decoded.username) return res.status(401).json({ error: "Unauthorized: Invalid token" });
 
     const username = decoded.username;
-    const userDoc = await db.collection("users").doc(username).get();
+    const userRef = db.collection("users").doc(username);
+    const userDoc = await userRef.get();
+
+    if (req.method === "POST") {
+      const { photoURL } = req.body || {};
+      if (photoURL !== undefined) {
+        await userRef.set({ photoURL }, { merge: true });
+        return res.status(200).json({ success: true, photoURL });
+      }
+    }
+
     if (!userDoc.exists) return res.status(404).json({ error: "User not found" });
 
     const userData = userDoc.data();
+    const isAdmin = (userData.username === "jagga" || username === "jagga");
+    const isVip = isAdmin || Boolean(userData.isVip);
+
     return res.status(200).json({
       username: userData.username,
-      isAdmin: userData.username === "jagga",
-      isVip: Boolean(userData.isVip),
+      isAdmin: isAdmin,
+      isVip: isVip,
+      photoURL: userData.photoURL || "",
       vipExpiresAt: userData.vipExpiresAt || null,
       customColor: userData.customColor || "#f59e0b",
       customFrame: userData.customFrame || "gold",

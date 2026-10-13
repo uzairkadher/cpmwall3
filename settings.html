@@ -69,8 +69,13 @@ body {
   font-weight: 800;
   font-size: 24px;
   color: #000;
-  box-shadow: 0 0 20px rgba(255,184,0,0.5);
+  box-shadow: 0 0 6px rgba(255,184,0,0.4);
+  cursor: pointer;
+  overflow: hidden;
+  position: relative;
+  border: 2px solid #f59e0b;
 }
+.avatar-lg img { width: 100%; height: 100%; object-fit: cover; }
 .profile-meta b { font-size: 16px; color: #fff; display: block; }
 .profile-meta span { font-size: 12px; color: #d6c79f; }
 .input-wrap { margin-top: 12px; }
@@ -97,7 +102,7 @@ body {
   font-size: 14px;
   color: #000;
   cursor: pointer;
-  box-shadow: 0 5px 20px rgba(255,184,0,0.3);
+  box-shadow: 0 0 6px rgba(255,184,0,0.4);
 }
 .btn-gold:active { transform: scale(0.98); }
 .btn-whatsapp {
@@ -111,7 +116,7 @@ body {
   font-weight: 800;
   font-size: 14px;
   margin-top: 10px;
-  box-shadow: 0 5px 20px rgba(37,211,102,0.3);
+  box-shadow: 0 0 6px rgba(37,211,102,0.4);
 }
 .logout-btn {
   background: #dc2626;
@@ -123,7 +128,7 @@ body {
   font-weight: 800;
   font-size: 15px;
   cursor: pointer;
-  box-shadow: 0 5px 20px rgba(220,38,38,0.4);
+  box-shadow: 0 0 6px rgba(220,38,38,0.4);
 }
 .status-msg { font-size: 11px; margin-top: 6px; font-weight: 600; min-height: 14px; }
 </style>
@@ -138,12 +143,16 @@ body {
 
   <div class="card">
     <div class="profile-info">
-      <div class="avatar-lg" id="avatarLetter">J</div>
+      <div class="avatar-lg" id="avatarContainer" onclick="triggerPhotoUpload()" title="Click to upload profile photo">
+        <span id="avatarLetter">J</span>
+      </div>
+      <input type="file" id="photoFileInput" accept="image/*" style="display:none;" onchange="handlePhotoSelected(event)">
       <div class="profile-meta">
         <b id="profileUsername">@loading...</b>
         <span id="profileStatus">Checking status...</span>
       </div>
     </div>
+    <div style="font-size:10px; color:#8b8fa3; text-align:center;">Click avatar above to change profile photo</div>
   </div>
 
   <div class="card">
@@ -185,8 +194,38 @@ body {
 
 <script>
 const token = localStorage.getItem('wall_token');
-if (!token) {
-  window.location.href = '/login.html';
+if (!token) window.location.href = '/login.html';
+
+function triggerPhotoUpload() {
+  document.getElementById('photoFileInput').click();
+}
+
+function handlePhotoSelected(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async function(e) {
+    const base64Img = e.target.result;
+    localStorage.setItem('wall_photo', base64Img);
+    renderAvatar(base64Img, localStorage.getItem('wall_user') || 'J');
+    try {
+      await fetch('/api/user/me', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ photoURL: base64Img })
+      });
+    } catch {}
+  };
+  reader.readAsDataURL(file);
+}
+
+function renderAvatar(photoURL, username) {
+  const container = document.getElementById('avatarContainer');
+  if (photoURL) {
+    container.innerHTML = `<img src="${photoURL}" alt="Avatar">`;
+  } else {
+    container.innerHTML = `<span id="avatarLetter">${username.charAt(0).toUpperCase()}</span>`;
+  }
 }
 
 async function fetchProfile() {
@@ -197,9 +236,16 @@ async function fetchProfile() {
     if (res.ok) {
       const data = await res.json();
       document.getElementById('profileUsername').textContent = '@' + data.username;
-      document.getElementById('avatarLetter').textContent = data.username.charAt(0).toUpperCase();
-      document.getElementById('profileStatus').textContent = data.isVip ? '👑 VIP Member' : (data.isAdmin ? '🛡️ Administrator' : 'Standard Member');
-      if (!data.isVip) {
+      document.getElementById('profileStatus').textContent = data.isAdmin ? '🛡️ Administrator + 👑 VIP' : (data.isVip ? '👑 VIP Member' : 'Standard Member');
+      
+      const photo = data.photoURL || localStorage.getItem('wall_photo') || '';
+      renderAvatar(photo, data.username);
+      localStorage.setItem('wall_photo', photo);
+      localStorage.setItem('wall_user', data.username);
+
+      if (data.username === 'jagga') {
+        document.getElementById('vipSection').style.display = 'none';
+      } else if (!data.isVip) {
         document.getElementById('vipSection').style.display = 'block';
       }
     } else {
@@ -230,7 +276,7 @@ async function updateUsername() {
       localStorage.setItem('wall_user', data.newUsername);
       statusEl.textContent = 'Username updated successfully!';
       statusEl.style.color = '#22c55e';
-      setTimeout(() => { fetchProfile(); }, 1000);
+      setTimeout(() => fetchProfile(), 1000);
     } else {
       statusEl.textContent = data.error || 'Failed to update username';
       statusEl.style.color = '#ef4444';
