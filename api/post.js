@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import admin from "firebase-admin";
+import { verifyJwt } from "./auth.js";
 
 let serviceAccount = null;
 if (!admin.apps.length) {
@@ -171,7 +172,7 @@ function getHumanFallback(cleanMsg) {
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, x-admin-key");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, x-admin-key");
   if (req.method === "OPTIONS") return res.status(200).end();
 
   if (req.method === "GET") {
@@ -189,7 +190,16 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   try {
-    const { action, postId, name, message, clientInfo, room, vipKey, adminKey, nameColor, frameStyle } = req.body || {};
+    const authHeader = req.headers["authorization"] || "";
+    const token = authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : null;
+    if (!token) return res.status(401).json({ error: "Unauthorized: Missing authentication token" });
+
+    const decoded = verifyJwt(token);
+    if (!decoded || !decoded.username) return res.status(401).json({ error: "Unauthorized: Invalid or expired token" });
+
+    const username = decoded.username;
+
+    const { action, postId, message, clientInfo, room, vipKey, adminKey, nameColor, frameStyle } = req.body || {};
     const rawIp = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || "").split(',')[0].trim() || "unknown";
     const safeIp = rawIp.replace(/[^a-zA-Z0-9.:]/g, '_');
     const isVpnDetected = checkVpnIndicators(req);
@@ -248,7 +258,7 @@ export default async function handler(req, res) {
         return res.status(403).json({ error: "Invalid VIP Access Passcode." });
       }
 
-      const cleanName = (name || (isRealAdmin ? "Administration Team" : "VIP Driver")).trim().substring(0, 20);
+      const cleanName = username;
       const countryCode = (req.headers['x-vercel-ip-country'] || req.headers['cf-ipcountry'] || '').toUpperCase();
       let countryName = 'Unknown';
       if (countryCode && countryCode.length === 2) {
@@ -348,12 +358,11 @@ export default async function handler(req, res) {
       return res.status(403).json({ error: "Invalid VIP Access Passcode or membership expired." });
     }
 
-    if (!name || !message) return res.status(400).json({ error: "Name and message required" });
-    const cleanName = name.trim().substring(0, 20);
+    if (!message) return res.status(400).json({ error: "Message required" });
+    const cleanName = username;
     const maxChars = isVipUser ? 250 : 150;
     const cleanMsg = message.trim().substring(0, maxChars);
 
-    if (cleanName.length < 2) return res.status(400).json({ error: "Name too short" });
     if (RESERVED.includes(cleanName.toLowerCase())) return res.status(400).json({ error: "Name reserved" });
 
     if (isNameImpersonating(cleanName) && !isRealAdmin) {

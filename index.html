@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,interactive-widget=resizes-content">
 <title>CPM Community Wall</title>
+<script>
+  if (!localStorage.getItem('wall_token')) {
+    window.location.href = '/login.html';
+  }
+</script>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#080a12">
 <meta name="mobile-web-app-capable" content="yes">
@@ -72,6 +77,7 @@ body {
   justify-content: space-between;
   flex-shrink: 0;
 }
+.header-left { display: flex; align-items: center; gap: 10px; }
 .header h1 { font-size: 0.9rem; font-weight: 700; }
 .status-sub { display: flex; align-items: center; gap: 6px; font-size: 0.72rem; color: var(--accent); margin-top: 2px; }
 .dot { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; display: inline-block; box-shadow: 0 0 8px #22c55e; }
@@ -97,6 +103,34 @@ body {
   -webkit-user-select: none;
 }
 .top-btn.active { border-color: var(--accent); color: var(--accent); }
+
+.account-menu {
+  position: absolute;
+  top: 55px;
+  left: 12px;
+  background: #131726;
+  border: 1px solid var(--gold);
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 100;
+  min-width: 180px;
+}
+.account-menu span { font-size: 11px; color: var(--muted); }
+.account-menu b { font-size: 12px; color: #fef08a; }
+.logout-btn {
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
 
 .room-bar {
   display: flex;
@@ -498,10 +532,10 @@ body {
   border-radius: 8px;
   outline: none;
   font-size: 0.82rem;
+  width: 100%;
 }
 .input-panel input:focus { border-color: var(--accent); }
 .input-panel input:disabled { opacity: 0.5; cursor: not-allowed; }
-#userName { width: 95px; flex-shrink: 0; }
 #msgInput { flex: 1; min-width: 0; }
 .input-bottom { display: flex; justify-content: space-between; align-items: center; }
 .char-num { font-size: 10px; color: var(--muted); }
@@ -576,18 +610,29 @@ body {
 <body>
 <div class="container">
   <div class="header">
-    <div>
-      <h1>Car Parking Multiplayer</h1>
-      <div class="status-sub">
-        <span id="liveDot" class="dot"></span>
-        <span id="statusLabel">Lobby Chat</span>
-        <span id="onlineCount" class="online-pill">1 Online</span>
+    <div class="header-left">
+      <div>
+        <h1>Car Parking Multiplayer</h1>
+        <div class="status-sub">
+          <span id="liveDot" class="dot"></span>
+          <span id="statusLabel">Lobby Chat</span>
+          <span id="onlineCount" class="online-pill">1 Online</span>
+        </div>
+      </div>
+      <div id="yourAccountBtn" onclick="toggleAccountMenu()" style="background: linear-gradient(90deg, #d4af37, #f9d976); color:black; padding:5px 12px; border-radius:20px; font-size:12px; font-weight:bold; border:1px solid gold; cursor:pointer; white-space:nowrap;">
+        👤 @<span id="topUsername">Username</span>
       </div>
     </div>
     <div class="header-actions">
       <button id="alertBtn" type="button" class="top-btn" onclick="toggleAlerts()">🔔 Alerts</button>
       <button id="soundToggle" type="button" class="top-btn" onclick="cycleSoundFX()">🔊 Ping</button>
     </div>
+  </div>
+
+  <div id="accountMenu" class="account-menu">
+    <span>Logged in as</span>
+    <b id="menuUsername">@username</b>
+    <button type="button" class="logout-btn" onclick="logoutUser()">Logout</button>
   </div>
 
   <div class="room-bar">
@@ -650,7 +695,6 @@ body {
     </div>
 
     <div class="input-row">
-      <input id="userName" placeholder="Driver Tag" maxlength="20">
       <input id="msgInput" placeholder="Type message, room code, or ID..." maxlength="150" autocomplete="off">
     </div>
 
@@ -668,6 +712,7 @@ body {
     </div>
   </div>
 </div>
+
 <div id="tipModal" class="modal-back">
   <div class="modal-window">
     <h3>☕ Support CPM Community</h3>
@@ -726,8 +771,8 @@ body {
       </div>
     </div>
 
-    <input id="vipPassInput" placeholder="Enter VIP Passcode or ADMIN_KEY" style="background:#0d101d; border:1px solid var(--border); color:#fff; padding:9px; border-radius:8px;">
-    <button id="vipUnlockBtn" type="button" class="send-btn" style="background:linear-gradient(135deg, #f59e0b, #d97706); color:#000;" onclick="unlockVip()">Unlock VIP Room</button>
+    <input type="password" id="vipPassInput" placeholder="Enter VIP Passcode or ADMIN_KEY" style="background:#0d101d; border:1px solid var(--border); color:#fff; padding:9px; border-radius:8px; width:100%;">
+    <button id="vipUnlockBtn" type="button" class="send-btn" style="background:linear-gradient(135deg, #f59e0b, #d97706); color:#000; width:100%;" onclick="unlockVip()">Unlock VIP Room</button>
 
     <a href="https://wa.me/923558182875?text=Hello%20Admin%2C%20I%20want%20to%20buy%20the%20VIP%20Room%20Passcode" target="_blank" class="sbtn" style="background:#25d366; text-align:center; padding:8px;">Get VIP Pass ($1 / 300 PKR)</a>
     <button type="button" class="close-modal-btn" onclick="cancelVipModal()">Cancel</button>
@@ -750,11 +795,39 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+const token = localStorage.getItem('wall_token');
+const username = localStorage.getItem('wall_user');
+if (!token || !username) {
+  localStorage.clear();
+  window.location.href = '/login.html';
+} else {
+  fetch('/api/auth?action=me', {
+    headers: { 'Authorization': `Bearer ${token}` }
+  }).then(r => {
+    if (!r.ok) {
+      localStorage.clear();
+      window.location.href = '/login.html';
+    }
+  }).catch(() => {});
+}
+
+document.getElementById('topUsername').textContent = username || 'User';
+document.getElementById('menuUsername').textContent = '@' + (username || 'user');
+
+window.toggleAccountMenu = () => {
+  const m = document.getElementById('accountMenu');
+  m.style.display = m.style.display === 'flex' ? 'none' : 'flex';
+};
+
+window.logoutUser = () => {
+  localStorage.clear();
+  window.location.href = '/login.html';
+};
+
 const feedEl = document.getElementById('feed');
 const jumpBtn = document.getElementById('jumpBtn');
 const typingEl = document.getElementById('typing');
 const pinnedBox = document.getElementById('pinnedBox');
-const userNameInput = document.getElementById('userName');
 const msgInput = document.getElementById('msgInput');
 const sendBtn = document.getElementById('sendBtn');
 const charCount = document.getElementById('charCount');
@@ -772,8 +845,6 @@ const tabMarket = document.getElementById('tabMarket');
 const tabVip = document.getElementById('tabVip');
 const tipModal = document.getElementById('tipModal');
 const vipModal = document.getElementById('vipModal');
-
-userNameInput.value = localStorage.getItem('cpm_name') || '';
 
 let currentRoom = 'public';
 let activeVipKey = localStorage.getItem('cpm_vip_key') || '';
@@ -851,10 +922,6 @@ window.setVipFrame = (frame, el) => {
 };
 
 window.switchRoom = (room) => {
-  const tabPublic = document.getElementById('tabPublic');
-  const tabMarket = document.getElementById('tabMarket');
-  const tabVip = document.getElementById('tabVip');
-  
   if (room === 'vip') {
     if (!activeVipKey) {
       vipModal.style.display = 'flex';
@@ -883,7 +950,6 @@ window.switchRoom = (room) => {
 
 window.unlockVip = async () => {
   const entered = (document.getElementById('vipPassInput').value || '').trim();
-  const name = (userNameInput.value || '').trim();
   if (!entered) return alert('Enter VIP Passcode or ADMIN_KEY');
 
   const unlockBtn = document.getElementById('vipUnlockBtn');
@@ -896,11 +962,13 @@ window.unlockVip = async () => {
     const clientInfo = await getClientDeviceInfo();
     const res = await fetch('/api/post', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('wall_token')}`
+      },
       body: JSON.stringify({
         action: 'unlock_vip',
         vipKey: entered,
-        name: name,
         clientInfo
       })
     });
@@ -1178,7 +1246,7 @@ function renderMessageText(container, text, isVipPost) {
 }
 
 function buildBubble(id, data, isTemporary) {
-  const currentName = (userNameInput.value || '').trim();
+  const currentName = username;
   const isBot = Boolean(data.isBot || data.name === 'Apex_Racer');
   const isMe = Boolean(currentName && data.name === currentName);
 
@@ -1278,7 +1346,10 @@ function buildBubble(id, data, isTemporary) {
       if (countEl) countEl.textContent = (data.likes || 0) + 1;
       await fetch('/api/post', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('wall_token')}`
+        },
         body: JSON.stringify({ action: 'like', postId: id })
       }).catch(() => {});
     };
@@ -1296,7 +1367,10 @@ function buildBubble(id, data, isTemporary) {
         reportBtn.disabled = true;
         await fetch('/api/post', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('wall_token')}`
+          },
           body: JSON.stringify({ action: 'report', postId: id })
         }).catch(() => {});
         alert('Message reported to administration.');
@@ -1525,19 +1599,17 @@ window.sendPost = async () => {
     alert("Chat is temporarily paused by admin.");
     return;
   }
-  const name = userNameInput.value.trim();
+  const name = username;
   const message = msgInput.value.trim();
 
-  if (name.length < 2 || !message) {
-    alert("Please enter a valid name (2+ chars) and message.");
+  if (!message) {
+    alert("Please enter a message.");
     return;
   }
   if (message === lastPostedMsg && Date.now() - lastPostTimestamp < 60000 && !adminKey) {
     alert("Duplicate message. Please wait before resending.");
     return;
   }
-
-  localStorage.setItem('cpm_name', name);
 
   const isVip = Boolean(activeVipKey);
   const chosenColor = isVip ? currentVipColor : null;
@@ -1565,9 +1637,11 @@ window.sendPost = async () => {
     const clientInfo = await getClientDeviceInfo();
     const res = await fetch('/api/post', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('wall_token')}`
+      },
       body: JSON.stringify({
-        name,
         message,
         clientInfo,
         room: currentRoom,
