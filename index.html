@@ -67,7 +67,6 @@ body {
   position: relative;
   overflow: hidden;
 }
-
 /* HEADER OPTION C */
 .header {
   background: rgba(21, 24, 37, 0.85);
@@ -145,7 +144,6 @@ body {
   transition: 0.2s;
 }
 .icon-btn.active { background: rgba(0, 240, 255, 0.15); box-shadow: 0 0 6px rgba(0, 240, 255, 0.4); }
-
 .announcement-banner {
   background: linear-gradient(90deg, #991b1b, #7f1d1d);
   border: 1px solid #ef4444;
@@ -157,7 +155,6 @@ body {
   flex-shrink: 0;
   font-weight: 700;
 }
-
 .room-bar {
   display: flex;
   gap: 6px;
@@ -192,7 +189,6 @@ body {
   border-color: #10b981;
   color: #a7f3d0;
 }
-
 .pinned {
   background: linear-gradient(90deg, rgba(0, 240, 255, 0.1), rgba(255, 59, 154, 0.1));
   border: 1px solid rgba(0, 240, 255, 0.25);
@@ -206,7 +202,6 @@ body {
   overflow-y: auto;
 }
 .pinned b { color: #fff; margin-right: 4px; }
-
 .social { display: flex; gap: 5px; flex-shrink: 0; }
 .sbtn {
   flex: 1;
@@ -221,7 +216,6 @@ body {
   cursor: pointer;
   white-space: nowrap;
 }
-
 .filter-row {
   display: flex;
   gap: 6px;
@@ -246,7 +240,6 @@ body {
   cursor: pointer;
   display: none;
 }
-
 .feed {
   display: flex;
   flex-direction: column;
@@ -285,7 +278,6 @@ body {
   border: 1.5px solid #f59e0b !important;
   box-shadow: 0 0 6px rgba(245, 158, 11, 0.4) !important;
 }
-
 .quoted-preview {
   background: rgba(0, 0, 0, 0.3);
   border-left: 2px solid var(--accent);
@@ -295,7 +287,6 @@ body {
   color: #94a3b8;
   margin-bottom: 2px;
 }
-
 .author-line {
   display: flex;
   align-items: center;
@@ -313,16 +304,12 @@ body {
   cursor: pointer;
 }
 .bubble.bot .author { color: var(--bot); }
-
 .author.vip-glow {
   font-weight: 800;
   letter-spacing: 0.2px;
   color: #FFD700;
 }
-
 .meta { font-size: 10px; color: var(--muted); }
-
-/* READABILITY FIX: SOLID BADGES WITH NO HEAVY GLOW */
 .admin-badge {
   background: #dc2626 !important;
   color: #ffffff !important;
@@ -341,7 +328,6 @@ body {
   font-weight: 700;
   box-shadow: none !important;
 }
-
 .body {
   font-size: 0.85rem;
   line-height: 1.4;
@@ -350,7 +336,6 @@ body {
   width: 100%;
   display: block;
 }
-
 .bubble-actions {
   display: flex;
   align-items: center;
@@ -382,7 +367,6 @@ body {
 }
 .action-icon-btn.delete { color: #ef4444; font-weight: bold; }
 .action-icon-btn.pin { color: #f59e0b; font-weight: bold; }
-
 .room-code {
   background: rgba(0, 240, 255, 0.15);
   color: var(--accent);
@@ -400,7 +384,6 @@ body {
   border: 1px solid var(--gold);
   box-shadow: 0 0 6px rgba(245, 158, 11, 0.4);
 }
-
 .jump-btn {
   position: absolute;
   bottom: 130px;
@@ -418,7 +401,6 @@ body {
   display: none;
   z-index: 10;
 }
-
 .chips-bar {
   display: flex;
   gap: 6px;
@@ -439,7 +421,6 @@ body {
   cursor: pointer;
   flex-shrink: 0;
 }
-
 .emoji-row {
   display: flex;
   gap: 6px;
@@ -458,7 +439,6 @@ body {
   cursor: pointer;
   flex-shrink: 0;
 }
-
 .replying-bar {
   display: none;
   background: #1a2238;
@@ -471,7 +451,6 @@ body {
   align-items: center;
   margin-bottom: 4px;
 }
-
 .input-panel {
   background: var(--card);
   border: 1px solid var(--border);
@@ -533,7 +512,6 @@ body {
   cursor: pointer;
   font-size: 0.8rem;
 }
-
 .modal-back {
   display: none;
   position: fixed;
@@ -589,56 +567,56 @@ body {
 </head>
 <body>
 <div class="container">
-  <!-- OPTION C HEADER -->
   <div class="header">
     <div class="header-left-pill">
-      <span class="dot"></span>
+      <span class="dot">🟢</span>
       <span>Lobby Chat | <span id="onlineCount">1 Online</span></span>
     </div>
     <div class="header-center-chip" onclick="window.location.href='/settings.html'">
       <div class="header-avatar" id="headerAvatarJ">J</div>
       <div class="header-username" id="topUsername">@user</div>
-      <span style="font-size:10px; color:#fef08a;">👑 ▼</span>
+      <span style="font-size:10px; color:#fef08a;">⚙️</span>
     </div>
     <div class="header-right-actions">
       <button id="alertBtn" type="button" class="icon-btn" onclick="toggleAlerts()" title="Alerts">🔔</button>
-      <button id="soundToggle" type="button" class="icon-btn active" onclick="cycleSoundFX()" title="Sound">💨</button>
+      <button id="soundToggle" type="button" class="icon-btn active" onclick="cycleSoundFX()" title="Sound">🔊</button>
     </div>
   </div>
-
+  
   <div id="announcementBanner" class="announcement-banner"></div>
-
+  
   <div class="room-bar">
-    <button id="tabPublic" type="button" class="room-tab active" onclick="switchRoom('public')">🌐 Public Wall</button>
+    <button id="tabPublic" type="button" class="room-tab active" onclick="switchRoom('public')">🌍 Public Wall</button>
     <button id="tabMarket" type="button" class="room-tab market" onclick="switchRoom('market')">🛒 Marketplace</button>
-    <button id="tabVip" type="button" class="room-tab vip" onclick="switchRoom('vip')" style="display:none;">🔒 VIP Lounge</button>
+    <button id="tabVip" type="button" class="room-tab vip" onclick="switchRoom('vip')" style="display:none;">👑 VIP Lounge</button>
+    <button id="tabAdmin" type="button" class="room-tab" onclick="window.location.href='/admin.html'" style="display:none; background:linear-gradient(135deg, #7f1d1d, #450a0a); border-color:#ef4444; color:#fca5a5;">🛡️ Admin Panel</button>
   </div>
-
+  
   <div id="pinnedBox" class="pinned"></div>
-
+  
   <div class="social">
-    <button type="button" class="sbtn" style="background:#059669;" onclick="openTipModal()">☕ Tip Jar</button>
+    <button type="button" class="sbtn" style="background:#059669;" onclick="openTipModal()">💰 Tip Jar</button>
     <button type="button" class="sbtn" style="background:#1d9bf0;" onclick="shareSite()">🔗 Share</button>
     <a class="sbtn" style="background:linear-gradient(45deg,#f09433,#dc2743)" href="https://www.instagram.com/4t_jagga" target="_blank" rel="noopener noreferrer">IG Profile</a>
     <a class="sbtn" style="background:#e1306c" href="https://www.instagram.com/channel/FMW8_rf52qWxlGoC/" target="_blank" rel="noopener noreferrer">IG Channel</a>
     <a class="sbtn" style="background:#25d366" href="https://wa.me/923558182875?text=Salam%20Jagga%20Bhai%2C%20I%20want%20to%20buy%20VIP" target="_blank" rel="noopener noreferrer">WhatsApp</a>
   </div>
-
+  
   <div class="filter-row">
     <input id="wallSearch" placeholder="🔍 Search wall messages, drivers, or #tags..." oninput="handleWallSearch(this.value)">
-    <span id="clearSearch" class="clear-filter" onclick="clearSearchFilter()">✕ Clear</span>
+    <span id="clearSearch" class="clear-filter" onclick="clearSearchFilter()">❌ Clear</span>
   </div>
-
+  
   <div id="feed" class="feed">Connecting to wall...</div>
-  <button id="jumpBtn" class="jump-btn" type="button" onclick="scrollToTop()">↓ New messages</button>
+  
+  <button id="jumpBtn" class="jump-btn" type="button" onclick="scrollToTop()">⬇️ New messages</button>
   <div id="typing" class="typing-box"></div>
-
+  
   <div class="input-panel">
     <div id="replyingBar" class="replying-bar">
       <span id="replyingText">Replying to @user</span>
-      <span onclick="cancelReply()" style="cursor:pointer; font-weight:bold;">✕</span>
+      <span onclick="cancelReply()" style="cursor:pointer; font-weight:bold;">❌</span>
     </div>
-
     <div class="chips-bar">
       <button type="button" class="chip" onclick="tagBot()">+ Tag @Apex_Racer</button>
       <button type="button" class="chip" onclick="addTag('#Gearbox')">#Gearbox</button>
@@ -646,27 +624,22 @@ body {
       <button type="button" class="chip" onclick="addTag('#RoomCode')">#RoomCode</button>
       <button type="button" class="chip" onclick="addTag('#Trade')">#Trade</button>
     </div>
-
     <div class="emoji-row">
-      <button type="button" class="emoji-btn" onclick="addEmoji('🏎️')">🏎️</button>
       <button type="button" class="emoji-btn" onclick="addEmoji('🔥')">🔥</button>
-      <button type="button" class="emoji-btn" onclick="addEmoji('💨')">💨</button>
-      <button type="button" class="emoji-btn" onclick="addEmoji('🤝')">🤝</button>
       <button type="button" class="emoji-btn" onclick="addEmoji('💀')">💀</button>
+      <button type="button" class="emoji-btn" onclick="addEmoji('💸')">💸</button>
+      <button type="button" class="emoji-btn" onclick="addEmoji('🏎️')">🏎️</button>
+      <button type="button" class="emoji-btn" onclick="addEmoji('🚓')">🚓</button>
     </div>
-
     <div class="input-row">
       <input id="msgInput" placeholder="Type message, room code, or ID..." maxlength="150" autocomplete="off">
     </div>
-
     <div class="typing-progress-wrap">
       <div id="typingProgressBar" class="typing-progress-bar"></div>
     </div>
-
     <div id="cooldownWrap" class="cooldown-wrap">
       <div id="cooldownBar" class="cooldown-bar"></div>
     </div>
-
     <div class="input-bottom">
       <span id="charCount" class="char-num">0/150</span>
       <button id="sendBtn" class="send-btn" onclick="sendPost()">Post to Wall</button>
@@ -680,7 +653,6 @@ body {
     <p style="font-size: 0.75rem; color: var(--muted); line-height: 1.35;">
       Tips keep our servers online and ad-free. Send a screenshot on WhatsApp after tipping to receive a permanent Verified Driver Badge.
     </p>
-
     <div class="tip-card">
       <div>
         <b style="color:#f59e0b;">JazzCash (Pakistan)</b>
@@ -688,7 +660,6 @@ body {
       </div>
       <button type="button" class="copy-pill" onclick="copyTip('03206872177', this)">Copy</button>
     </div>
-
     <a href="https://wa.me/923558182875?text=Salam%20Jagga%20Bhai%2C%20I%20sent%20a%20tip%20for%20the%20CPM%20wall" target="_blank" class="sbtn" style="background:#25d366; text-align:center; padding:8px;">Send Screenshot on WhatsApp</a>
     <button type="button" class="close-modal-btn" onclick="closeTipModal()">Close</button>
   </div>
@@ -696,24 +667,24 @@ body {
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, onSnapshot, query, orderBy, limit, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, query, orderBy, limit, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const _k1 = "AIza";
 const _k2 = "SyAOE8v7ANE6vvlHh2ZbiaJ6iHBN4voFcYM";
 const EXPECTED_PROJECT = "cpmwall3";
-
 const firebaseConfig = {
   apiKey: _k1 + _k2,
   authDomain: `${EXPECTED_PROJECT}.firebaseapp.com`,
   projectId: EXPECTED_PROJECT
 };
+
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const token = localStorage.getItem('wall_token');
 let currentUser = localStorage.getItem('wall_user') || 'user';
 let isUserVip = false;
-let isUserAdmin = (currentUser === 'jagga');
+let isUserAdmin = false;
 
 async function verifyAuthAndProfile() {
   if (!token) {
@@ -726,12 +697,13 @@ async function verifyAuthAndProfile() {
     });
     if (res.ok) {
       const data = await res.json();
-      currentUser = data.username;
+      currentUser = String(data.username).toUpperCase();
       localStorage.setItem('wall_user', currentUser);
       isUserVip = Boolean(data.isVip);
-      isUserAdmin = data.isAdmin || (currentUser === 'jagga');
-
+      isUserAdmin = (currentUser === 'ADMIN');
+      
       document.getElementById('topUsername').textContent = '@' + currentUser;
+      
       const cachedPhoto = data.photoURL || localStorage.getItem('wall_photo') || '';
       const avatarDiv = document.getElementById('headerAvatarJ');
       if (cachedPhoto) {
@@ -739,9 +711,13 @@ async function verifyAuthAndProfile() {
       } else {
         avatarDiv.textContent = currentUser.charAt(0).toUpperCase();
       }
-
+      
       if (isUserVip || isUserAdmin) {
         document.getElementById('tabVip').style.display = 'block';
+      }
+      if (isUserAdmin) {
+        const adminBtn = document.getElementById('tabAdmin');
+        if (adminBtn) adminBtn.style.display = 'block';
       }
     } else {
       localStorage.clear();
@@ -749,6 +725,7 @@ async function verifyAuthAndProfile() {
     }
   } catch {}
 }
+
 verifyAuthAndProfile();
 
 const feedEl = document.getElementById('feed');
@@ -768,7 +745,6 @@ const cooldownBar = document.getElementById('cooldownBar');
 const typingProgressBar = document.getElementById('typingProgressBar');
 const replyingBar = document.getElementById('replyingBar');
 const replyingText = document.getElementById('replyingText');
-
 const tabPublic = document.getElementById('tabPublic');
 const tabMarket = document.getElementById('tabMarket');
 const tabVip = document.getElementById('tabVip');
@@ -792,7 +768,6 @@ function updateCharCounterDisplay() {
   const max = isUserVip ? 250 : 150;
   const len = msgInput.value.length;
   charCount.textContent = `${len}/${max}`;
-
   const pct = Math.min(100, (len / max) * 100);
   if (typingProgressBar) {
     typingProgressBar.style.width = `${pct}%`;
@@ -811,7 +786,6 @@ function updateCharCounterDisplay() {
 
 window.openTipModal = () => { tipModal.style.display = 'flex'; };
 window.closeTipModal = () => { tipModal.style.display = 'none'; };
-
 window.copyTip = (num, btn) => {
   navigator.clipboard.writeText(num);
   const orig = btn.textContent;
@@ -828,10 +802,11 @@ window.switchRoom = (room) => {
   tabPublic.classList.remove('active');
   tabMarket.classList.remove('active');
   tabVip.classList.remove('active');
-
+  
   if (room === 'vip') tabVip.classList.add('active');
   else if (room === 'market') tabMarket.classList.add('active');
   else tabPublic.classList.add('active');
+  
   filterFeedByRoom();
 };
 
@@ -843,9 +818,9 @@ function filterFeedByRoom() {
     const text = b.getAttribute('data-text') || '';
     const name = b.getAttribute('data-name') || '';
     
-    const matchesRoom = (bubbleRoom === currentRoom); 
+    const matchesRoom = (bubbleRoom === currentRoom);
     const matchesSearch = !activeSearchQuery || text.includes(activeSearchQuery) || name.includes(activeSearchQuery);
-
+    
     if (matchesRoom && matchesSearch) {
       b.style.display = 'flex';
       visibleCount++;
@@ -853,7 +828,7 @@ function filterFeedByRoom() {
       b.style.display = 'none';
     }
   });
-
+  
   const emptyNotice = document.getElementById('emptyRoomNotice');
   if (visibleCount === 0) {
     if (!emptyNotice) {
@@ -952,34 +927,34 @@ window.cancelReply = () => {
 };
 
 function buildBubble(id, data, isTemporary) {
-  const isMe = Boolean(currentUser && data.name === currentUser);
+  const isMe = Boolean(currentUser && data.name && data.name.toUpperCase() === currentUser);
   const isBot = Boolean(data.isBot);
-  const isAdminPost = (data.name === 'jagga');
+  const isAdminPost = (data.name && data.name.toUpperCase() === 'ADMIN');
   const isVipPost = isAdminPost || Boolean(data.isVip);
-
+  
   const bubble = document.createElement('div');
   bubble.className = `bubble ${isBot ? 'bot' : isMe ? 'me' : ''} ${isVipPost ? 'vip-bubble' : ''}`;
   if (id) bubble.id = `post-${id}`;
   if (isTemporary) bubble.setAttribute('data-pending', `${data.name}-${data.message}`);
-
+  
   bubble.setAttribute('data-room', data.room || 'public');
   bubble.setAttribute('data-text', (data.message || '').toLowerCase());
   bubble.setAttribute('data-name', (data.name || '').toLowerCase());
-
+  
   if (data.replyTo) {
     const qEl = document.createElement('div');
     qEl.className = 'quoted-preview';
     qEl.textContent = `@${data.replyTo.name}: ${data.replyTo.text}`;
     bubble.appendChild(qEl);
   }
-
+  
   const authorLine = document.createElement('div');
   authorLine.className = 'author-line';
-
+  
   const author = document.createElement('div');
   author.className = `author ${isVipPost ? 'vip-glow' : ''}`;
   author.textContent = data.name;
-
+  
   if (isAdminPost) {
     const adminTag = document.createElement('span');
     adminTag.className = 'admin-badge';
@@ -992,22 +967,22 @@ function buildBubble(id, data, isTemporary) {
     author.appendChild(vipTag);
   }
   authorLine.appendChild(author);
-
+  
   const meta = document.createElement('div');
   meta.className = 'meta';
   meta.textContent = isTemporary ? 'Just now' : timeAgo(data.createdAt?.toDate ? data.createdAt.toDate() : new Date());
   authorLine.appendChild(meta);
-
+  
   const bodyEl = document.createElement('div');
   bodyEl.className = 'body';
   bodyEl.textContent = data.message || '';
-
+  
   bubble.appendChild(authorLine);
   bubble.appendChild(bodyEl);
-
+  
   const actionsEl = document.createElement('div');
   actionsEl.className = 'bubble-actions';
-
+  
   const likeBtn = document.createElement('button');
   likeBtn.type = 'button';
   likeBtn.className = `reaction-btn`;
@@ -1020,35 +995,60 @@ function buildBubble(id, data, isTemporary) {
     }).catch(() => {});
   };
   actionsEl.appendChild(likeBtn);
-
+  
   const replyBtn = document.createElement('button');
   replyBtn.type = 'button';
   replyBtn.className = 'action-icon-btn';
   replyBtn.textContent = '↩️ Reply';
   replyBtn.onclick = () => setReplyTo(data.name, data.message);
   actionsEl.appendChild(replyBtn);
-
-  if (currentUser === 'jagga') {
+  
+  // Changed logic: Evaluate strictly against `isUserAdmin` state parsed securely from `/api/user/me`
+  if (isUserAdmin) {
     const delBtn = document.createElement('button');
     delBtn.type = 'button';
     delBtn.className = 'action-icon-btn delete';
     delBtn.textContent = '🗑️ Delete';
     delBtn.onclick = async () => {
       if (!confirm('Delete this message?')) return;
-      await deleteDoc(doc(db, "posts", id));
+      try {
+        const res = await fetch('/api/post', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ action: 'delete', postId: id })
+        });
+        if (!res.ok) {
+          const d = await res.json();
+          alert(d.error || 'Failed to delete post.');
+        }
+      } catch (err) {
+        console.error(err);
+      }
     };
     actionsEl.appendChild(delBtn);
-
+    
     const pinBtn = document.createElement('button');
     pinBtn.type = 'button';
     pinBtn.className = 'action-icon-btn pin';
     pinBtn.textContent = '📌 Announce';
     pinBtn.onclick = async () => {
-      await updateDoc(doc(db, "pinned", "current"), { text: data.message, name: data.name, active: true, isAnnouncement: true });
+      try {
+        const res = await fetch('/api/post', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ action: 'pin', text: data.message, name: data.name, active: true, isAnnouncement: true })
+        });
+        if (!res.ok) {
+          const d = await res.json();
+          alert(d.error || 'Failed to pin post.');
+        }
+      } catch (err) {
+        console.error(err);
+      }
     };
     actionsEl.appendChild(pinBtn);
   }
-
+  
   bubble.appendChild(actionsEl);
   return bubble;
 }
@@ -1078,7 +1078,7 @@ onSnapshot(doc(db, "pinned", "current"), (snap) => {
     const d = snap.data();
     if (d.active && d.text) {
       if (d.isAnnouncement) {
-        announcementBanner.innerHTML = `🚨 <b>Announcement from ${d.name}:</b> ${d.text}`;
+        announcementBanner.innerHTML = `📢 <b>Announcement from ${d.name}:</b> ${d.text}`;
         announcementBanner.style.display = 'block';
       } else {
         pinnedBox.innerHTML = `📌 <b>${d.name}:</b> ${d.text}`;
@@ -1100,7 +1100,7 @@ onSnapshot(q, (snap) => {
   }
   const placeholder = document.getElementById('emptyRoomNotice');
   if (placeholder) placeholder.remove();
-
+  
   if (isInitialLoad || !hasLoadedPosts) {
     feedEl.innerHTML = '';
     snap.docs.forEach(docSnap => feedEl.appendChild(buildBubble(docSnap.id, docSnap.data(), false)));
@@ -1109,7 +1109,7 @@ onSnapshot(q, (snap) => {
     filterFeedByRoom();
     return;
   }
-
+  
   snap.docChanges().forEach((change) => {
     if (change.type === 'added') {
       const id = change.doc.id;
@@ -1153,15 +1153,19 @@ window.addEmoji = (emoji) => {
 };
 
 window.sendPost = async () => {
+  if (!token) {
+    window.location.href = '/login.html';
+    return;
+  }
   const message = msgInput.value.trim();
   if (!message) return;
-
+  
   const res = await fetch('/api/post', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
     body: JSON.stringify({ message, room: currentRoom, replyTo: replyingToData })
   });
-
+  
   if (res.ok) {
     msgInput.value = '';
     cancelReply();
