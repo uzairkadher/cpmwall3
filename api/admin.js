@@ -1,24 +1,75 @@
 import admin from "firebase-admin";
+import { verifyJwt } from "./auth.js";
 
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_KEY))
   });
 }
+
 const db = admin.firestore();
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, x-admin-key");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, x-admin-key");
+
   if (req.method === "OPTIONS") return res.status(200).end();
 
+  // 1. Verify Static Admin Key Header
   const adminKey = req.headers["x-admin-key"];
-  if (adminKey !== process.env.ADMIN_KEY) return res.status(401).json({ error: "Unauthorized" });
+  if (adminKey !== process.env.ADMIN_KEY) {
+    return res.status(401).json({ error: "Unauthorized: Invalid admin key" });
+  }
 
   try {
+    // 2. Verify Custom JWT Bearer Token
+    const authHeader = req.headers["authorization"] || "";
+    const token = authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : null;
+    if (!token) {
+      return res.status(401).json({ error: "Unauthorized: Missing authentication token" });
+    }
+
+    const decoded = verifyJwt(token);
+    if (!decoded || !decoded.username) {
+      return res.status(401).json({ error: "Unauthorized: Invalid or expired token" });
+    }
+
+    const username = String(decoded.username).toUpperCase();
+
+    // 3. Verify User Role in Firestore
+    const userRef = db.collection("users").doc(username);
+    const userDoc = await userRef.get();
+    
+    if (!userDoc.exists) {
+      return res.status(403).json({ error: "Forbidden: User document not found" });
+    }
+
+    const userData = userDoc.data();
+    if (userData.role !== "ADMIN") {
+      return res.status(403).json({ error: "Forbidden: Insufficient role permissions" });
+    }
+
+    // 4. Audit Logging
+    const rawIp = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || "").split(',')[0].trim() || "unknown";
+    let actionName = "unknown";
+    
+    if (req.method === "GET") actionName = `READ_${(req.query.action || "posts").toUpperCase()}`;
+    else if (req.method === "POST") actionName = `WRITE_${(req.body.action || "unknown").toUpperCase()}`;
+    else if (req.method === "DELETE") actionName = "DELETE_POST";
+
+    await db.collection("audit_logs").add({
+      adminUsername: username,
+      action: actionName,
+      method: req.method,
+      ip: rawIp,
+      timestamp: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    // --- EXISTING ADMIN LOGIC ---
     if (req.method === "GET") {
       const action = req.query.action || "posts";
+      
       if (action === "posts") {
         const snap = await db.collection("posts").orderBy("createdAt", "desc").limit(100).get();
         return res.status(200).json(snap.docs.map(d => ({ id: d.id, ...d.data() })));
@@ -27,15 +78,12 @@ export default async function handler(req, res) {
         const now = new Date();
         const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         const startTimestamp = admin.firestore.Timestamp.fromDate(startOfDay);
-
         const [postsToday, visitorsToday] = await Promise.all([
           db.collection("posts").where("createdAt", ">=", startTimestamp).count().get(),
           db.collection("visitors").where("lastSeen", ">=", startTimestamp).count().get()
         ]);
-
         const writesToday = (postsToday.data().count * 2) + visitorsToday.data().count;
         const estimatedReads = (visitorsToday.data().count * 105) + (postsToday.data().count * 3);
-
         return res.status(200).json({
           reads: estimatedReads,
           readLimit: 50000,
@@ -120,7 +168,7 @@ export default async function handler(req, res) {
 
     if (req.method === "POST") {
       const { action } = req.body;
-
+      
       if (action === "toggle_chat_lock") {
         const { locked } = req.body;
         await db.collection("pinned").doc("current").set({
@@ -128,7 +176,6 @@ export default async function handler(req, res) {
         }, { merge: true });
         return res.status(200).json({ success: true, chatLocked: Boolean(locked) });
       }
-
       if (action === "whitelist_subnet_ip") {
         const { ip } = req.body;
         if (!ip) return res.status(400).json({ error: "Missing IP" });
@@ -139,14 +186,12 @@ export default async function handler(req, res) {
         });
         return res.status(200).json({ success: true, ip });
       }
-
       if (action === "remove_subnet_whitelist") {
         const { ip } = req.body;
         const safeIp = ip.replace(/[^a-zA-Z0-9.:]/g, "_");
         await db.collection("subnet_whitelist").doc(safeIp).delete();
         return res.status(200).json({ success: true });
       }
-
       if (action === "delete_bulk") {
         const { ids } = req.body;
         if (!Array.isArray(ids) || !ids.length) return res.status(400).json({ error: "No ids provided" });
@@ -158,7 +203,6 @@ export default async function handler(req, res) {
         await batch.commit();
         return res.status(200).json({ success: true, count: ids.length });
       }
-
       if (action === "toggle_raid_mode") {
         const { raidMode } = req.body;
         await db.collection("pinned").doc("current").set({
@@ -166,7 +210,6 @@ export default async function handler(req, res) {
         }, { merge: true });
         return res.status(200).json({ success: true, raidMode: Boolean(raidMode) });
       }
-
       if (action === "ban_subnet") {
         const { subnet } = req.body;
         if (!subnet) return res.status(400).json({ error: "Subnet required" });
@@ -177,14 +220,12 @@ export default async function handler(req, res) {
         });
         return res.status(200).json({ success: true, subnet });
       }
-
       if (action === "unban_subnet") {
         const { subnet } = req.body;
         const docId = subnet.replace(/\*/g, '0');
         await db.collection("subnet_bans").doc(docId).delete();
         return res.status(200).json({ success: true });
       }
-
       if (action === "ban_fingerprint") {
         const { fingerprint } = req.body;
         if (!fingerprint) return res.status(400).json({ error: "Fingerprint required" });
@@ -194,13 +235,11 @@ export default async function handler(req, res) {
         });
         return res.status(200).json({ success: true });
       }
-
       if (action === "unban_fingerprint") {
         const { fingerprint } = req.body;
         await db.collection("fingerprint_bans").doc(fingerprint).delete();
         return res.status(200).json({ success: true });
       }
-
       if (action === "shadowban") {
         const { ip } = req.body;
         if (!ip) return res.status(400).json({ error: "Missing IP" });
@@ -211,14 +250,12 @@ export default async function handler(req, res) {
         });
         return res.status(200).json({ success: true });
       }
-
       if (action === "unshadowban") {
         const { ip } = req.body;
         const safeIp = ip.replace(/[^a-zA-Z0-9.:]/g, "_");
         await db.collection("shadowbanned").doc(safeIp).delete();
         return res.status(200).json({ success: true });
       }
-
       if (action === "save_note") {
         const { ip, note } = req.body;
         if (!ip) return res.status(400).json({ error: "Missing IP" });
@@ -230,7 +267,6 @@ export default async function handler(req, res) {
         });
         return res.status(200).json({ success: true });
       }
-
       if (action === "generate_vip_code") {
         const rand = Math.floor(1000 + Math.random() * 9000);
         const code = `CPM-${rand}`;
@@ -239,7 +275,6 @@ export default async function handler(req, res) {
         }, { merge: true });
         return res.status(200).json({ success: true, vipKey: code });
       }
-
       if (action === "set_slow_mode") {
         const seconds = Math.max(1, Math.min(60, Number(req.body.seconds) || 10));
         await db.collection("pinned").doc("current").set({
@@ -247,7 +282,6 @@ export default async function handler(req, res) {
         }, { merge: true });
         return res.status(200).json({ success: true, slowModeSeconds: seconds });
       }
-
       if (action === "edit_post") {
         const { postId, message } = req.body;
         if (!postId || !message) return res.status(400).json({ error: "Missing postId or message" });
@@ -256,7 +290,6 @@ export default async function handler(req, res) {
         await db.collection("ip_logs").doc(postId).update({ message: cleanMsg }).catch(() => {});
         return res.status(200).json({ success: true, message: cleanMsg });
       }
-
       if (action === "flush_lobby") {
         const count = Math.min(100, Math.max(10, Number(req.body.count) || 50));
         const snap = await db.collection("posts").orderBy("createdAt", "desc").limit(count).get();
@@ -268,7 +301,6 @@ export default async function handler(req, res) {
         await batch.commit();
         return res.status(200).json({ success: true, deleted: snap.size });
       }
-
       if (action === "save_payment") {
         const { driverTag, method, amount, txId, notes } = req.body;
         if (!driverTag || !amount) return res.status(400).json({ error: "Driver Tag and Amount required" });
@@ -282,13 +314,11 @@ export default async function handler(req, res) {
         });
         return res.status(200).json({ success: true });
       }
-
       if (action === "delete_payment") {
         const { paymentId } = req.body;
         await db.collection("payments").doc(paymentId).delete();
         return res.status(200).json({ success: true });
       }
-
       if (action === "ban") {
         const { ip, reason, hours } = req.body;
         const safeIp = ip.replace(/[^a-zA-Z0-9.:]/g, "_");
@@ -304,13 +334,11 @@ export default async function handler(req, res) {
         });
         return res.status(200).json({ success: true });
       }
-
       if (action === "unban") {
         const safeIp = req.body.ip.replace(/[^a-zA-Z0-9.:]/g, "_");
         await db.collection("banned").doc(safeIp).delete();
         return res.status(200).json({ success: true });
       }
-
       if (action === "purge_ip") {
         const { ip } = req.body;
         const logsSnap = await db.collection("ip_logs").where("ip", "==", ip).get();
@@ -323,26 +351,22 @@ export default async function handler(req, res) {
         await batch.commit();
         return res.status(200).json({ success: true, count: logsSnap.size });
       }
-
       if (action === "dismiss_report") {
         await db.collection("posts").doc(req.body.postId).update({ isReported: false, reportCount: 0 });
         return res.status(200).json({ success: true });
       }
-
       if (action === "add_filter") {
         await db.collection("settings").doc("filters").set({
           words: admin.firestore.FieldValue.arrayUnion(req.body.word.trim().toLowerCase())
         }, { merge: true });
         return res.status(200).json({ success: true });
       }
-
       if (action === "remove_filter") {
         await db.collection("settings").doc("filters").update({
           words: admin.firestore.FieldValue.arrayRemove(req.body.word.trim().toLowerCase())
         });
         return res.status(200).json({ success: true });
       }
-
       if (action === "verify_ip") {
         const safeIp = req.body.ip.replace(/[^a-zA-Z0-9.:]/g, "_");
         await db.collection("verified_ips").doc(safeIp).set({
@@ -351,13 +375,11 @@ export default async function handler(req, res) {
         });
         return res.status(200).json({ success: true });
       }
-
       if (action === "unverify_ip") {
         const safeIp = req.body.ip.replace(/[^a-zA-Z0-9.:]/g, "_");
         await db.collection("verified_ips").doc(safeIp).delete();
         return res.status(200).json({ success: true });
       }
-
       if (action === "pin") {
         const { text, name, active } = req.body;
         await db.collection("pinned").doc("current").set({
@@ -369,6 +391,7 @@ export default async function handler(req, res) {
         return res.status(200).json({ success: true });
       }
     }
+
     return res.status(400).json({ error: "Invalid action" });
   } catch (e) {
     return res.status(500).json({ error: e.message });

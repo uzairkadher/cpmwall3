@@ -55,7 +55,6 @@ async function containsBlockedContent(text) {
   const lower = text.toLowerCase();
   if (LINK_REGEX.test(lower)) return true;
   
-  // Dynamic filter list check from settings
   let dynamicWords = [];
   try {
     const filterDoc = await db.collection("settings").doc("filters").get();
@@ -101,7 +100,7 @@ async function askApexRacer(userMessage) {
     const data = await aiRes.json();
     return data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || fallbackReply;
   } catch (err) {
-    return fallbackReply; // Instant fallback on 8s timeout or network error
+    return fallbackReply; 
   }
 }
 
@@ -132,12 +131,12 @@ export default async function handler(req, res) {
     const decoded = verifyJwt(token);
     if (!decoded || !decoded.username) return res.status(401).json({ error: "Unauthorized: Invalid token" });
     
-    // Enforce Uppercase Blueprint Username
     const username = String(decoded.username).toUpperCase();
     const userDoc = await db.collection("users").doc(username).get();
     const userData = userDoc.exists ? userDoc.data() : {};
     
-    const isRealAdmin = (username === "ADMIN");
+    // Ensure "ADMIN" string check respects the Blueprint naming convention
+    const isRealAdmin = (username === "ADMIN" || userData.role === "ADMIN");
     const isVipUser = isRealAdmin || Boolean(userData.isVip);
     const isVerifiedUser = isVipUser || Boolean(userData.isVerified);
 
@@ -171,7 +170,7 @@ export default async function handler(req, res) {
     const safeIp = rawIp.replace(/[^a-zA-Z0-9.:]/g, '_');
     const subnet = getSubnet24(rawIp) || "N/A";
     const fingerprint = getDeviceFingerprint(req.headers);
-    const isVpn = req.headers['x-vercel-ip-country'] && !req.headers['x-vercel-ip-city']; // Basic serverless VPN heuristic
+    const isVpn = req.headers['x-vercel-ip-country'] && !req.headers['x-vercel-ip-city'];
 
     if (action === "like") {
       if (!postId) return res.status(400).json({ error: "Missing postId" });
@@ -181,11 +180,9 @@ export default async function handler(req, res) {
 
     if (!message) return res.status(400).json({ error: "Message required" });
     
-    // Character Caps (Standard 150, VIP 250)
     const maxChars = isVipUser ? 250 : 150;
     const cleanMsg = message.trim().substring(0, maxChars);
 
-    // --- PARALLEL SECURITY READS ---
     const [
       bannedDoc, 
       fingerprintDoc, 
@@ -206,7 +203,7 @@ export default async function handler(req, res) {
       db.collection("strikes").doc(safeIp).get()
     ]);
 
-    // 1. Global State Checks (Raid Mode & Chat Lock)
+    // 1. Global State Checks
     const pinnedData = pinnedDoc.exists ? pinnedDoc.data() : {};
     if (pinnedData.chatLocked && !isRealAdmin) {
       return res.status(403).json({ error: "Chat is currently locked by administrators." });
@@ -231,13 +228,39 @@ export default async function handler(req, res) {
       }
     }
 
-    // 3. Dynamic Slow-Mode Enforcement
-    const slowModeSeconds = pinnedData.slowModeSeconds || 10;
-    if (!isRealAdmin && !isVipUser && rateLimitDoc.exists) {
-      const lastPostTime = rateLimitDoc.data().lastPostAt?.toDate() || new Date(0);
-      const secondsSinceLastPost = (Date.now() - lastPostTime.getTime()) / 1000;
-      if (secondsSinceLastPost < slowModeSeconds) {
-        return res.status(429).json({ error: `Slow mode active. Please wait ${Math.ceil(slowModeSeconds - secondsSinceLastPost)}s.` });
+    // 3. Strict 5-Per-Minute Rate Limiting & Legacy Slow Mode
+    let windowStartMillis = Date.now();
+    let currentCount = 0;
+
+    if (rateLimitDoc.exists) {
+      const rlData = rateLimitDoc.data();
+      const dbWindowStart = rlData.windowStart?.toMillis ? rlData.windowStart.toMillis() : 0;
+      
+      // If we are within the rolling 1-minute window
+      if (Date.now() - dbWindowStart < 60000) {
+        currentCount = rlData.count || 0;
+        windowStartMillis = dbWindowStart;
+        
+        // Enforce 5 posts max per minute
+        if (currentCount >= 5 && !isRealAdmin) {
+          const retryAfter = Math.ceil((60000 - (Date.now() - dbWindowStart)) / 1000);
+          res.setHeader("Retry-After", String(retryAfter));
+          return res.status(429).json({ error: `Rate limit exceeded (5 posts/min). Please wait ${retryAfter} seconds.` });
+        }
+      } else {
+        // Window expired, reset counter and window timestamp
+        windowStartMillis = Date.now();
+        currentCount = 0;
+      }
+      
+      // Keep legacy dynamic slow mode functionality for individual posts if needed
+      const slowModeSeconds = pinnedData.slowModeSeconds || 10;
+      if (!isRealAdmin && !isVipUser) {
+        const lastPostTime = rlData.lastPostAt?.toMillis ? rlData.lastPostAt.toMillis() : 0;
+        const secondsSinceLastPost = (Date.now() - lastPostTime) / 1000;
+        if (secondsSinceLastPost < slowModeSeconds) {
+          return res.status(429).json({ error: `Slow mode active. Please wait ${Math.ceil(slowModeSeconds - secondsSinceLastPost)}s.` });
+        }
       }
     }
 
@@ -256,7 +279,6 @@ export default async function handler(req, res) {
       }, { merge: true });
 
       if (newStrikeCount >= 3) {
-        // Issue 24-hour ban
         const bannedUntil = new Date(Date.now() + 24 * 3600 * 1000);
         batch.set(db.collection("banned").doc(safeIp), {
           ip: rawIp,
@@ -282,7 +304,6 @@ export default async function handler(req, res) {
     const batch = db.batch();
     const postRef = db.collection("posts").doc();
     
-    // Post Data
     batch.set(postRef, {
       name: username,
       userId: username,
@@ -297,7 +318,6 @@ export default async function handler(req, res) {
       replyTo: replyTo || null
     });
 
-    // Parallel Telemetry: IP Logs (Accessible only to admins)
     const uaMeta = parseUserAgent(req.headers['user-agent']);
     batch.set(db.collection("ip_logs").doc(postRef.id), {
       postId: postRef.id,
@@ -315,16 +335,18 @@ export default async function handler(req, res) {
       createdAt: admin.firestore.FieldValue.serverTimestamp()
     });
 
-    // Update Rate Limit
+    // Write updated Rate Limit stateful window
     if (!isRealAdmin) {
       batch.set(db.collection("rate_limits").doc(safeIp), {
-        lastPostAt: admin.firestore.FieldValue.serverTimestamp()
-      });
+        count: currentCount + 1,
+        windowStart: admin.firestore.Timestamp.fromMillis(windowStartMillis),
+        lastPostAt: admin.firestore.FieldValue.serverTimestamp() // Legacy marker for dynamic slow-mode
+      }, { merge: true });
     }
 
     await batch.commit();
 
-    // 6. AI Integration: Apex Racer
+    // 6. AI Integration
     if (cleanMsg.includes("@Apex_Racer")) {
       const aiReply = await askApexRacer(cleanMsg);
       const botPostRef = db.collection("posts").doc();

@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,interactive-widget=resizes-content">
 <title>CPM Community Wall</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
 <script>
   if (!localStorage.getItem('wall_token')) {
     window.location.href = '/login.html';
@@ -707,7 +708,8 @@ async function verifyAuthAndProfile() {
       const cachedPhoto = data.photoURL || localStorage.getItem('wall_photo') || '';
       const avatarDiv = document.getElementById('headerAvatarJ');
       if (cachedPhoto) {
-        avatarDiv.innerHTML = `<img src="${cachedPhoto}" style="width:100%;height:100%;object-fit:cover;">`;
+        // Enforce DOMPurify when assigning raw HTML strings via innerHTML
+        avatarDiv.innerHTML = DOMPurify.sanitize(`<img src="${cachedPhoto}" style="width:100%;height:100%;object-fit:cover;">`);
       } else {
         avatarDiv.textContent = currentUser.charAt(0).toUpperCase();
       }
@@ -975,6 +977,7 @@ function buildBubble(id, data, isTemporary) {
   
   const bodyEl = document.createElement('div');
   bodyEl.className = 'body';
+  // User messages natively protected via textContent
   bodyEl.textContent = data.message || '';
   
   bubble.appendChild(authorLine);
@@ -986,7 +989,7 @@ function buildBubble(id, data, isTemporary) {
   const likeBtn = document.createElement('button');
   likeBtn.type = 'button';
   likeBtn.className = `reaction-btn`;
-  likeBtn.innerHTML = `🔥 <span id="like-${id}">${data.likes || 0}</span>`;
+  likeBtn.innerHTML = DOMPurify.sanitize(`🔥 <span id="like-${id}">${data.likes || 0}</span>`);
   likeBtn.onclick = async () => {
     await fetch('/api/post', {
       method: 'POST',
@@ -1003,7 +1006,6 @@ function buildBubble(id, data, isTemporary) {
   replyBtn.onclick = () => setReplyTo(data.name, data.message);
   actionsEl.appendChild(replyBtn);
   
-  // Changed logic: Evaluate strictly against `isUserAdmin` state parsed securely from `/api/user/me`
   if (isUserAdmin) {
     const delBtn = document.createElement('button');
     delBtn.type = 'button';
@@ -1021,9 +1023,7 @@ function buildBubble(id, data, isTemporary) {
           const d = await res.json();
           alert(d.error || 'Failed to delete post.');
         }
-      } catch (err) {
-        console.error(err);
-      }
+      } catch {}
     };
     actionsEl.appendChild(delBtn);
     
@@ -1042,9 +1042,7 @@ function buildBubble(id, data, isTemporary) {
           const d = await res.json();
           alert(d.error || 'Failed to pin post.');
         }
-      } catch (err) {
-        console.error(err);
-      }
+      } catch {}
     };
     actionsEl.appendChild(pinBtn);
   }
@@ -1078,10 +1076,10 @@ onSnapshot(doc(db, "pinned", "current"), (snap) => {
     const d = snap.data();
     if (d.active && d.text) {
       if (d.isAnnouncement) {
-        announcementBanner.innerHTML = `📢 <b>Announcement from ${d.name}:</b> ${d.text}`;
+        announcementBanner.innerHTML = DOMPurify.sanitize(`📢 <b>Announcement from ${d.name}:</b> ${d.text}`);
         announcementBanner.style.display = 'block';
       } else {
-        pinnedBox.innerHTML = `📌 <b>${d.name}:</b> ${d.text}`;
+        pinnedBox.innerHTML = DOMPurify.sanitize(`📌 <b>${d.name}:</b> ${d.text}`);
         pinnedBox.style.display = 'block';
       }
       return;
@@ -1094,7 +1092,9 @@ onSnapshot(doc(db, "pinned", "current"), (snap) => {
 const q = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(100));
 onSnapshot(q, (snap) => {
   if (snap.empty) {
-    if (!hasLoadedPosts) feedEl.innerHTML = '<p id="emptyRoomNotice" style="text-align:center;color:var(--muted);font-size:0.85rem;margin-top:20px;">No messages yet.</p>';
+    if (!hasLoadedPosts) {
+      feedEl.innerHTML = DOMPurify.sanitize('<p id="emptyRoomNotice" style="text-align:center;color:var(--muted);font-size:0.85rem;margin-top:20px;">No messages yet.</p>');
+    }
     isInitialLoad = false;
     return;
   }
