@@ -93,7 +93,6 @@ body {
 .foot { margin-top: 14px; text-align: center; color: #b49c6a; font-size: 11px; display: flex; gap: 6px; justify-content: center; align-items: center; }
 .dot { width: 5px; height: 5px; background: #FFD95A; border-radius: 50%; box-shadow: 0 0 8px #FFD95A; }
 #loginError { color: #ef4444; font-size: 12px; margin-top: 8px; font-weight: 600; min-height: 16px; }
-
 .card { background: #111; border: 1px solid #222; border-radius: 12px; padding: 14px; margin-bottom: 12px; }
 input, textarea, select { width: 100%; box-sizing: border-box; padding: 9px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 8px; margin: 5px 0; font-size: 13px; }
 button { background: #3b82f6; color: #fff; border: 0; padding: 8px 14px; border-radius: 8px; margin: 2px; font-weight: 700; font-size: 12px; cursor: pointer; }
@@ -132,20 +131,18 @@ mark { background: #facc15; color: #000; padding: 0 2px; border-radius: 2px; fon
     <div class="sub-luxury">🔒 Private Admin Access Only</div>
     
     <div class="input-wrap">
-      <span class="icon left">🔒</span>
+      <span class="icon left">🔑</span>
       <input type="password" id="loginKeyInput" placeholder="Enter Admin Password" onkeydown="if(event.key==='Enter') verifyAdminLogin()">
       <span class="icon right" onclick="let i=document.getElementById('loginKeyInput'); i.type=i.type==='password'?'text':'password'">👁️</span>
     </div>
-
+    
     <div id="loginError"></div>
-
     <button class="login-btn-luxury" onclick="verifyAdminLogin()">Login</button>
-
+    
     <div class="trust">
-      <div>👆 <span><b>Biometric</b>Secure</span></div>
-      <div>🛡️ <span><b>Shield</b>Secured</span></div>
+      <div>🛡️ <span><b>Biometric</b>Secure</span></div>
+      <div>🔐 <span><b>Shield</b>Secured</span></div>
     </div>
-
     <div class="foot"><span class="dot"></span> Car Parking Multiplayer Tools • v2.1.0</div>
   </div>
 </div>
@@ -158,7 +155,7 @@ mark { background: #facc15; color: #000; padding: 0 2px; border-radius: 2px; fon
     <button type="button" class="purple" onclick="openWallAsAdmin()">🌍 Open Wall as Admin</button>
     <button id="raidBtn" type="button" class="danger" onclick="toggleRaidMode()">🚨 Raid Mode: OFF</button>
     <button id="lockToggleBtn" type="button" class="danger" onclick="toggleChatLock()">Lock Chat</button>
-    <button type="button" class="green" onclick="generateVipReply()">⚡ 1-Click VIP Generator</button>
+    <button type="button" class="green" onclick="generateVipReply()">👑 1-Click VIP Generator</button>
     <button type="button" class="green" onclick="exportBackup()">Export JSON</button>
     <button type="button" class="danger" style="background:#52525b;" onclick="logoutAdmin()">🔒 Lock Panel</button>
   </div>
@@ -207,6 +204,7 @@ mark { background: #facc15; color: #000; padding: 0 2px; border-radius: 2px; fon
     </div>
   </div>
 </div>
+
 <div class="card">
   <h4>⏱️ Dynamic Slow-Mode Cooldown</h4>
   <div class="slider-wrap">
@@ -217,14 +215,14 @@ mark { background: #facc15; color: #000; padding: 0 2px; border-radius: 2px; fon
 </div>
 
 <div class="card">
-  <h4 style="color:#ef4444;">🚨 Emergency Lobby Flush</h4>
+  <h4 style="color:#ef4444;">🧹 Emergency Lobby Flush</h4>
   <p style="font-size:12px; color:#94a3b8; margin: 4px 0 8px 0;">Wipe latest posts during bot floods or spam raids.</p>
   <button type="button" class="danger" onclick="flushLobby(50)">Wipe Last 50 Posts</button>
   <button type="button" class="danger" style="background:#7f1d1d;" onclick="flushLobby(100)">Wipe Last 100 Posts</button>
 </div>
 
 <div class="card">
-  <h4 style="color:#22c55e;">💵 Payment & Transaction Ledger</h4>
+  <h4 style="color:#22c55e;">💸 Payment & Transaction Ledger</h4>
   <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
     <input id="payDriverTag" placeholder="Driver Tag (e.g. Uzair77)" style="margin:0;">
     <input id="payAmount" type="number" placeholder="Amount (PKR, e.g. 300)" style="margin:0;">
@@ -243,9 +241,9 @@ mark { background: #facc15; color: #000; padding: 0 2px; border-radius: 2px; fon
 <div class="card">
   <h4>📢 Canned Broadcast Presets</h4>
   <div class="preset-row" style="display:flex; flex-wrap:wrap; gap:5px; margin:6px 0;">
-    <button type="button" onclick="loadPreset('drag')">🏁 Drag Meet</button>
-    <button type="button" onclick="loadPreset('maint')">⚠️ Maintenance</button>
-    <button type="button" onclick="loadPreset('w16')">🎁 W16 Giveaway</button>
+    <button type="button" onclick="loadPreset('drag')">🏎️ Drag Meet</button>
+    <button type="button" onclick="loadPreset('maint')">🔧 Maintenance</button>
+    <button type="button" onclick="loadPreset('w16')">🚓 W16 Giveaway</button>
     <button type="button" onclick="loadPreset('vip')">👑 VIP Lounge $1</button>
   </div>
   <input id="pinName" placeholder="Admin Tag (e.g. Administration)">
@@ -253,7 +251,7 @@ mark { background: #facc15; color: #000; padding: 0 2px; border-radius: 2px; fon
   <button type="button" class="green" onclick="pin(true)">Publish Announcement</button>
   <button type="button" class="danger" onclick="pin(false)">Clear Pin</button>
   <div id="currentPin" style="font-size:12px; color:#f472b6; margin-top:4px;"></div>
-
+  
   <div style="margin-top: 14px; border-top: 1px solid #222; padding-top: 10px;">
     <h4>Private VIP Room Passcode</h4>
     <input type="password" id="vipKeyInput" placeholder="Set VIP Key (e.g. VIP777)">
@@ -277,7 +275,7 @@ mark { background: #facc15; color: #000; padding: 0 2px; border-radius: 2px; fon
 </div>
 
 <div class="card">
-  <h4 style="color:#f59e0b;">⭐ VIP Members & Expirations (30 Days Tracker)</h4>
+  <h4 style="color:#f59e0b;">👑 VIP Members & Expirations (30 Days Tracker)</h4>
   <div id="vipMembers">Login to load VIP members</div>
 </div>
 
@@ -287,7 +285,7 @@ mark { background: #facc15; color: #000; padding: 0 2px; border-radius: 2px; fon
 </div>
 
 <div class="card">
-  <h4>🛡️ Live Word Filter Manager</h4>
+  <h4>🤬 Live Word Filter Manager</h4>
   <div style="display: flex; gap: 6px;">
     <input id="newFilterInput" placeholder="Add word, telegram handle, or scam term..." style="margin: 0;">
     <button type="button" class="green" style="white-space: nowrap;" onclick="addFilterWord()">Add Word</button>
@@ -301,7 +299,7 @@ mark { background: #facc15; color: #000; padding: 0 2px; border-radius: 2px; fon
 </div>
 
 <div class="card">
-  <h4>🌐 Network & Device Security (IP Logs, Subnets, Hardware Fingerprints)</h4>
+  <h4>📡 Network & Device Security (IP Logs, Subnets, Hardware Fingerprints)</h4>
   <div id="logs">Login to load security logs</div>
 </div>
 
@@ -359,7 +357,7 @@ let audioCtx = null;
 let lastSirenPlayedTime = 0;
 
 window.addEventListener('DOMContentLoaded', () => {
-  if (ADMIN_KEY) {
+  if (ADMIN_KEY && localStorage.getItem('wall_token')) {
     verifyAdminLogin(true);
   }
 });
@@ -367,24 +365,36 @@ window.addEventListener('DOMContentLoaded', () => {
 async function verifyAdminLogin(isAuto = false) {
   const inputVal = isAuto ? ADMIN_KEY : (document.getElementById('loginKeyInput').value || '').trim();
   const errEl = document.getElementById('loginError');
+  const token = localStorage.getItem('wall_token') || '';
+
   if (!inputVal) {
     if (!isAuto) errEl.textContent = 'Please enter admin password';
     return;
   }
+  if (!token) {
+    errEl.textContent = 'You must log in to the main wall first before accessing the admin panel.';
+    return;
+  }
 
   errEl.textContent = 'Verifying...';
+  
   try {
     const r = await fetch(`/api/admin?action=posts`, {
-      headers: { 'Content-Type': 'application/json', 'x-admin-key': inputVal }
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-key': inputVal,
+        'Authorization': `Bearer ${token}`
+      }
     });
+    
     if (r.ok) {
       ADMIN_KEY = inputVal;
       localStorage.setItem('cpm_admin_key', ADMIN_KEY);
       document.getElementById('loginOverlay').style.display = 'none';
       loadAll();
     } else {
-      errEl.textContent = 'Incorrect password. Try again.';
-      localStorage.removeItem('cpm_admin_key');
+      errEl.textContent = 'Incorrect password or unauthorized role.';
+      if (!isAuto) localStorage.removeItem('cpm_admin_key');
     }
   } catch (err) {
     errEl.textContent = 'Connection error: ' + err.message;
@@ -402,7 +412,6 @@ function logoutAdmin() {
 
 function openWallAsAdmin() {
   if (ADMIN_KEY) {
-    localStorage.setItem('cpm_vip_key', ADMIN_KEY);
     window.open('/', '_blank');
   } else {
     alert("Please log into the admin panel first.");
@@ -427,10 +436,13 @@ function playReportSiren() {
     osc.frequency.setValueAtTime(600, t + 0.25);
     osc.frequency.setValueAtTime(800, t + 0.5);
     osc.frequency.setValueAtTime(600, t + 0.75);
+    
     gain.gain.setValueAtTime(0.5, t);
     gain.gain.exponentialRampToValueAtTime(0.01, t + 1.1);
+    
     osc.connect(gain);
     gain.connect(audioCtx.destination);
+    
     osc.start(t);
     osc.stop(t + 1.1);
   } catch {}
@@ -439,7 +451,7 @@ function playReportSiren() {
 document.addEventListener('click', () => { initAudio(); }, { once: true });
 
 function getFlagEmoji(cc) {
-  if (!cc || cc.length !== 2 || cc === 'UN') return '🌐';
+  if (!cc || cc.length !== 2 || cc === 'UN') return '🏳️';
   return String.fromCodePoint(...cc.toUpperCase().split('').map(c => 127397 + c.charCodeAt()));
 }
 
@@ -452,7 +464,12 @@ function setStatus(text, isError = false) {
 }
 
 function headers() {
-  return { 'Content-Type': 'application/json', 'x-admin-key': ADMIN_KEY };
+  const token = localStorage.getItem('wall_token') || '';
+  return {
+    'Content-Type': 'application/json',
+    'x-admin-key': ADMIN_KEY,
+    'Authorization': `Bearer ${token}`
+  };
 }
 
 function esc(s) {
@@ -475,13 +492,14 @@ function loadPreset(type) {
   const nameEl = document.getElementById('pinName');
   const textEl = document.getElementById('pinText');
   if (!nameEl || !textEl) return;
+  
   nameEl.value = "Administration Team";
   if (type === 'drag') {
     textEl.value = "🏁 Drag meet starting in Room 4! Bring your sub-6s AWD builds. Clean runs only.";
   } else if (type === 'maint') {
-    textEl.value = "⚠️ Lobby server maintenance in 10 minutes. Chats will briefly pause.";
+    textEl.value = "🔧 Lobby server maintenance in 10 minutes. Chats will briefly pause.";
   } else if (type === 'w16') {
-    textEl.value = "🎁 Today's W16 police build giveaway is live! Check our Instagram (@4t_jagga) for entry rules.";
+    textEl.value = "🚓 Today's W16 police build giveaway is live! Check our Instagram (@4t_jagga) for entry rules.";
   } else if (type === 'vip') {
     textEl.value = "👑 VIP Lounge ($1 / 300 PKR) & 24h Pinned slots open! Message WhatsApp to buy.";
   }
@@ -645,6 +663,7 @@ async function addPayment() {
   const amount = Number(document.getElementById('payAmount').value) || 0;
   const method = document.getElementById('payMethod').value;
   const txId = (document.getElementById('payTxId').value || '').trim();
+  
   if (!driverTag || !amount) return setStatus('Enter driver tag and amount', true);
   try {
     const r = await fetch('/api/admin', {
@@ -686,7 +705,7 @@ async function deletePayment(paymentId) {
 function toggleAutoRefresh(enabled) {
   if (refreshTimer) clearInterval(refreshTimer);
   if (enabled) {
-    // Manual refresh only - zero auto read cost
+    // Manual refresh only
   }
 }
 
@@ -778,16 +797,16 @@ async function unbanVip(ip) {
 async function banSubnet(subnet) {
   if (!confirm(`Ban entire /24 subnet (${subnet})? All mobile rotations on this prefix will be blocked.`)) return;
   try {
-  const r = await fetch('/api/admin', {
-    method: 'POST',
-    headers: headers(),
-    body: JSON.stringify({ action: 'ban_subnet', subnet })
-  });
-  const d = await r.json();
-  if (d.success) loadAll(true);
-} catch (err) {
-  setStatus('Subnet ban failed: ' + err.message, true);
-}
+    const r = await fetch('/api/admin', {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify({ action: 'ban_subnet', subnet })
+    });
+    const d = await r.json();
+    if (d.success) loadAll(true);
+  } catch (err) {
+    setStatus('Subnet ban failed: ' + err.message, true);
+  }
 }
 
 async function unbanSubnet(subnet) {
@@ -906,21 +925,22 @@ async function updateQuotaDisplay() {
     const r = await fetch(`/api/admin?action=quota`, { headers: headers() });
     if (!r.ok) return;
     const d = await r.json();
+    
     const readPct = Math.min(100, Math.round((d.reads / d.readLimit) * 100));
     const writePct = Math.min(100, Math.round((d.writes / d.writeLimit) * 100));
-
+    
     document.getElementById('readsCountText').textContent = `${d.reads.toLocaleString()} / 50,000`;
     document.getElementById('readsPercentText').textContent = `${readPct}%`;
     const readsBar = document.getElementById('readsBar');
     readsBar.style.width = `${readPct}%`;
     readsBar.style.backgroundColor = readPct > 80 ? '#ef4444' : (readPct > 60 ? '#f97316' : '#38bdf8');
-
+    
     document.getElementById('writesCountText').textContent = `${d.writes.toLocaleString()} / 20,000`;
     document.getElementById('writesPercentText').textContent = `${writePct}%`;
     const writesBar = document.getElementById('writesBar');
     writesBar.style.width = `${writePct}%`;
-    writesBar.style.backgroundColor = writesPct > 80 ? '#ef4444' : (writesPct > 60 ? '#f97316' : '#f59e0b');
-
+    writesBar.style.backgroundColor = writePct > 80 ? '#ef4444' : (writePct > 60 ? '#f97316' : '#f59e0b');
+    
     document.getElementById('quotaCard').style.display = 'block';
   } catch {}
 }
@@ -932,7 +952,7 @@ async function loadAll(isBackground = false) {
     loadBtn.disabled = true;
     setStatus('Synchronizing database...');
   }
-
+  
   try {
     const [pR, bR, lR, vR, pinR, visR, fR, vipR, vipBanR, payR, subR, fpR, shR, nR, sR, subWhiteR] = await Promise.all([
       fetch(`/api/admin?action=posts`, { headers: headers() }),
@@ -952,8 +972,8 @@ async function loadAll(isBackground = false) {
       fetch(`/api/admin?action=strikes`, { headers: headers() }),
       fetch(`/api/admin?action=subnet_whitelist`, { headers: headers() })
     ]);
-
-    if (pR.status === 401) {
+    
+    if (pR.status === 401 || pR.status === 403) {
       logoutAdmin();
       return;
     }
@@ -974,7 +994,7 @@ async function loadAll(isBackground = false) {
     const notes = await nR.json();
     const strikes = await sR.json();
     const subWhite = await subWhiteR.json();
-
+    
     cachedPosts = Array.isArray(posts) ? posts : [];
     cachedBanned = Array.isArray(banned) ? banned : [];
     cachedLogs = Array.isArray(logs) ? logs : [];
@@ -990,41 +1010,44 @@ async function loadAll(isBackground = false) {
     cachedStrikes = Array.isArray(strikes) ? strikes : [];
     cachedFilters = (filters && Array.isArray(filters.words)) ? filters.words : [];
     cachedSubnetWhitelist = Array.isArray(subWhite) ? subWhite : [];
-
+    
     if (cachedPosts.some(p => p.isReported && (p.reportCount >= 3))) {
       playReportSiren();
     }
-
+    
     updateStats();
     await updateQuotaDisplay();
     renderFilters();
     renderPayments();
     applyFilter();
-
+    
     updateLockBtnUI(pinned && pinned.chatLocked);
     updateRaidUI(pinned && pinned.raidMode);
-
+    
     if (pinned && pinned.slowModeSeconds) {
       const sSlider = document.getElementById('slowSlider');
       if (sSlider) sSlider.value = pinned.slowModeSeconds;
       updateSliderLabel(pinned.slowModeSeconds);
     }
-
+    
     const cPin = document.getElementById('currentPin');
     if (cPin) cPin.textContent = pinned && pinned.active ? `${pinned.name}: ${pinned.text}` : 'No active pin';
-
+    
     const cVip = document.getElementById('currentVipKey');
     if (cVip) cVip.textContent = `Active VIP Passcode: ${pinned && pinned.vipKey ? pinned.vipKey : 'VIP777'}`;
-
+    
     const sCard = document.getElementById('statsCard');
     if (sCard) sCard.style.display = 'block';
-
+    
     setStatus(`Updated successfully at ${new Date().toLocaleTimeString()}`);
+    
   } catch (err) {
     setStatus('Connection failed: ' + err.message, true);
   } finally {
-    loadBtn.textContent = 'Refresh Data';
-    loadBtn.disabled = false;
+    if (loadBtn) {
+      loadBtn.textContent = 'Refresh Data';
+      loadBtn.disabled = false;
+    }
   }
 }
 
@@ -1065,7 +1088,7 @@ function renderFilters() {
   container.innerHTML = cachedFilters.map(w => `
     <span class="filter-tag">
       ${esc(w)}
-      <span onclick="removeFilterWord('${esc(w)}')">✕</span>
+      <span onclick="removeFilterWord('${esc(w)}')">❌</span>
     </span>
   `).join('');
 }
@@ -1151,8 +1174,9 @@ function applyFilter() {
   const shadowSet = new Set(cachedShadowbanned.map(s => s.ip || s.id));
   const verifiedIpSet = new Set(cachedVerified.map(v => v.ip || v.id.replace(/_/g, '.')));
   const subWhiteSet = new Set(cachedSubnetWhitelist.map(w => w.ip || w.id.replace(/_/g, '.')));
-
+  
   const filteredPosts = cachedPosts.filter(p => !q || (p.name && p.name.toLowerCase().includes(q)) || (p.message && p.message.toLowerCase().includes(q)) || (p.id && p.id.includes(q)));
+  
   document.getElementById('posts').innerHTML = filteredPosts.map(p => `
     <div class="post">
       <div style="display:flex; align-items:center; gap:8px;">
@@ -1173,7 +1197,7 @@ function applyFilter() {
       </div>
     </div>
   `).join('') || 'No matching posts';
-
+  
   const reportedPostsList = cachedPosts.filter(p => p.isReported);
   document.getElementById('reportedPosts').innerHTML = reportedPostsList.map(p => `
     <div class="post" style="border-left: 3px solid #ef4444; padding-left: 8px;">
@@ -1197,7 +1221,7 @@ function applyFilter() {
         <b>${highlight(m.name, q)}</b> <code>${highlight((m.ip || '').slice(0,7) + '***', q)}</code> - <b>${expiryStr}</b>
         <div class="detail-grid" style="display:flex; flex-wrap:wrap; gap:4px; margin:5px 0;">
           <span class="badge badge-loc">${getFlagEmoji(m.countryCode)} ${esc(m.city ? m.city + ', ' + m.country : m.country)}</span>
-          ${m.isVpn ? '<span class="badge badge-vpn">⚠️ VPN</span>' : ''}
+          ${m.isVpn ? '<span class="badge badge-vpn">🛡️ VPN</span>' : ''}
           ${m.device ? `<span class="badge badge-dev">📱 ${esc(m.device)}</span>` : ''}
         </div>
         <button type="button" class="danger" onclick="banVip('${esc(m.ip)}')">Block from VIP</button>
@@ -1233,171 +1257,173 @@ function applyFilter() {
     const isSubWhite = subWhiteSet.has(l.ip);
     const safeIpKey = (l.ip || '').replace(/[^a-zA-Z0-9]/g, '_');
     const existingNote = cachedNotes[safeIpKey] || '';
+    
     return `
       <div class="post">
         <b>${highlight(l.name, q)}</b> | IP: <code>${highlight((l.ip || '').slice(0,7) + '***', q)}</code>
-        ${l.isVpn ? '<span class="badge badge-vpn">⚠️ VPN</span>' : ''}
+        ${l.isVpn ? '<span class="badge badge-vpn">🛡️ VPN</span>' : ''}
         ${isShadow ? '<span class="badge badge-shadow">SHADOWBANNED</span>' : ''}
         ${isSubWhite ? '<span class="badge" style="background:#16a34a;">SUBNET EXEMPT</span>' : ''}
         <div class="detail-grid" style="display:flex; flex-wrap:wrap; gap:4px; margin:5px 0;">
           <span class="badge badge-loc">${getFlagEmoji(l.countryCode)} ${esc(l.country)}</span>
           ${l.subnet ? `<span class="badge badge-spec">Subnet: ${esc(l.subnet)}</span>` : ''}
-                  ${l.device ? `<span class="badge badge-dev">${esc(l.device)}</span>` : ''}
+          ${l.device ? `<span class="badge badge-dev">${esc(l.device)}</span>` : ''}
+        </div>
+        <div style="margin:4px 0;">
+          <input id="note-${safeIpKey}" value="${esc(existingNote)}" placeholder="Internal note..." style="width:75%; display:inline-block;">
+          <button type="button" class="green" onclick="saveAdminNote('${esc(l.ip)}')">Save Note</button>
+        </div>
+        <button type="button" class="danger" onclick="openBanModal('${esc(l.ip)}')">Ban IP</button>
+        ${l.subnet && l.subnet !== 'N/A' ? `<button type="button" class="orange" onclick="banSubnet('${esc(l.subnet)}')">Ban /24 Subnet</button>` : ''}
+        ${!isSubWhite ? `<button type="button" class="green" onclick="whitelistSubnetIp('${esc(l.ip)}')">Whitelist Subnet</button>` : `<button type="button" class="orange" onclick="removeSubnetWhitelist('${esc(l.ip)}')">Remove Subnet Exemption</button>`}
+        ${l.fingerprint ? `<button type="button" class="danger" style="background:#7f1d1d;" onclick="banFingerprint('${esc(l.fingerprint)}')">Ban Device</button>` : ''}
+        <button type="button" onclick="toggleShadowban('${esc(l.ip)}', ${isShadow})">${isShadow ? 'Un-Shadowban' : 'Shadowban'}</button>
       </div>
-      <div style="margin:4px 0;">
-        <input id="note-${safeIpKey}" value="${esc(existingNote)}" placeholder="Internal note..." style="width:75%; display:inline-block;">
-        <button type="button" class="green" onclick="saveAdminNote('${esc(l.ip)}')">Save Note</button>
-      </div>
-      <button type="button" class="danger" onclick="openBanModal('${esc(l.ip)}')">Ban IP</button>
-      ${l.subnet && l.subnet !== 'N/A' ? `<button type="button" class="orange" onclick="banSubnet('${esc(l.subnet)}')">Ban /24 Subnet</button>` : ''}
-      ${!isSubWhite ? `<button type="button" class="green" onclick="whitelistSubnetIp('${esc(l.ip)}')">Whitelist Subnet</button>` : `<button type="button" class="orange" onclick="removeSubnetWhitelist('${esc(l.ip)}')">Remove Subnet Exemption</button>`}
-      ${l.fingerprint ? `<button type="button" class="danger" style="background:#7f1d1d;" onclick="banFingerprint('${esc(l.fingerprint)}')">Ban Device</button>` : ''}
-      <button type="button" onclick="toggleShadowban('${esc(l.ip)}', ${isShadow})">${isShadow ? 'Un-Shadowban' : 'Shadowban'}</button>
-    </div>
-  `;
-}).join('') || 'No logs tracked';
+    `;
+  }).join('') || 'No logs tracked';
 
-document.getElementById('verifiedIps').innerHTML = cachedVerified.map(v => `
-  <div class="post">
-    <code>${highlight((v.ip || v.id || '').slice(0,7) + '***', q)}</code>
-    <button type="button" class="orange" onclick="unverifyIp('${esc(v.ip || v.id)}')">Remove Verification</button>
-  </div>
-`).join('') || 'None';
-
-document.getElementById('subnetWhitelistView').innerHTML = cachedSubnetWhitelist.map(w => `
-  <div class="post">
-    <code>${esc(w.ip || w.id)}</code> <span class="badge" style="background:#16a34a;">EXEMPT</span>
-    <button type="button" class="orange" onclick="removeSubnetWhitelist('${esc(w.ip || w.id)}')">Remove Exemption</button>
-  </div>
-`).join('') || 'No whitelisted IPs';
-
-document.getElementById('subnetBansList').innerHTML = cachedSubnetBans.map(s => `
-  <div class="post">
-    <code>${esc(s.subnet || s.id)}</code> <span class="badge" style="background:#ef4444;">SUBNET BAN</span>
-    <button type="button" class="green" onclick="unbanSubnet('${esc(s.subnet || s.id)}')">Unban Subnet</button>
-  </div>
-`).join('') || 'None';
-
-document.getElementById('fpBansList').innerHTML = cachedFpBans.map(f => `
-  <div class="post">
-    <code>${esc(f.fingerprint || f.id)}</code> <span class="badge" style="background:#ef4444;">DEVICE BAN</span>
-    <button type="button" class="green" onclick="unbanFingerprint('${esc(f.fingerprint || f.id)}')">Unban Device</button>
-  </div>
-`).join('') || 'None';
-
-document.getElementById('banned').innerHTML = cachedBanned.map(b => {
-  let expStr = 'Permanent';
-  if (b.bannedUntil) {
-    const expDate = b.bannedUntil._seconds ? new Date(b.bannedUntil._seconds * 1000) : new Date(b.bannedUntil);
-    expStr = 'Expires: ' + expDate.toLocaleString();
-  }
-  return `
+  document.getElementById('verifiedIps').innerHTML = cachedVerified.map(v => `
     <div class="post">
-      <code>${highlight((b.ip || b.id || '').slice(0,7) + '***', q)}</code> (Reason: <b>${esc(b.reason || 'spam')}</b>, ${expStr})
-      <button type="button" onclick="unban('${esc(b.ip || b.id)}')">Unban</button>
+      <code>${highlight((v.ip || v.id || '').slice(0,7) + '***', q)}</code>
+      <button type="button" class="orange" onclick="unverifyIp('${esc(v.ip || v.id)}')">Remove Verification</button>
     </div>
-  `;
-}).join('') || 'None';
+  `).join('') || 'None';
+
+  document.getElementById('subnetWhitelistView').innerHTML = cachedSubnetWhitelist.map(w => `
+    <div class="post">
+      <code>${esc(w.ip || w.id)}</code> <span class="badge" style="background:#16a34a;">EXEMPT</span>
+      <button type="button" class="orange" onclick="removeSubnetWhitelist('${esc(w.ip || w.id)}')">Remove Exemption</button>
+    </div>
+  `).join('') || 'No whitelisted IPs';
+
+  document.getElementById('subnetBansList').innerHTML = cachedSubnetBans.map(s => `
+    <div class="post">
+      <code>${esc(s.subnet || s.id)}</code> <span class="badge" style="background:#ef4444;">SUBNET BAN</span>
+      <button type="button" class="green" onclick="unbanSubnet('${esc(s.subnet || s.id)}')">Unban Subnet</button>
+    </div>
+  `).join('') || 'None';
+
+  document.getElementById('fpBansList').innerHTML = cachedFpBans.map(f => `
+    <div class="post">
+      <code>${esc(f.fingerprint || f.id)}</code> <span class="badge" style="background:#ef4444;">DEVICE BAN</span>
+      <button type="button" class="green" onclick="unbanFingerprint('${esc(f.fingerprint || f.id)}')">Unban Device</button>
+    </div>
+  `).join('') || 'None';
+
+  document.getElementById('banned').innerHTML = cachedBanned.map(b => {
+    let expStr = 'Permanent';
+    if (b.bannedUntil) {
+      const expDate = b.bannedUntil._seconds ? new Date(b.bannedUntil._seconds * 1000) : new Date(b.bannedUntil);
+      expStr = 'Expires: ' + expDate.toLocaleString();
+    }
+    return `
+      <div class="post">
+        <code>${highlight((b.ip || b.id || '').slice(0,7) + '***', q)}</code> (Reason: <b>${esc(b.reason || 'spam')}</b>, ${expStr})
+        <button type="button" onclick="unban('${esc(b.ip || b.id)}')">Unban</button>
+      </div>
+    `;
+  }).join('') || 'None';
 }
 
 function openBanModal(ip) {
-activeBanIp = ip;
-document.getElementById('modalIpDisplay').textContent = ip;
-document.getElementById('banModal').style.display = 'flex';
+  activeBanIp = ip;
+  document.getElementById('modalIpDisplay').textContent = ip;
+  document.getElementById('banModal').style.display = 'flex';
 }
 
 function closeBanModal() {
-activeBanIp = '';
-document.getElementById('banModal').style.display = 'none';
+  activeBanIp = '';
+  document.getElementById('banModal').style.display = 'none';
 }
 
 async function executeBanPreset(reason, hours) {
-if (!activeBanIp) return;
-const ip = activeBanIp;
-closeBanModal();
-try {
-  const r = await fetch('/api/admin', {
-    method: 'POST',
-    headers: headers(),
-    body: JSON.stringify({ action: 'ban', ip, reason, hours })
-  });
-  const d = await r.json();
-  if (d.success) loadAll(true);
-} catch (err) {
-  setStatus('Ban failed: ' + err.message, true);
-}
+  if (!activeBanIp) return;
+  const ip = activeBanIp;
+  closeBanModal();
+  try {
+    const r = await fetch('/api/admin', {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify({ action: 'ban', ip, reason, hours })
+    });
+    const d = await r.json();
+    if (d.success) loadAll(true);
+  } catch (err) {
+    setStatus('Ban failed: ' + err.message, true);
+  }
 }
 
 function promptCustomBan() {
-const ip = activeBanIp;
-closeBanModal();
-const reason = prompt(`Enter ban reason for IP ${ip}:`, 'Custom reason');
-if (reason === null) return;
-const hoursStr = prompt('Ban duration in hours (0 for permanent):', '0');
-if (hoursStr === null) return;
-const hours = parseFloat(hoursStr) || 0;
-fetch('/api/admin', {
-  method: 'POST',
-  headers: headers(),
-  body: JSON.stringify({ action: 'ban', ip, reason, hours })
-}).then(r => r.json()).then(d => {
-  if (d.success) loadAll(true); else setStatus(d.error || 'Ban failed', true);
-}).catch(err => {
-  setStatus('Ban failed: ' + err.message, true);
-});
+  const ip = activeBanIp;
+  closeBanModal();
+  const reason = prompt(`Enter ban reason for IP ${ip}:`, 'Custom reason');
+  if (reason === null) return;
+  const hoursStr = prompt('Ban duration in hours (0 for permanent):', '0');
+  if (hoursStr === null) return;
+  const hours = parseFloat(hoursStr) || 0;
+  
+  fetch('/api/admin', {
+    method: 'POST',
+    headers: headers(),
+    body: JSON.stringify({ action: 'ban', ip, reason, hours })
+  }).then(r => r.json()).then(d => {
+    if (d.success) loadAll(true); else setStatus(d.error || 'Ban failed', true);
+  }).catch(err => {
+    setStatus('Ban failed: ' + err.message, true);
+  });
 }
 
 async function delPost(id) {
-if (!confirm('Delete post ' + id + '?')) return;
-try {
-  const r = await fetch(`/api/admin?id=${id}`, { method: 'DELETE', headers: headers() });
-  const d = await r.json();
-  if (d.success) loadAll(true);
-} catch (err) {
-  setStatus('Delete failed: ' + err.message, true);
-}
+  if (!confirm('Delete post ' + id + '?')) return;
+  try {
+    const r = await fetch(`/api/admin?id=${id}`, { method: 'DELETE', headers: headers() });
+    const d = await r.json();
+    if (d.success) loadAll(true);
+  } catch (err) {
+    setStatus('Delete failed: ' + err.message, true);
+  }
 }
 
 function banFromPost(postId) {
-const log = cachedLogs.find(l => l.postId === postId || l.id === postId);
-if (!log) return setStatus('Log not found for post ' + postId, true);
-if (log.ip === 'BOT') return setStatus('Cannot ban BOT', true);
-openBanModal(log.ip);
+  const log = cachedLogs.find(l => l.postId === postId || l.id === postId);
+  if (!log) return setStatus('Log not found for post ' + postId, true);
+  if (log.ip === 'BOT') return setStatus('Cannot ban BOT', true);
+  openBanModal(log.ip);
 }
 
 async function unban(ip) {
-if (!confirm('Unban ' + ip + '?')) return;
-try {
-  const r = await fetch('/api/admin', { method: 'POST', headers: headers(), body: JSON.stringify({ action: 'unban', ip }) });
-  const d = await r.json();
-  if (d.success) loadAll(true);
-} catch (err) {
-  setStatus('Unban failed: ' + err.message, true);
-}
+  if (!confirm('Unban ' + ip + '?')) return;
+  try {
+    const r = await fetch('/api/admin', { method: 'POST', headers: headers(), body: JSON.stringify({ action: 'unban', ip }) });
+    const d = await r.json();
+    if (d.success) loadAll(true);
+  } catch (err) {
+    setStatus('Unban failed: ' + err.message, true);
+  }
 }
 
 async function unverifyIp(ip) {
-if (!confirm('Remove verification for IP ' + ip + '?')) return;
-try {
-  const r = await fetch('/api/admin', { method: 'POST', headers: headers(), body: JSON.stringify({ action: 'unverify_ip', ip }) });
-  const d = await r.json();
-  if (d.success) loadAll(true);
-} catch (err) {
-  setStatus('Unverify failed: ' + err.message, true);
-}
+  if (!confirm('Remove verification for IP ' + ip + '?')) return;
+  try {
+    const r = await fetch('/api/admin', { method: 'POST', headers: headers(), body: JSON.stringify({ action: 'unverify_ip', ip }) });
+    const d = await r.json();
+    if (d.success) loadAll(true);
+  } catch (err) {
+    setStatus('Unverify failed: ' + err.message, true);
+  }
 }
 
 async function pin(active) {
-const text = (document.getElementById('pinText').value || '').trim();
-const name = (document.getElementById('pinName').value || '').trim() || 'Administration Team';
-if (active && !text) return setStatus('Enter text before publishing pin', true);
-try {
-  const r = await fetch('/api/admin', { method: 'POST', headers: headers(), body: JSON.stringify({ action: 'pin', text, name, active }) });
-  const d = await r.json();
-  if (d.success) loadAll(true);
-} catch (err) {
-  setStatus('Pin failed: ' + err.message, true);
-}
+  const text = (document.getElementById('pinText').value || '').trim();
+  const name = (document.getElementById('pinName').value || '').trim() || 'Administration Team';
+  if (active && !text) return setStatus('Enter text before publishing pin', true);
+  try {
+    const r = await fetch('/api/admin', { method: 'POST', headers: headers(), body: JSON.stringify({ action: 'pin', text, name, active }) });
+    const d = await r.json();
+    if (d.success) loadAll(true);
+  } catch (err) {
+    setStatus('Pin failed: ' + err.message, true);
+  }
 }
 </script>
 </body>

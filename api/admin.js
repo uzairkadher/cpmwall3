@@ -16,10 +16,12 @@ export default async function handler(req, res) {
 
   if (req.method === "OPTIONS") return res.status(200).end();
 
-  // 1. Verify Static Admin Key Header
-  const adminKey = req.headers["x-admin-key"];
-  if (adminKey !== process.env.ADMIN_KEY) {
-    return res.status(401).json({ error: "Unauthorized: Invalid admin key" });
+  // 1. Verify Static Admin Key Header (Safe Fallback)
+  if (process.env.ADMIN_KEY) {
+    const clientKey = req.headers["x-admin-key"];
+    if (clientKey !== process.env.ADMIN_KEY) {
+      return res.status(401).json({ error: "Unauthorized: Invalid admin key" });
+    }
   }
 
   try {
@@ -50,10 +52,12 @@ export default async function handler(req, res) {
       return res.status(403).json({ error: "Forbidden: Insufficient role permissions" });
     }
 
-    // 4. Audit Logging
+    // 4. Audit Logging & Console Output
     const rawIp = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || "").split(',')[0].trim() || "unknown";
-    let actionName = "unknown";
     
+    console.log(`Admin auth success for username: ${username} | IP: ${rawIp}`);
+
+    let actionName = "unknown";
     if (req.method === "GET") actionName = `READ_${(req.query.action || "posts").toUpperCase()}`;
     else if (req.method === "POST") actionName = `WRITE_${(req.body.action || "unknown").toUpperCase()}`;
     else if (req.method === "DELETE") actionName = "DELETE_POST";
