@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="robots" content="noindex, nofollow">
 <title>Admin - EMPIRE STUDIO</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
 <style>
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -17,1414 +18,448 @@ body {
   font-family: Inter, sans-serif;
   -webkit-touch-callout: none;
 }
-#loginOverlay {
-  position: fixed;
-  inset: 0;
-  background: radial-gradient(900px at 50% -20%, rgba(255,184,0,.3), transparent), radial-gradient(700px at 100% 100%, rgba(255,217,90,.15), transparent), #07070A;
-  z-index: 9999;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
-}
-.card-luxury {
-  position: relative;
-  width: 100%;
-  max-width: 380px;
+.header-card {
   background: linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.03));
   border: 1px solid rgba(255,217,90,.35);
-  border-radius: 28px;
-  padding: 28px 24px 18px;
-  box-shadow: 0 0 0 1px rgba(255,217,90,.08), 0 0 80px rgba(255,184,0,.25), inset 0 1px 0 rgba(255,255,255,.2);
-  backdrop-filter: blur(20px);
-  text-align: center;
-}
-.logo-wrap { display: grid; place-items: center; margin-bottom: 14px; }
-.logo-luxury {
-  width: 84px;
-  height: 84px;
-  border-radius: 50%;
-  background: radial-gradient(180deg, #FFD95A, #FF9A00);
-  display: grid;
-  place-items: center;
-  font-family: Syne, sans-serif;
-  font-weight: 800;
-  font-size: 28px;
-  color: black;
-  box-shadow: 0 0 40px rgba(255,184,0,.8), inset 0 2px 0 rgba(255,255,255,.6);
-}
-.card-luxury h1 { font-family: Syne, sans-serif; color: white; font-size: 24px; letter-spacing: 1px; margin: 0; }
-.sub-luxury { margin-top: 8px; color: #d6c79f; font-size: 13px; display: flex; gap: 6px; justify-content: center; align-items: center; }
-.input-wrap { position: relative; margin-top: 26px; }
-.input-wrap input {
-  width: 100%;
-  background: rgba(0,0,0,.5);
-  border: 1px solid rgba(255,217,90,.35);
   border-radius: 16px;
-  padding: 16px 46px;
-  color: white;
-  outline: none;
-  font-size: 14px;
-  transition: .2s;
-  box-sizing: border-box;
-}
-.input-wrap input:focus { border-color: #FFD95A; box-shadow: 0 0 0 4px rgba(255,217,90,.15), 0 0 20px rgba(255,217,90,.3); }
-.icon { position: absolute; top: 50%; transform: translateY(-50%); color: #FFD95A; font-size: 16px; }
-.icon.left { left: 16px; }
-.icon.right { right: 16px; cursor: pointer; }
-.login-btn-luxury {
-  margin-top: 22px;
-  width: 100%;
-  background: linear-gradient(180deg, #FFE68A, #FFB800);
-  border: none;
   padding: 16px;
-  border-radius: 18px;
-  font-weight: 800;
-  font-size: 18px;
-  cursor: pointer;
-  box-shadow: 0 10px 30px rgba(255,184,0,.4), inset 0 1px 0 rgba(255,255,255,.6);
-  transition: .15s;
-  color: #000;
+  box-shadow: 0 0 40px rgba(255,184,0,.15);
+  backdrop-filter: blur(20px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
 }
-.login-btn-luxury:active { transform: scale(.98); }
-.trust { display: flex; justify-content: space-between; margin-top: 24px; padding: 14px 6px; border-top: 1px solid rgba(255,255,255,.06); text-align: left; }
-.trust div { display: flex; gap: 8px; align-items: center; font-size: 11px; color: #9a9a9a; }
-.trust b { color: #d6c79f; font-size: 12px; display: block; }
-.foot { margin-top: 14px; text-align: center; color: #b49c6a; font-size: 11px; display: flex; gap: 6px; justify-content: center; align-items: center; }
-.dot { width: 5px; height: 5px; background: #FFD95A; border-radius: 50%; box-shadow: 0 0 8px #FFD95A; }
-#loginError { color: #ef4444; font-size: 12px; margin-top: 8px; font-weight: 600; min-height: 16px; }
+.header-card h1 { font-family: Syne, sans-serif; font-size: 20px; margin: 0; color: #FFD95A; }
 .card { background: #111; border: 1px solid #222; border-radius: 12px; padding: 14px; margin-bottom: 12px; }
-input, textarea, select { width: 100%; box-sizing: border-box; padding: 9px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 8px; margin: 5px 0; font-size: 13px; }
-button { background: #3b82f6; color: #fff; border: 0; padding: 8px 14px; border-radius: 8px; margin: 2px; font-weight: 700; font-size: 12px; cursor: pointer; }
+.card h4 { margin-top: 0; margin-bottom: 12px; color: #fff; font-family: Syne, sans-serif; font-size: 16px; border-bottom: 1px solid #333; padding-bottom: 8px; }
+input, textarea, select { width: 100%; padding: 9px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 8px; margin-bottom: 8px; font-size: 13px; outline: none; }
+input:focus, select:focus, textarea:focus { border-color: #FFD95A; }
+button { background: #3b82f6; color: #fff; border: 0; padding: 8px 14px; border-radius: 8px; font-weight: 700; font-size: 12px; cursor: pointer; transition: 0.15s; }
+button:active { transform: scale(0.98); }
 button.danger { background: #dc2626; }
 button.green { background: #16a34a; }
-button.orange { background: #ea580c; }
-button.purple { background: #9333ea; }
-.post { border-bottom: 1px solid #222; padding: 10px 0; position: relative; }
-code { background: #1e293b; padding: 2px 5px; border-radius: 4px; color: #38bdf8; font-family: monospace; font-size: 11px; }
-mark { background: #facc15; color: #000; padding: 0 2px; border-radius: 2px; font-weight: 700; }
-.badge { background: #333; padding: 2px 5px; border-radius: 4px; font-size: 10px; margin-right: 4px; cursor: pointer; }
-.badge-loc { background: #4c1d95; color: #d8b4fe; }
-.badge-dev { background: #064e3b; color: #6ee7b7; }
-.badge-spec { background: #1e293b; color: #94a3b8; }
-.badge-vpn { background: #991b1b; color: #fecaca; font-weight: 700; }
-.badge-shadow { background: #475569; color: #f8fafc; font-weight: 700; }
-.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 6px; margin-top: 8px; }
-.stat-box { background: #18181b; border: 1px solid #27272a; border-radius: 8px; padding: 8px; text-align: center; }
-.stat-val { font-size: 1.15rem; font-weight: 700; color: #38bdf8; }
-.stat-label { font-size: 0.72rem; color: #a1a1aa; margin-top: 2px; }
-.filter-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-.filter-tag { background: #27272a; color: #fca5a5; border: 1px solid #7f1d1d; padding: 3px 8px; border-radius: 6px; font-size: 11px; display: inline-flex; align-items: center; gap: 6px; }
-.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75); z-index: 50; justify-content: center; align-items: center; padding: 16px; }
-.modal-card { background: #18181b; border: 1px solid #333; border-radius: 14px; max-width: 380px; width: 100%; padding: 16px; display: flex; flex-direction: column; gap: 8px; }
-.preset-btn { background: #27272a; color: #fff; border: 1px solid #3f3f46; padding: 9px; border-radius: 8px; text-align: left; font-size: 0.85rem; margin: 2px 0; }
-.slider-wrap { display: flex; align-items: center; gap: 12px; margin-top: 6px; }
-.slider-wrap input[type=range] { flex: 1; margin: 0; }
+button.gold { background: linear-gradient(180deg, #FFE68A, #FFB800); color: #000; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; }
+.stat-box { background: #18181b; border: 1px solid #27272a; border-radius: 8px; padding: 12px; text-align: center; }
+.stat-val { font-size: 1.5rem; font-weight: 700; color: #38bdf8; }
+.stat-label { font-size: 0.75rem; color: #a1a1aa; margin-top: 4px; }
+.list-item { border-bottom: 1px solid #222; padding: 10px 0; font-size: 13px; display: flex; flex-direction: column; gap: 6px; }
+.list-item:last-child { border-bottom: none; }
+.badge { background: #333; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; }
+.badge.admin { background: #dc2626; color: #fff; }
+.badge.vip { background: #f59e0b; color: #000; }
+.badge.active { background: #16a34a; color: #fff; }
+.action-row { display: flex; gap: 6px; flex-wrap: wrap; }
+#statusMsg { font-size: 12px; font-weight: 600; text-align: center; margin-bottom: 12px; min-height: 15px; color: #38bdf8; }
 </style>
 </head>
-<body ontouchstart="">
+<body>
 
-<div id="loginOverlay">
-  <div class="card-luxury">
-    <div class="logo-wrap"><div class="logo-luxury">ES</div></div>
+<div class="header-card">
+  <div>
     <h1>EMPIRE STUDIO</h1>
-    <div class="sub-luxury">🔒 Private Admin Access Only</div>
-    
-    <div class="input-wrap">
-      <span class="icon left">🔑</span>
-      <input type="password" id="loginKeyInput" placeholder="Enter Admin Password" onkeydown="if(event.key==='Enter') verifyAdminLogin()">
-      <span class="icon right" onclick="let i=document.getElementById('loginKeyInput'); i.type=i.type==='password'?'text':'password'">👁️</span>
-    </div>
-    
-    <div id="loginError"></div>
-    <button class="login-btn-luxury" onclick="verifyAdminLogin()">Login</button>
-    
-    <div class="trust">
-      <div>🛡️ <span><b>Biometric</b>Secure</span></div>
-      <div>🔐 <span><b>Shield</b>Secured</span></div>
-    </div>
-    <div class="foot"><span class="dot"></span> Car Parking Multiplayer Tools • v2.1.0</div>
+    <div style="font-size: 12px; color: #d6c79f; margin-top: 4px;">Admin Security Module</div>
   </div>
+  <button class="danger" id="btnLogout">Logout</button>
 </div>
 
-<h3>CPM Admin Dashboard</h3>
+<div id="statusMsg">Authenticating securely...</div>
 
+<!-- Module 1: Analytics -->
 <div class="card">
-  <div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:4px;">
-    <button id="loadBtn" type="button" onclick="loadAll()">Refresh Data</button>
-    <button type="button" class="purple" onclick="openWallAsAdmin()">🌍 Open Wall as Admin</button>
-    <button id="raidBtn" type="button" class="danger" onclick="toggleRaidMode()">🚨 Raid Mode: OFF</button>
-    <button id="lockToggleBtn" type="button" class="danger" onclick="toggleChatLock()">Lock Chat</button>
-    <button type="button" class="green" onclick="generateVipReply()">👑 1-Click VIP Generator</button>
-    <button type="button" class="green" onclick="exportBackup()">Export JSON</button>
-    <button type="button" class="danger" style="background:#52525b;" onclick="logoutAdmin()">🔒 Lock Panel</button>
-  </div>
-  <div style="margin-top:6px; display:flex; justify-content:space-between; align-items:center;">
-    <span id="status" style="font-size:12px; color:#94a3b8; font-weight:600;"></span>
-    <label style="font-size:12px; color:#cbd5e1; cursor:pointer;">
-      <input type="checkbox" id="autoRefreshCheck" style="width:auto; margin:0 4px 0 0;" onchange="toggleAutoRefresh(this.checked)"> Auto-refresh (10s)
-    </label>
+  <h4>📊 1. System Analytics</h4>
+  <button class="green" id="btnRefreshAnalytics">Refresh Analytics</button>
+  <div class="grid-4" id="analyticsGrid" style="margin-top: 12px;"></div>
+  <div style="margin-top: 12px; font-size: 12px; color: #a1a1aa;">
+    <b>Top Posters Today:</b>
+    <div id="topPostersList" style="margin-top: 6px;"></div>
   </div>
 </div>
 
-<div class="card" id="statsCard" style="display:none;">
-  <h4>Live System Statistics</h4>
-  <div class="stats-grid">
-    <div class="stat-box"><div id="statPosts" class="stat-val">0</div><div class="stat-label">Posts</div></div>
-    <div class="stat-box"><div id="statVisitors" class="stat-val">0</div><div class="stat-label">Visitors</div></div>
-    <div class="stat-box"><div id="statVip" class="stat-val" style="color:#f59e0b;">0</div><div class="stat-label">VIPs</div></div>
-    <div class="stat-box"><div id="statRevenue" class="stat-val" style="color:#22c55e;">0</div><div class="stat-label">Revenue PKR</div></div>
-    <div class="stat-box"><div id="statReports" class="stat-val" style="color:#ef4444;">0</div><div class="stat-label">Reports</div></div>
-    <div class="stat-box"><div id="statStrikes" class="stat-val" style="color:#f97316;">0</div><div class="stat-label">Strikes</div></div>
-    <div class="stat-box"><div id="statBanned" class="stat-val">0</div><div class="stat-label">Bans</div></div>
-  </div>
-</div>
-
-<div class="card" id="quotaCard" style="display:none;">
-  <div style="display:flex; justify-content:space-between; align-items:center;">
-    <h4>📊 Firebase Daily Quota Monitor (Spark Free Tier)</h4>
-    <span id="quotaResetText" style="font-size:10px; color:#94a3b8;">Resets at 12:00 AM</span>
-  </div>
-  <div style="margin-top:10px;">
-    <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;">
-      <span>Document Reads: <b id="readsCountText" style="color:#38bdf8;">0 / 50,000</b></span>
-      <span id="readsPercentText" style="font-weight:700;">0%</span>
-    </div>
-    <div style="width:100%; height:8px; background:#1e243b; border-radius:4px; overflow:hidden;">
-      <div id="readsBar" style="width:0%; height:100%; background:#38bdf8; transition:width 0.3s ease;"></div>
-    </div>
-  </div>
-  <div style="margin-top:12px;">
-    <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;">
-      <span>Document Writes: <b id="writesCountText" style="color:#f59e0b;">0 / 20,000</b></span>
-      <span id="writesPercentText" style="font-weight:700;">0%</span>
-    </div>
-    <div style="width:100%; height:8px; background:#1e243b; border-radius:4px; overflow:hidden;">
-      <div id="writesBar" style="width:0%; height:100%; background:#f59e0b; transition:width 0.3s ease;"></div>
-    </div>
-  </div>
-</div>
-
+<!-- Module 2: Users -->
 <div class="card">
-  <h4>⏱️ Dynamic Slow-Mode Cooldown</h4>
-  <div class="slider-wrap">
-    <input type="range" id="slowSlider" min="1" max="60" value="10" oninput="updateSliderLabel(this.value)">
-    <span id="sliderVal" style="font-weight:700; color:#38bdf8; min-width:35px;">10s</span>
-    <button type="button" class="green" onclick="saveSlowMode()">Save Cooldown</button>
-  </div>
-</div>
-
-<div class="card">
-  <h4 style="color:#ef4444;">🧹 Emergency Lobby Flush</h4>
-  <p style="font-size:12px; color:#94a3b8; margin: 4px 0 8px 0;">Wipe latest posts during bot floods or spam raids.</p>
-  <button type="button" class="danger" onclick="flushLobby(50)">Wipe Last 50 Posts</button>
-  <button type="button" class="danger" style="background:#7f1d1d;" onclick="flushLobby(100)">Wipe Last 100 Posts</button>
-</div>
-
-<div class="card">
-  <h4 style="color:#22c55e;">💸 Payment & Transaction Ledger</h4>
-  <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
-    <input id="payDriverTag" placeholder="Driver Tag (e.g. Uzair77)" style="margin:0;">
-    <input id="payAmount" type="number" placeholder="Amount (PKR, e.g. 300)" style="margin:0;">
-    <select id="payMethod" style="margin:0;">
-      <option value="JazzCash">JazzCash</option>
-      <option value="NayaPay">NayaPay</option>
-      <option value="Easypaisa">Easypaisa</option>
-      <option value="Other">Other</option>
+  <h4>👥 2. User Management</h4>
+  <div class="grid-2">
+    <input type="text" id="userSearch" placeholder="Search username...">
+    <select id="userRoleFilter">
+      <option value="">All Roles</option>
+      <option value="ADMIN">ADMIN</option>
+      <option value="VIP">VIP</option>
+      <option value="MOD">MOD</option>
+      <option value="USER">USER</option>
     </select>
-    <input id="payTxId" placeholder="Tx ID / Ref No." style="margin:0;">
   </div>
-  <button type="button" class="green" style="margin-top:8px;" onclick="addPayment()">Record Payment</button>
-  <div id="paymentHistoryList" style="margin-top:10px;">Login to load payments</div>
+  <button class="gold" id="btnSearchUsers">Search Users</button>
+  <div id="usersList" style="margin-top: 12px;"></div>
 </div>
 
+<!-- Module 3: Sessions -->
 <div class="card">
-  <h4>📢 Canned Broadcast Presets</h4>
-  <div class="preset-row" style="display:flex; flex-wrap:wrap; gap:5px; margin:6px 0;">
-    <button type="button" onclick="loadPreset('drag')">🏎️ Drag Meet</button>
-    <button type="button" onclick="loadPreset('maint')">🔧 Maintenance</button>
-    <button type="button" onclick="loadPreset('w16')">🚓 W16 Giveaway</button>
-    <button type="button" onclick="loadPreset('vip')">👑 VIP Lounge $1</button>
+  <h4>🛡️ 3. Session Control</h4>
+  <input type="text" id="sessionSearch" placeholder="Filter by exact username...">
+  <button class="gold" id="btnLoadSessions">Load Active Sessions</button>
+  <div id="sessionsList" style="margin-top: 12px;"></div>
+</div>
+
+<!-- Module 4: Feature Flags -->
+<div class="card">
+  <h4>⚙️ 4. Feature Flags</h4>
+  <div class="grid-2">
+    <input type="text" id="flagKey" placeholder="Flag Key (e.g., raid_mode)">
+    <select id="flagEnabled">
+      <option value="true">Enabled</option>
+      <option value="false">Disabled</option>
+    </select>
   </div>
-  <input id="pinName" placeholder="Admin Tag (e.g. Administration)">
-  <textarea id="pinText" placeholder="Broadcast message content"></textarea>
-  <button type="button" class="green" onclick="pin(true)">Publish Announcement</button>
-  <button type="button" class="danger" onclick="pin(false)">Clear Pin</button>
-  <div id="currentPin" style="font-size:12px; color:#f472b6; margin-top:4px;"></div>
-  
-  <div style="margin-top: 14px; border-top: 1px solid #222; padding-top: 10px;">
-    <h4>Private VIP Room Passcode</h4>
-    <input type="password" id="vipKeyInput" placeholder="Set VIP Key (e.g. VIP777)">
-    <button type="button" class="green" onclick="saveVipKey()">Save VIP Passcode</button>
-    <div id="currentVipKey" style="margin-top: 4px; font-size: 13px; color: #38bdf8;"></div>
+  <input type="text" id="flagDesc" placeholder="Description">
+  <button class="green" id="btnSaveFlag">Save Flag</button>
+  <button id="btnRefreshFlags">Refresh Flags</button>
+  <div id="flagsList" style="margin-top: 12px;"></div>
+</div>
+
+<!-- Module 5: Announcements -->
+<div class="card">
+  <h4>📢 5. Pinned Announcements</h4>
+  <div class="action-row" style="margin-bottom: 8px;">
+    <button id="btnPresetDrag">🏎️ Drag Meet</button>
+    <button id="btnPresetMaint">🔧 Maintenance</button>
+    <button id="btnPresetVip">👑 VIP Lounge</button>
+  </div>
+  <input type="text" id="announceName" placeholder="Admin Name (e.g. Administration)">
+  <textarea id="announceText" placeholder="Broadcast message content..." rows="3"></textarea>
+  <div class="action-row">
+    <button class="green" id="btnPublishPin">Publish Pin</button>
+    <button class="danger" id="btnClearPin">Clear Pin</button>
   </div>
 </div>
 
-<div class="card" id="reportedCard">
-  <h4 style="color:#ef4444;">🚩 Flagged Reports Queue</h4>
-  <div id="reportedPosts">No reported messages</div>
-</div>
-
+<!-- Module 6: Audit Logs -->
 <div class="card">
-  <div style="display:flex; justify-content:space-between; align-items:center;">
-    <h4>💬 Posts Management</h4>
-    <button id="delBulkBtn" type="button" class="danger" style="display:none;" onclick="deleteSelectedPosts()">Delete Selected (0)</button>
+  <h4>📋 6. Audit Logs</h4>
+  <div class="grid-2">
+    <input type="text" id="auditAction" placeholder="Action (e.g., BAN_USER)">
+    <input type="text" id="auditUser" placeholder="Target or Admin Username">
   </div>
-  <input id="searchInput" placeholder="Filter posts, IPs, devices, messages..." oninput="applyFilter()">
-  <div id="posts">Login to load posts</div>
-</div>
-
-<div class="card">
-  <h4 style="color:#f59e0b;">👑 VIP Members & Expirations (30 Days Tracker)</h4>
-  <div id="vipMembers">Login to load VIP members</div>
-</div>
-
-<div class="card">
-  <h4 style="color:#ef4444;">🚫 Blocked from VIP Lounge</h4>
-  <div id="vipBannedList">Login to load blocked VIPs</div>
-</div>
-
-<div class="card">
-  <h4>🤬 Live Word Filter Manager</h4>
-  <div style="display: flex; gap: 6px;">
-    <input id="newFilterInput" placeholder="Add word, telegram handle, or scam term..." style="margin: 0;">
-    <button type="button" class="green" style="white-space: nowrap;" onclick="addFilterWord()">Add Word</button>
-  </div>
-  <div id="filterTagsList" class="filter-tags">No custom words yet.</div>
-</div>
-
-<div class="card">
-  <h4>Live Visitors (Opened Website)</h4>
-  <div id="visitors">Login to load visitors</div>
-</div>
-
-<div class="card">
-  <h4>📡 Network & Device Security (IP Logs, Subnets, Hardware Fingerprints)</h4>
-  <div id="logs">Login to load security logs</div>
-</div>
-
-<div class="card">
-  <h4>Permanently Verified IPs</h4>
-  <div id="verifiedIps">Login to load verified IPs</div>
-</div>
-
-<div class="card">
-  <h4>Subnet Whitelist Exemptions</h4>
-  <div id="subnetWhitelistView">Login to load exemptions</div>
-</div>
-
-<div class="card">
-  <h4>Banned Network Subnets (/24)</h4>
-  <div id="subnetBansList">Login to load subnet bans</div>
-</div>
-
-<div class="card">
-  <h4>Banned Device Hardware Signatures</h4>
-  <div id="fpBansList">Login to load hardware bans</div>
-</div>
-
-<div class="card">
-  <h4>Banned IPs</h4>
-  <div id="banned">Login to load bans</div>
-</div>
-
-<div id="banModal" class="modal-overlay">
-  <div class="modal-card">
-    <h4>Select Ban Preset</h4>
-    <div style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 6px;">
-      Target IP: <code id="modalIpDisplay"></code>
-    </div>
-    <button type="button" class="preset-btn" onclick="executeBanPreset('Spamming lobby', 24)">Spamming (24 Hours)</button>
-    <button type="button" class="preset-btn" onclick="executeBanPreset('Advertising / Links', 0)">Promo / Links (Permanent)</button>
-    <button type="button" class="preset-btn" onclick="executeBanPreset('Toxicity / Harassment', 72)">Toxicity (3 Days)</button>
-    <button type="button" class="preset-btn" onclick="executeBanPreset('Trolling / Disruptive', 0)">Trolling (Permanent)</button>
-    <button type="button" class="preset-btn" onclick="promptCustomBan()">Custom Reason and Time...</button>
-    <button type="button" class="danger" style="margin-top: 6px;" onclick="closeBanModal()">Cancel</button>
-  </div>
+  <button class="gold" id="btnLoadAudit">Load Logs</button>
+  <div id="auditList" style="margin-top: 12px; max-height: 300px; overflow-y: auto;"></div>
 </div>
 
 <script>
-let ADMIN_KEY = localStorage.getItem('cpm_admin_key') || '';
-let cachedPosts = [], cachedLogs = [], cachedVisitors = [], cachedBanned = [], cachedVerified = [], cachedFilters = [];
-let cachedVipMembers = [], cachedVipBanned = [], cachedPayments = [], cachedSubnetBans = [], cachedFpBans = [];
-let cachedSubnetWhitelist = [], cachedShadowbanned = [], cachedNotes = {}, cachedStrikes = [];
-let refreshTimer = null;
-let activeBanIp = '';
-let isChatCurrentlyLocked = false;
-let isRaidModeActive = false;
-let selectedPostIds = new Set();
-let audioCtx = null;
-let lastSirenPlayedTime = 0;
+const token = localStorage.getItem('wall_token');
+if (!token) window.location.href = '/login.html';
 
-window.addEventListener('DOMContentLoaded', () => {
-  if (ADMIN_KEY && localStorage.getItem('wall_token')) {
-    verifyAdminLogin(true);
+function getAuthHeaders() {
+  return {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${token}`
+  };
+}
+
+function setStatus(msg, isError = false) {
+  const el = document.getElementById('statusMsg');
+  el.textContent = msg;
+  el.style.color = isError ? '#ef4444' : '#38bdf8';
+}
+
+function escapeHtml(unsafe) {
+  if (!unsafe) return '';
+  return String(unsafe)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function logout() {
+  localStorage.removeItem('wall_token');
+  window.location.href = '/login.html';
+}
+
+// Initial API test to verify ADMIN role
+async function checkAuth() {
+  try {
+    const res = await fetch('/api/admin/analytics', { headers: getAuthHeaders() });
+    if (!res.ok) {
+      setStatus("Access Denied: Not an ADMIN or token expired.", true);
+      setTimeout(logout, 2000);
+      return;
+    }
+    setStatus("Authentication successful. Modules active.");
+    loadAnalytics();
+  } catch (e) {
+    setStatus("Network Error.", true);
+  }
+}
+
+// --- Module 1: Analytics ---
+async function loadAnalytics() {
+  try {
+    const res = await fetch('/api/admin/analytics', { headers: getAuthHeaders() });
+    if (!res.ok) throw new Error("Failed to load analytics");
+    const data = await res.json();
+    
+    document.getElementById('analyticsGrid').innerHTML = DOMPurify.sanitize(`
+      <div class="stat-box"><div class="stat-val">${data.totalUsers || 0}</div><div class="stat-label">Total Users</div></div>
+      <div class="stat-box"><div class="stat-val" style="color:#22c55e;">${data.activeToday || 0}</div><div class="stat-label">Active Today</div></div>
+      <div class="stat-box"><div class="stat-val">${data.totalPosts || 0}</div><div class="stat-label">Total Posts</div></div>
+      <div class="stat-box"><div class="stat-val" style="color:#f59e0b;">${data.postsToday || 0}</div><div class="stat-label">Posts Today</div></div>
+    `);
+
+    let postersHtml = data.topPosters && data.topPosters.length > 0 
+      ? data.topPosters.map(p => `<span class="badge">${escapeHtml(p.username)}: ${p.count}</span>`).join(' ')
+      : "No posts today.";
+    document.getElementById('topPostersList').innerHTML = DOMPurify.sanitize(postersHtml);
+    setStatus("Analytics refreshed.");
+  } catch (err) {
+    setStatus(err.message, true);
+  }
+}
+
+// --- Module 2: Users ---
+async function loadUsers() {
+  const q = document.getElementById('userSearch').value;
+  const role = document.getElementById('userRoleFilter').value;
+  try {
+    const res = await fetch(`/api/admin/users?q=${encodeURIComponent(q)}&role=${encodeURIComponent(role)}`, { headers: getAuthHeaders() });
+    if (!res.ok) throw new Error("Failed to load users");
+    const data = await res.json();
+    
+    let html = data.users.length === 0 ? '<div style="color:#a1a1aa; font-size:12px;">No users found.</div>' : '';
+    data.users.forEach(u => {
+      const badgeCls = u.role === 'ADMIN' ? 'admin' : (u.role === 'VIP' ? 'vip' : '');
+      const bannedTag = u.isBanned ? '<span class="badge admin">BANNED</span>' : '';
+      html += `
+        <div class="list-item">
+          <div>
+            <b>${escapeHtml(u.username)}</b> 
+            <span class="badge ${badgeCls}">${escapeHtml(u.role || 'USER')}</span>
+            ${bannedTag}
+          </div>
+          <div style="font-size:11px; color:#8b8fa3;">IP: ${escapeHtml(u.ip)}</div>
+          <div class="action-row">
+            <button class="btn-role" data-uname="${escapeHtml(u.username)}">Change Role</button>
+            <button class="btn-ban danger" data-uname="${escapeHtml(u.username)}">Ban</button>
+          </div>
+        </div>
+      `;
+    });
+    document.getElementById('usersList').innerHTML = DOMPurify.sanitize(html);
+    setStatus("Users loaded.");
+  } catch (err) {
+    setStatus(err.message, true);
+  }
+}
+
+// Event Delegation for Users List
+document.getElementById('usersList').addEventListener('click', async (e) => {
+  if (e.target.classList.contains('btn-role')) {
+    const uname = e.target.getAttribute('data-uname');
+    const newRole = prompt(`Enter new role for ${uname} (ADMIN, VIP, MOD, USER):`, "USER");
+    if (!newRole) return;
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ action: 'update_role', targetUsername: uname, role: newRole })
+      });
+      if (res.ok) { setStatus("Role updated."); loadUsers(); }
+      else { const d = await res.json(); setStatus(d.error, true); }
+    } catch (err) {}
+  }
+  
+  if (e.target.classList.contains('btn-ban')) {
+    const uname = e.target.getAttribute('data-uname');
+    const reason = prompt(`Reason for banning ${uname}:`, "Violation of rules");
+    if (reason === null) return;
+    const hours = prompt("Ban duration in hours (0 for permanent):", "0");
+    if (hours === null) return;
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ action: 'ban', targetUsername: uname, reason, hours: Number(hours) })
+      });
+      if (res.ok) { setStatus("User banned."); loadUsers(); }
+      else { const d = await res.json(); setStatus(d.error, true); }
+    } catch (err) {}
   }
 });
 
-async function verifyAdminLogin(isAuto = false) {
-  const inputVal = isAuto ? ADMIN_KEY : (document.getElementById('loginKeyInput').value || '').trim();
-  const errEl = document.getElementById('loginError');
-  const token = localStorage.getItem('wall_token') || '';
-
-  if (!inputVal) {
-    if (!isAuto) errEl.textContent = 'Please enter admin password';
-    return;
-  }
-  if (!token) {
-    errEl.textContent = 'You must log in to the main wall first before accessing the admin panel.';
-    return;
-  }
-
-  errEl.textContent = 'Verifying...';
-  
+// --- Module 3: Sessions ---
+async function loadSessions() {
+  const q = document.getElementById('sessionSearch').value;
   try {
-    const r = await fetch(`/api/admin?action=posts`, {
-      headers: {
-        'Content-Type': 'application/json',
-        'x-admin-key': inputVal,
-        'Authorization': `Bearer ${token}`
-      }
+    const res = await fetch(`/api/admin/sessions${q ? '?username=' + encodeURIComponent(q) : ''}`, { headers: getAuthHeaders() });
+    if (!res.ok) throw new Error("Failed to load sessions");
+    const data = await res.json();
+    
+    let html = data.sessions.length === 0 ? '<div style="color:#a1a1aa; font-size:12px;">No sessions found.</div>' : '';
+    data.sessions.forEach(s => {
+      html += `
+        <div class="list-item">
+          <div><b>${escapeHtml(s.username)}</b> <span class="badge" style="background:#2563eb;">${escapeHtml(s.id)}</span></div>
+          <div style="font-size:11px; color:#8b8fa3;">Created: ${new Date(s.createdAt).toLocaleString()}</div>
+          <div class="action-row"><button class="btn-revoke danger" data-sid="${escapeHtml(s.id)}">Revoke Session</button></div>
+        </div>
+      `;
     });
-    
-    if (r.ok) {
-      ADMIN_KEY = inputVal;
-      localStorage.setItem('cpm_admin_key', ADMIN_KEY);
-      document.getElementById('loginOverlay').style.display = 'none';
-      loadAll();
-    } else {
-      errEl.textContent = 'Incorrect password or unauthorized role.';
-      if (!isAuto) localStorage.removeItem('cpm_admin_key');
-    }
+    document.getElementById('sessionsList').innerHTML = DOMPurify.sanitize(html);
+    setStatus("Sessions loaded.");
   } catch (err) {
-    errEl.textContent = 'Connection error: ' + err.message;
+    setStatus(err.message, true);
   }
 }
 
-function logoutAdmin() {
-  localStorage.removeItem('cpm_admin_key');
-  ADMIN_KEY = '';
-  if (refreshTimer) clearInterval(refreshTimer);
-  document.getElementById('loginKeyInput').value = '';
-  document.getElementById('loginError').textContent = '';
-  document.getElementById('loginOverlay').style.display = 'flex';
-}
-
-function openWallAsAdmin() {
-  if (ADMIN_KEY) {
-    window.open('/', '_blank');
-  } else {
-    alert("Please log into the admin panel first.");
+document.getElementById('sessionsList').addEventListener('click', async (e) => {
+  if (e.target.classList.contains('btn-revoke')) {
+    const sid = e.target.getAttribute('data-sid');
+    if (!confirm("Revoke this active session?")) return;
+    try {
+      const res = await fetch('/api/admin/sessions', {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ action: 'revoke', sessionId: sid })
+      });
+      if (res.ok) { setStatus("Session revoked."); loadSessions(); }
+      else { const d = await res.json(); setStatus(d.error, true); }
+    } catch (err) {}
   }
-}
+});
 
-function initAudio() {
-  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  if (audioCtx.state === 'suspended') audioCtx.resume();
-}
-
-function playReportSiren() {
-  if (Date.now() - lastSirenPlayedTime < 25000) return;
-  lastSirenPlayedTime = Date.now();
+// --- Module 4: Flags ---
+async function loadFlags() {
   try {
-    initAudio();
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = 'sawtooth';
-    const t = audioCtx.currentTime;
-    osc.frequency.setValueAtTime(800, t);
-    osc.frequency.setValueAtTime(600, t + 0.25);
-    osc.frequency.setValueAtTime(800, t + 0.5);
-    osc.frequency.setValueAtTime(600, t + 0.75);
+    const res = await fetch('/api/admin/flags', { headers: getAuthHeaders() });
+    if (!res.ok) throw new Error("Failed to load flags");
+    const data = await res.json();
     
-    gain.gain.setValueAtTime(0.5, t);
-    gain.gain.exponentialRampToValueAtTime(0.01, t + 1.1);
-    
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    
-    osc.start(t);
-    osc.stop(t + 1.1);
-  } catch {}
-}
-
-document.addEventListener('click', () => { initAudio(); }, { once: true });
-
-function getFlagEmoji(cc) {
-  if (!cc || cc.length !== 2 || cc === 'UN') return '🏳️';
-  return String.fromCodePoint(...cc.toUpperCase().split('').map(c => 127397 + c.charCodeAt()));
-}
-
-function setStatus(text, isError = false) {
-  const el = document.getElementById('status');
-  if (el) {
-    el.textContent = text;
-    el.style.color = isError ? '#ef4444' : '#38bdf8';
+    let html = data.flags.length === 0 ? '<div style="color:#a1a1aa; font-size:12px;">No flags found.</div>' : '';
+    data.flags.forEach(f => {
+      const statusBadge = f.enabled ? '<span class="badge active">ENABLED</span>' : '<span class="badge admin">DISABLED</span>';
+      html += `
+        <div class="list-item">
+          <div><b>${escapeHtml(f.key)}</b> ${statusBadge}</div>
+          <div style="font-size:11px; color:#8b8fa3;">${escapeHtml(f.description)}</div>
+          <div class="action-row"><button class="btn-del-flag danger" data-key="${escapeHtml(f.key)}">Delete Flag</button></div>
+        </div>
+      `;
+    });
+    document.getElementById('flagsList').innerHTML = DOMPurify.sanitize(html);
+  } catch (err) {
+    setStatus(err.message, true);
   }
 }
 
-function headers() {
-  const token = localStorage.getItem('wall_token') || '';
-  return {
-    'Content-Type': 'application/json',
-    'x-admin-key': ADMIN_KEY,
-    'Authorization': `Bearer ${token}`
-  };
-}
-
-function esc(s) {
-  return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
-
-function highlight(str, q) {
-  const safe = esc(str);
-  if (!q) return safe;
-  const escapedQuery = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return safe.replace(new RegExp(`(${escapedQuery})`, 'gi'), '<mark>$1</mark>');
-}
-
-function updateSliderLabel(val) {
-  const el = document.getElementById('sliderVal');
-  if (el) el.textContent = `${val}s`;
-}
-
-function loadPreset(type) {
-  const nameEl = document.getElementById('pinName');
-  const textEl = document.getElementById('pinText');
-  if (!nameEl || !textEl) return;
+async function saveFlag() {
+  const key = document.getElementById('flagKey').value.trim();
+  const enabled = document.getElementById('flagEnabled').value === "true";
+  const desc = document.getElementById('flagDesc').value.trim();
+  if (!key) return setStatus("Flag key is required.", true);
   
+  try {
+    const res = await fetch('/api/admin/flags', {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ action: 'set', key, enabled, description: desc })
+    });
+    if (res.ok) { setStatus("Flag saved."); document.getElementById('flagKey').value = ''; loadFlags(); }
+    else { const d = await res.json(); setStatus(d.error, true); }
+  } catch (err) {}
+}
+
+document.getElementById('flagsList').addEventListener('click', async (e) => {
+  if (e.target.classList.contains('btn-del-flag')) {
+    const key = e.target.getAttribute('data-key');
+    if (!confirm(`Delete feature flag '${key}'?`)) return;
+    try {
+      const res = await fetch('/api/admin/flags', {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ action: 'delete', key })
+      });
+      if (res.ok) { setStatus("Flag deleted."); loadFlags(); }
+    } catch (err) {}
+  }
+});
+
+// --- Module 5: Announcements ---
+function presetAnnouncement(type) {
+  const nameEl = document.getElementById('announceName');
+  const textEl = document.getElementById('announceText');
   nameEl.value = "Administration Team";
-  if (type === 'drag') {
-    textEl.value = "🏁 Drag meet starting in Room 4! Bring your sub-6s AWD builds. Clean runs only.";
-  } else if (type === 'maint') {
-    textEl.value = "🔧 Lobby server maintenance in 10 minutes. Chats will briefly pause.";
-  } else if (type === 'w16') {
-    textEl.value = "🚓 Today's W16 police build giveaway is live! Check our Instagram (@4t_jagga) for entry rules.";
-  } else if (type === 'vip') {
-    textEl.value = "👑 VIP Lounge ($1 / 300 PKR) & 24h Pinned slots open! Message WhatsApp to buy.";
-  }
+  if (type === 'drag') textEl.value = "🏁 Drag meet starting in Room 4! Bring your sub-6s AWD builds. Clean runs only.";
+  if (type === 'maint') textEl.value = "🔧 Lobby server maintenance in 10 minutes. Chats will briefly pause.";
+  if (type === 'vip') textEl.value = "👑 VIP Lounge ($1 / 300 PKR) & 24h Pinned slots open! Message WhatsApp to buy.";
 }
 
-async function generateVipReply() {
-  try {
-    const r = await fetch('/api/admin', {
-      method: 'POST',
-      headers: headers(),
-      body: JSON.stringify({ action: 'generate_vip_code' })
-    });
-    const d = await r.json();
-    if (d.success) {
-      const msg = `Thanks for your payment! Here is your VIP passcode: ${d.vipKey}. Enter it on the wall to unlock the VIP Lounge and badge.`;
-      await navigator.clipboard.writeText(msg);
-      alert(`VIP Code Created: ${d.vipKey}\n\nPre-formatted WhatsApp message copied to your clipboard!`);
-      loadAll(true);
-    } else {
-      setStatus(d.error || 'Failed to create VIP code', true);
-    }
-  } catch (err) {
-    setStatus('Network error: ' + err.message, true);
-  }
-}
-
-async function toggleRaidMode() {
-  const target = !isRaidModeActive;
-  if (!confirm(`Switch Panic Raid Mode ${target ? 'ON' : 'OFF'}? When ON, only VIP and verified users can post.`)) return;
-  try {
-    const r = await fetch('/api/admin', {
-      method: 'POST',
-      headers: headers(),
-      body: JSON.stringify({ action: 'toggle_raid_mode', raidMode: target })
-    });
-    const d = await r.json();
-    if (d.success) {
-      updateRaidUI(d.raidMode);
-      setStatus(`Panic Raid Mode is now ${d.raidMode ? 'ACTIVE' : 'OFF'}`);
-    }
-  } catch (err) {
-    setStatus('Error toggling raid mode: ' + err.message, true);
-  }
-}
-
-function updateRaidUI(active) {
-  isRaidModeActive = Boolean(active);
-  const btn = document.getElementById('raidBtn');
-  if (!btn) return;
-  if (isRaidModeActive) {
-    btn.className = 'green';
-    btn.textContent = '🚨 Raid Mode: ACTIVE (VIP Only)';
-  } else {
-    btn.className = 'danger';
-    btn.textContent = '🚨 Raid Mode: OFF';
-  }
-}
-
-async function saveSlowMode() {
-  const seconds = Number(document.getElementById('slowSlider').value) || 10;
-  try {
-    const r = await fetch('/api/admin', {
-      method: 'POST',
-      headers: headers(),
-      body: JSON.stringify({ action: 'set_slow_mode', seconds })
-    });
-    const d = await r.json();
-    if (d.success) setStatus(`Chat slow mode set to ${d.slowModeSeconds} seconds`);
-    else setStatus(d.error || 'Failed to set slow mode', true);
-  } catch (err) {
-    setStatus('Network error: ' + err.message, true);
-  }
-}
-
-async function flushLobby(count) {
-  if (!confirm(`Are you sure you want to delete the last ${count} messages from the lobby?`)) return;
-  try {
-    const r = await fetch('/api/admin', {
-      method: 'POST',
-      headers: headers(),
-      body: JSON.stringify({ action: 'flush_lobby', count })
-    });
-    const d = await r.json();
-    if (d.success) {
-      setStatus(`Successfully flushed ${d.deleted} messages.`);
-      loadAll(true);
-    } else {
-      setStatus(d.error || 'Flush failed', true);
-    }
-  } catch (err) {
-    setStatus('Flush error: ' + err.message, true);
-  }
-}
-
-async function editPostDirect(postId, currentText) {
-  const updated = prompt('Edit post message:', currentText);
-  if (updated === null || updated.trim() === currentText.trim()) return;
-  try {
-    const r = await fetch('/api/admin', {
-      method: 'POST',
-      headers: headers(),
-      body: JSON.stringify({ action: 'edit_post', postId, message: updated.trim() })
-    });
-    const d = await r.json();
-    if (d.success) {
-      setStatus('Post updated successfully');
-      loadAll(true);
-    } else {
-      setStatus(d.error || 'Edit failed', true);
-    }
-  } catch (err) {
-    setStatus('Edit error: ' + err.message, true);
-  }
-}
-
-async function pinPostDirect(name, message) {
-  if (!confirm(`Pin message from "${name}" directly to the wall top?`)) return;
-  try {
-    const r = await fetch('/api/admin', {
-      method: 'POST',
-      headers: headers(),
-      body: JSON.stringify({ action: 'pin', name, text: message, active: true })
-    });
-    const d = await r.json();
-    if (d.success) loadAll(true);
-  } catch (err) {
-    setStatus('Pin error: ' + err.message, true);
-  }
-}
-
-function handleCheckPost(id, checked) {
-  if (checked) selectedPostIds.add(id); else selectedPostIds.delete(id);
-  const btn = document.getElementById('delBulkBtn');
-  if (!btn) return;
-  btn.style.display = selectedPostIds.size > 0 ? 'inline-block' : 'none';
-  btn.textContent = `Delete Selected (${selectedPostIds.size})`;
-}
-
-async function deleteSelectedPosts() {
-  if (!confirm(`Delete ${selectedPostIds.size} selected posts?`)) return;
-  try {
-    const r = await fetch('/api/admin', {
-      method: 'POST',
-      headers: headers(),
-      body: JSON.stringify({ action: 'delete_bulk', ids: Array.from(selectedPostIds) })
-    });
-    const d = await r.json();
-    if (d.success) {
-      selectedPostIds.clear();
-      const btn = document.getElementById('delBulkBtn');
-      if (btn) btn.style.display = 'none';
-      loadAll(true);
-    }
-  } catch (err) {
-    setStatus('Bulk delete failed: ' + err.message, true);
-  }
-}
-
-async function addPayment() {
-  const driverTag = (document.getElementById('payDriverTag').value || '').trim();
-  const amount = Number(document.getElementById('payAmount').value) || 0;
-  const method = document.getElementById('payMethod').value;
-  const txId = (document.getElementById('payTxId').value || '').trim();
-  
-  if (!driverTag || !amount) return setStatus('Enter driver tag and amount', true);
-  try {
-    const r = await fetch('/api/admin', {
-      method: 'POST',
-      headers: headers(),
-      body: JSON.stringify({ action: 'save_payment', driverTag, amount, method, txId })
-    });
-    const d = await r.json();
-    if (d.success) {
-      document.getElementById('payDriverTag').value = '';
-      document.getElementById('payAmount').value = '';
-      document.getElementById('payTxId').value = '';
-      setStatus('Payment logged successfully');
-      loadAll(true);
-    } else {
-      setStatus(d.error || 'Failed to save payment', true);
-    }
-  } catch (err) {
-    setStatus('Payment save error: ' + err.message, true);
-  }
-}
-
-async function deletePayment(paymentId) {
-  if (!confirm('Delete this payment record?')) return;
-  try {
-    const r = await fetch('/api/admin', {
-      method: 'POST',
-      headers: headers(),
-      body: JSON.stringify({ action: 'delete_payment', paymentId })
-    });
-    const d = await r.json();
-    if (d.success) loadAll(true);
-    else setStatus(d.error || 'Failed to delete payment', true);
-  } catch (err) {
-    setStatus('Delete error: ' + err.message, true);
-  }
-}
-
-function toggleAutoRefresh(enabled) {
-  if (refreshTimer) clearInterval(refreshTimer);
-  if (enabled) {
-    // Manual refresh only
-  }
-}
-
-function updateLockBtnUI(locked) {
-  isChatCurrentlyLocked = Boolean(locked);
-  const btn = document.getElementById('lockToggleBtn');
-  if (!btn) return;
-  if (isChatCurrentlyLocked) {
-    btn.className = 'green';
-    btn.textContent = 'Unlock Chat (Paused)';
-  } else {
-    btn.className = 'danger';
-    btn.textContent = 'Lock Chat (Active)';
-  }
-}
-
-async function toggleChatLock() {
-  const targetState = !isChatCurrentlyLocked;
-  if (!confirm(targetState ? 'Lock chat? Visitors cannot post.' : 'Unlock chat? Visitors can post.')) return;
-  try {
-    const r = await fetch('/api/admin', {
-      method: 'POST',
-      headers: headers(),
-      body: JSON.stringify({ action: 'toggle_chat_lock', locked: targetState })
-    });
-    const d = await r.json();
-    if (d.success) {
-      updateLockBtnUI(d.chatLocked);
-      setStatus(targetState ? 'Chat locked successfully' : 'Chat unlocked successfully');
-    } else {
-      setStatus(d.error || 'Failed to toggle lock', true);
-    }
-  } catch (err) {
-    setStatus('Network error toggling lock: ' + err.message, true);
-  }
-}
-
-async function saveVipKey() {
-  const vipKey = (document.getElementById('vipKeyInput').value || '').trim();
-  if (!vipKey) return setStatus('Enter a VIP passcode to save', true);
-  try {
-    const r = await fetch('/api/admin', {
-      method: 'POST',
-      headers: headers(),
-      body: JSON.stringify({ action: 'set_vip_key', vipKey })
-    });
-    const d = await r.json();
-    if (d.success) {
-      document.getElementById('currentVipKey').textContent = `Active VIP Passcode: ${d.vipKey}`;
-      setStatus('VIP Passcode updated successfully');
-    } else {
-      setStatus(d.error || 'Failed to save VIP key', true);
-    }
-  } catch (err) {
-    setStatus('Network error: ' + err.message, true);
-  }
-}
-
-async function banVip(ip) {
-  if (!confirm(`Block IP ${ip} from accessing VIP Lounge?`)) return;
-  try {
-    const r = await fetch('/api/admin', {
-      method: 'POST',
-      headers: headers(),
-      body: JSON.stringify({ action: 'ban_vip', ip })
-    });
-    const d = await r.json();
-    if (d.success) loadAll(true);
-  } catch (err) {
-    setStatus('Error: ' + err.message, true);
-  }
-}
-
-async function unbanVip(ip) {
-  if (!confirm(`Unblock IP ${ip} for VIP Lounge?`)) return;
-  try {
-    const r = await fetch('/api/admin', {
-      method: 'POST',
-      headers: headers(),
-      body: JSON.stringify({ action: 'unban_vip', ip })
-    });
-    const d = await r.json();
-    if (d.success) loadAll(true);
-  } catch (err) {
-    setStatus('Error: ' + err.message, true);
-  }
-}
-
-async function banSubnet(subnet) {
-  if (!confirm(`Ban entire /24 subnet (${subnet})? All mobile rotations on this prefix will be blocked.`)) return;
-  try {
-    const r = await fetch('/api/admin', {
-      method: 'POST',
-      headers: headers(),
-      body: JSON.stringify({ action: 'ban_subnet', subnet })
-    });
-    const d = await r.json();
-    if (d.success) loadAll(true);
-  } catch (err) {
-    setStatus('Subnet ban failed: ' + err.message, true);
-  }
-}
-
-async function unbanSubnet(subnet) {
-  if (!confirm(`Unban subnet ${subnet}?`)) return;
-  try {
-    const r = await fetch('/api/admin', {
-      method: 'POST',
-      headers: headers(),
-      body: JSON.stringify({ action: 'unban_subnet', subnet })
-    });
-    const d = await r.json();
-    if (d.success) loadAll(true);
-  } catch (err) {
-    setStatus('Unban failed: ' + err.message, true);
-  }
-}
-
-async function whitelistSubnetIp(ip) {
-  if (!confirm(`Exempt IP ${ip} from any carrier subnet ban?`)) return;
-  try {
-    const r = await fetch('/api/admin', {
-      method: 'POST',
-      headers: headers(),
-      body: JSON.stringify({ action: 'whitelist_subnet_ip', ip })
-    });
-    const d = await r.json();
-    if (d.success) {
-      setStatus(`Whitelisted ${ip}`);
-      loadAll(true);
-    }
-  } catch (err) {
-    setStatus('Whitelist error: ' + err.message, true);
-  }
-}
-
-async function removeSubnetWhitelist(ip) {
-  if (!confirm(`Remove subnet whitelist exemption for ${ip}?`)) return;
-  try {
-    const r = await fetch('/api/admin', {
-      method: 'POST',
-      headers: headers(),
-      body: JSON.stringify({ action: 'remove_subnet_whitelist', ip })
-    });
-    const d = await r.json();
-    if (d.success) loadAll(true);
-  } catch (err) {
-    setStatus('Error: ' + err.message, true);
-  }
-}
-
-async function banFingerprint(fingerprint) {
-  if (!confirm(`Ban hardware fingerprint signature (${fingerprint})? Device stays blocked even with new IP.`)) return;
-  try {
-    const r = await fetch('/api/admin', {
-      method: 'POST',
-      headers: headers(),
-      body: JSON.stringify({ action: 'ban_fingerprint', fingerprint })
-    });
-    const d = await r.json();
-    if (d.success) loadAll(true);
-  } catch (err) {
-    setStatus('Hardware ban failed: ' + err.message, true);
-  }
-}
-
-async function unbanFingerprint(fingerprint) {
-  if (!confirm(`Unban hardware signature ${fingerprint}?`)) return;
-  try {
-    const r = await fetch('/api/admin', {
-      method: 'POST',
-      headers: headers(),
-      body: JSON.stringify({ action: 'unban_fingerprint', fingerprint })
-    });
-    const d = await r.json();
-    if (d.success) loadAll(true);
-  } catch (err) {
-    setStatus('Unban failed: ' + err.message, true);
-  }
-}
-
-async function toggleShadowban(ip, isShadow) {
-  const action = isShadow ? 'unshadowban' : 'shadowban';
-  if (!confirm(`${isShadow ? 'Remove shadowban from' : 'Silently shadowban'} IP ${ip}?`)) return;
-  try {
-    const r = await fetch('/api/admin', {
-      method: 'POST',
-      headers: headers(),
-      body: JSON.stringify({ action, ip })
-    });
-    const d = await r.json();
-    if (d.success) loadAll(true);
-  } catch (err) {
-    setStatus('Shadowban error: ' + err.message, true);
-  }
-}
-
-async function saveAdminNote(ip) {
-  const safeIp = ip.replace(/[^a-zA-Z0-9]/g, '_');
-  const inputEl = document.getElementById(`note-${safeIp}`);
-  const note = inputEl ? inputEl.value.trim() : '';
-  try {
-    const r = await fetch('/api/admin', {
-      method: 'POST',
-      headers: headers(),
-      body: JSON.stringify({ action: 'save_note', ip, note })
-    });
-    const d = await r.json();
-    if (d.success) setStatus(`Note saved for IP ${ip}`);
-  } catch (err) {
-    setStatus('Note error: ' + err.message, true);
-  }
-}
-
-async function updateQuotaDisplay() {
-  try {
-    const r = await fetch(`/api/admin?action=quota`, { headers: headers() });
-    if (!r.ok) return;
-    const d = await r.json();
-    
-    const readPct = Math.min(100, Math.round((d.reads / d.readLimit) * 100));
-    const writePct = Math.min(100, Math.round((d.writes / d.writeLimit) * 100));
-    
-    document.getElementById('readsCountText').textContent = `${d.reads.toLocaleString()} / 50,000`;
-    document.getElementById('readsPercentText').textContent = `${readPct}%`;
-    const readsBar = document.getElementById('readsBar');
-    readsBar.style.width = `${readPct}%`;
-    readsBar.style.backgroundColor = readPct > 80 ? '#ef4444' : (readPct > 60 ? '#f97316' : '#38bdf8');
-    
-    document.getElementById('writesCountText').textContent = `${d.writes.toLocaleString()} / 20,000`;
-    document.getElementById('writesPercentText').textContent = `${writePct}%`;
-    const writesBar = document.getElementById('writesBar');
-    writesBar.style.width = `${writePct}%`;
-    writesBar.style.backgroundColor = writePct > 80 ? '#ef4444' : (writePct > 60 ? '#f97316' : '#f59e0b');
-    
-    document.getElementById('quotaCard').style.display = 'block';
-  } catch {}
-}
-
-async function loadAll(isBackground = false) {
-  const loadBtn = document.getElementById('loadBtn');
-  if (!isBackground) {
-    loadBtn.textContent = 'Loading...';
-    loadBtn.disabled = true;
-    setStatus('Synchronizing database...');
-  }
+async function publishAnnouncement(active) {
+  const text = document.getElementById('announceText').value.trim();
+  const name = document.getElementById('announceName').value.trim() || 'ADMIN';
+  if (active && !text) return setStatus("Enter message content.", true);
   
   try {
-    const [pR, bR, lR, vR, pinR, visR, fR, vipR, vipBanR, payR, subR, fpR, shR, nR, sR, subWhiteR] = await Promise.all([
-      fetch(`/api/admin?action=posts`, { headers: headers() }),
-      fetch(`/api/admin?action=banned`, { headers: headers() }),
-      fetch(`/api/admin?action=logs`, { headers: headers() }),
-      fetch(`/api/admin?action=verified_ips`, { headers: headers() }),
-      fetch(`/api/admin?action=pinned`, { headers: headers() }),
-      fetch(`/api/admin?action=visitors`, { headers: headers() }),
-      fetch(`/api/admin?action=filters`, { headers: headers() }),
-      fetch(`/api/admin?action=vip_members`, { headers: headers() }),
-      fetch(`/api/admin?action=vip_banned`, { headers: headers() }),
-      fetch(`/api/admin?action=payments`, { headers: headers() }),
-      fetch(`/api/admin?action=subnet_bans`, { headers: headers() }),
-      fetch(`/api/admin?action=fingerprint_bans`, { headers: headers() }),
-      fetch(`/api/admin?action=shadowbanned`, { headers: headers() }),
-      fetch(`/api/admin?action=notes`, { headers: headers() }),
-      fetch(`/api/admin?action=strikes`, { headers: headers() }),
-      fetch(`/api/admin?action=subnet_whitelist`, { headers: headers() })
-    ]);
-    
-    if (pR.status === 401 || pR.status === 403) {
-      logoutAdmin();
-      return;
-    }
-
-    const posts = await pR.json();
-    const banned = await bR.json();
-    const logs = await lR.json();
-    const verified = await vR.json();
-    const pinned = await pinR.json();
-    const visitors = await visR.json();
-    const filters = await fR.json();
-    const vipMembers = await vipR.json();
-    const vipBanned = await vipBanR.json();
-    const payments = await payR.json();
-    const subBans = await subR.json();
-    const fpBans = await fpR.json();
-    const shBans = await shR.json();
-    const notes = await nR.json();
-    const strikes = await sR.json();
-    const subWhite = await subWhiteR.json();
-    
-    cachedPosts = Array.isArray(posts) ? posts : [];
-    cachedBanned = Array.isArray(banned) ? banned : [];
-    cachedLogs = Array.isArray(logs) ? logs : [];
-    cachedVerified = Array.isArray(verified) ? verified : [];
-    cachedVisitors = Array.isArray(visitors) ? visitors : [];
-    cachedVipMembers = Array.isArray(vipMembers) ? vipMembers : [];
-    cachedVipBanned = Array.isArray(vipBanned) ? vipBanned : [];
-    cachedPayments = Array.isArray(payments) ? payments : [];
-    cachedSubnetBans = Array.isArray(subBans) ? subBans : [];
-    cachedFpBans = Array.isArray(fpBans) ? fpBans : [];
-    cachedShadowbanned = Array.isArray(shBans) ? shBans : [];
-    cachedNotes = (notes && typeof notes === 'object') ? notes : {};
-    cachedStrikes = Array.isArray(strikes) ? strikes : [];
-    cachedFilters = (filters && Array.isArray(filters.words)) ? filters.words : [];
-    cachedSubnetWhitelist = Array.isArray(subWhite) ? subWhite : [];
-    
-    if (cachedPosts.some(p => p.isReported && (p.reportCount >= 3))) {
-      playReportSiren();
-    }
-    
-    updateStats();
-    await updateQuotaDisplay();
-    renderFilters();
-    renderPayments();
-    applyFilter();
-    
-    updateLockBtnUI(pinned && pinned.chatLocked);
-    updateRaidUI(pinned && pinned.raidMode);
-    
-    if (pinned && pinned.slowModeSeconds) {
-      const sSlider = document.getElementById('slowSlider');
-      if (sSlider) sSlider.value = pinned.slowModeSeconds;
-      updateSliderLabel(pinned.slowModeSeconds);
-    }
-    
-    const cPin = document.getElementById('currentPin');
-    if (cPin) cPin.textContent = pinned && pinned.active ? `${pinned.name}: ${pinned.text}` : 'No active pin';
-    
-    const cVip = document.getElementById('currentVipKey');
-    if (cVip) cVip.textContent = `Active VIP Passcode: ${pinned && pinned.vipKey ? pinned.vipKey : 'VIP777'}`;
-    
-    const sCard = document.getElementById('statsCard');
-    if (sCard) sCard.style.display = 'block';
-    
-    setStatus(`Updated successfully at ${new Date().toLocaleTimeString()}`);
-    
-  } catch (err) {
-    setStatus('Connection failed: ' + err.message, true);
-  } finally {
-    if (loadBtn) {
-      loadBtn.textContent = 'Refresh Data';
-      loadBtn.disabled = false;
-    }
-  }
-}
-
-function updateStats() {
-  document.getElementById('statPosts').textContent = cachedPosts.length;
-  document.getElementById('statVisitors').textContent = cachedVisitors.length;
-  document.getElementById('statVip').textContent = cachedVipMembers.length;
-  document.getElementById('statRevenue').textContent = cachedPayments.reduce((acc, p) => acc + (Number(p.amount) || 0), 0);
-  document.getElementById('statReports').textContent = cachedPosts.filter(p => p.isReported).length;
-  document.getElementById('statStrikes').textContent = cachedStrikes.length;
-  document.getElementById('statBanned').textContent = cachedBanned.length;
-}
-
-function renderPayments() {
-  const container = document.getElementById('paymentHistoryList');
-  if (!container) return;
-  if (!cachedPayments.length) {
-    container.innerHTML = '<div style="font-size:12px; color:#94a3b8;">No payments logged yet.</div>';
-    return;
-  }
-  container.innerHTML = cachedPayments.map(p => `
-    <div class="post">
-      <b>${esc(p.driverTag)}</b> - <span style="color:#22c55e; font-weight:700;">${esc(p.amount)} PKR</span>
-      <span class="badge" style="background:#2563eb;">${esc(p.method)}</span><br>
-      <small style="color:#94a3b8;">TxID: <code>${esc(p.txId)}</code></small>
-      <button type="button" class="danger" style="padding:4px 8px; font-size:11px;" onclick="deletePayment('${p.id}')">Delete</button>
-    </div>
-  `).join('');
-}
-
-function renderFilters() {
-  const container = document.getElementById('filterTagsList');
-  if (!container) return;
-  if (!cachedFilters.length) {
-    container.innerHTML = '<span style="font-size:12px;color:#94a3b8;">No custom words yet.</span>';
-    return;
-  }
-  container.innerHTML = cachedFilters.map(w => `
-    <span class="filter-tag">
-      ${esc(w)}
-      <span onclick="removeFilterWord('${esc(w)}')">❌</span>
-    </span>
-  `).join('');
-}
-
-async function addFilterWord() {
-  const input = document.getElementById('newFilterInput');
-  const word = input.value.trim().toLowerCase();
-  if (!word) return setStatus('Enter a word to block', true);
-  try {
-    const r = await fetch('/api/admin', {
+    const res = await fetch('/api/post', {
       method: 'POST',
-      headers: headers(),
-      body: JSON.stringify({ action: 'add_filter', word })
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ action: 'pin', text, name, active, isAnnouncement: active })
     });
-    const d = await r.json();
-    if (d.success) {
-      input.value = '';
-      loadAll(true);
-    }
-  } catch (err) {
-    setStatus('Filter error: ' + err.message, true);
-  }
+    if (res.ok) setStatus(active ? "Announcement pinned successfully." : "Pin cleared.");
+    else { const d = await res.json(); setStatus(d.error, true); }
+  } catch (err) {}
 }
 
-async function removeFilterWord(word) {
-  if (!confirm(`Remove "${word}" from blocked list?`)) return;
+// --- Module 6: Audit Logs ---
+async function loadAudit() {
+  const action = document.getElementById('auditAction').value.trim();
+  const user = document.getElementById('auditUser').value.trim();
+  
+  let url = '/api/admin/audit?limit=50';
+  if (action) url += `&action=${encodeURIComponent(action)}`;
+  if (user) url += `&userId=${encodeURIComponent(user)}`;
+  
   try {
-    const r = await fetch('/api/admin', {
-      method: 'POST',
-      headers: headers(),
-      body: JSON.stringify({ action: 'remove_filter', word })
-    });
-    const d = await r.json();
-    if (d.success) loadAll(true);
-  } catch (err) {
-    setStatus('Filter error: ' + err.message, true);
-  }
-}
-
-function exportBackup() {
-  const backup = {
-    exportedAt: new Date().toISOString(),
-    posts: cachedPosts,
-    vipMembers: cachedVipMembers,
-    visitors: cachedVisitors,
-    payments: cachedPayments,
-    ipLogs: cachedLogs,
-    bannedIps: cachedBanned,
-    subnetBans: cachedSubnetBans,
-    fingerprintBans: cachedFpBans,
-    subnetWhitelist: cachedSubnetWhitelist,
-    shadowbanned: cachedShadowbanned,
-    notes: cachedNotes,
-    blockedWords: cachedFilters
-  };
-  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `cpm_wall_backup_${new Date().toISOString().slice(0, 10)}.json`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-
-async function dismissReport(postId) {
-  try {
-    const r = await fetch('/api/admin', {
-      method: 'POST',
-      headers: headers(),
-      body: JSON.stringify({ action: 'dismiss_report', postId })
-    });
-    const d = await r.json();
-    if (d.success) loadAll(true);
-  } catch (err) {
-    setStatus('Dismiss failed: ' + err.message, true);
-  }
-}
-
-function applyFilter() {
-  const q = (document.getElementById('searchInput').value || '').trim().toLowerCase();
-  const shadowSet = new Set(cachedShadowbanned.map(s => s.ip || s.id));
-  const verifiedIpSet = new Set(cachedVerified.map(v => v.ip || v.id.replace(/_/g, '.')));
-  const subWhiteSet = new Set(cachedSubnetWhitelist.map(w => w.ip || w.id.replace(/_/g, '.')));
-  
-  const filteredPosts = cachedPosts.filter(p => !q || (p.name && p.name.toLowerCase().includes(q)) || (p.message && p.message.toLowerCase().includes(q)) || (p.id && p.id.includes(q)));
-  
-  document.getElementById('posts').innerHTML = filteredPosts.map(p => `
-    <div class="post">
-      <div style="display:flex; align-items:center; gap:8px;">
-        <input type="checkbox" style="width:auto; margin:0;" onchange="handleCheckPost('${p.id}', this.checked)">
-        <b>${highlight(p.name, q)}</b>
-        ${p.isBot ? '<span class="badge">BOT</span>' : ''}
-        ${p.isVerified ? '<span class="badge" style="background:#1d9bf0;">VERIFIED</span>' : ''}
-        <span class="badge" style="background:${p.room === 'vip' ? '#ca8a04' : '#2563eb'};">${(p.room || 'public').toUpperCase()}</span>
-        ${p.isShadowbanned ? '<span class="badge badge-shadow">SHADOWBANNED</span>' : ''}
-      </div>
-      <div style="margin:4px 0 2px 24px;">${highlight(p.message, q)}</div>
-      <div style="margin-left:24px;">
-        <small style="color:#64748b;">ID: ${highlight(p.id, q)}</small><br>
-        <button type="button" class="purple" onclick="pinPostDirect('${esc(p.name)}', '${esc(p.message)}')">📌 Pin</button>
-        <button type="button" style="background:#0284c7;" onclick="editPostDirect('${p.id}', '${esc(p.message)}')">✏️ Edit</button>
-        <button type="button" class="danger" onclick="delPost('${p.id}')">Delete</button>
-        <button type="button" onclick="banFromPost('${p.id}')">Ban IP</button>
-      </div>
-    </div>
-  `).join('') || 'No matching posts';
-  
-  const reportedPostsList = cachedPosts.filter(p => p.isReported);
-  document.getElementById('reportedPosts').innerHTML = reportedPostsList.map(p => `
-    <div class="post" style="border-left: 3px solid #ef4444; padding-left: 8px;">
-      <b>${esc(p.name)}</b> <span class="badge" style="background:#ef4444;">REPORTED (${p.reportCount || 1}x)</span><br>
-      Message: ${esc(p.message)}<br>
-      <button type="button" class="green" onclick="dismissReport('${p.id}')">Dismiss</button>
-      <button type="button" class="danger" onclick="delPost('${p.id}')">Delete Post</button>
-      <button type="button" onclick="banFromPost('${p.id}')">Ban IP</button>
-    </div>
-  `).join('') || '<div style="color:#94a3b8; font-size:12px;">No reported messages right now.</div>';
-
-  document.getElementById('vipMembers').innerHTML = cachedVipMembers.map(m => {
-    let expiryStr = 'Active';
-    if (m.expiresAt) {
-      const expDate = m.expiresAt._seconds ? new Date(m.expiresAt._seconds * 1000) : new Date(m.expiresAt);
-      const daysLeft = Math.ceil((expDate - Date.now()) / (1000 * 3600 * 24));
-      expiryStr = daysLeft > 0 ? `${daysLeft} days remaining` : '<span style="color:#ef4444;">EXPIRED</span>';
-    }
-    return `
-      <div class="post">
-        <b>${highlight(m.name, q)}</b> <code>${highlight((m.ip || '').slice(0,7) + '***', q)}</code> - <b>${expiryStr}</b>
-        <div class="detail-grid" style="display:flex; flex-wrap:wrap; gap:4px; margin:5px 0;">
-          <span class="badge badge-loc">${getFlagEmoji(m.countryCode)} ${esc(m.city ? m.city + ', ' + m.country : m.country)}</span>
-          ${m.isVpn ? '<span class="badge badge-vpn">🛡️ VPN</span>' : ''}
-          ${m.device ? `<span class="badge badge-dev">📱 ${esc(m.device)}</span>` : ''}
+    const res = await fetch(url, { headers: getAuthHeaders() });
+    if (!res.ok) throw new Error("Failed to load audit logs");
+    const data = await res.json();
+    
+    let html = data.logs.length === 0 ? '<div style="color:#a1a1aa; font-size:12px;">No logs found.</div>' : '';
+    data.logs.forEach(l => {
+      const time = l.timestamp ? new Date(l.timestamp).toLocaleString() : 'Unknown Time';
+      const meta = l.metadata ? JSON.stringify(l.metadata) : '{}';
+      html += `
+        <div class="list-item" style="border-left: 2px solid #38bdf8; padding-left: 8px;">
+          <div><b>${escapeHtml(l.action)}</b> by <b>${escapeHtml(l.adminUsername)}</b></div>
+          <div style="font-size:11px; color:#a1a1aa;">Target/IP: ${escapeHtml(l.targetUser || l.ip)}</div>
+          <div style="font-size:10px; color:#64748b;">${escapeHtml(time)} | Meta: ${escapeHtml(meta)}</div>
         </div>
-        <button type="button" class="danger" onclick="banVip('${esc(m.ip)}')">Block from VIP</button>
-        <button type="button" class="danger" style="background:#991b1b;" onclick="openBanModal('${esc(m.ip)}')">Ban Whole Site</button>
-      </div>
-    `;
-  }).join('') || '<div style="color:#94a3b8; font-size:12px;">No VIP members recorded.</div>';
-
-  document.getElementById('vipBannedList').innerHTML = cachedVipBanned.map(b => `
-    <div class="post">
-      <code>${highlight((b.ip || b.id || '').slice(0,7) + '***', q)}</code> <span class="badge" style="background:#ef4444;">VIP BLOCKED</span>
-      <button type="button" class="green" onclick="unbanVip('${esc(b.ip || b.id)}')">Unblock</button>
-    </div>
-  `).join('') || '<div style="color:#94a3b8; font-size:12px;">None</div>';
-
-  document.getElementById('visitors').innerHTML = cachedVisitors.map(v => {
-    const isVerified = verifiedIpSet.has(v.ip);
-    return `
-      <div class="post">
-        IP: <code>${highlight((v.ip || '').slice(0,7) + '***', q)}</code> ${isVerified ? '<span class="badge" style="background:#16a34a;">VERIFIED</span>' : ''}
-        <div class="detail-grid" style="display:flex; flex-wrap:wrap; gap:4px; margin:5px 0;">
-          <span class="badge badge-loc">${getFlagEmoji(v.countryCode)} ${esc(v.city ? v.city + ', ' + v.country : v.country)}</span>
-          ${v.device ? `<span class="badge badge-dev">📱 ${esc(v.device)}</span>` : ''}
-          ${v.os ? `<span class="badge badge-dev">${esc(v.os)}</span>` : ''}
-        </div>
-        <button type="button" class="danger" onclick="openBanModal('${esc(v.ip)}')">Ban IP</button>
-      </div>
-    `;
-  }).join('') || 'No visitors tracked';
-
-  document.getElementById('logs').innerHTML = cachedLogs.map(l => {
-    const isShadow = shadowSet.has(l.ip);
-    const isSubWhite = subWhiteSet.has(l.ip);
-    const safeIpKey = (l.ip || '').replace(/[^a-zA-Z0-9]/g, '_');
-    const existingNote = cachedNotes[safeIpKey] || '';
-    
-    return `
-      <div class="post">
-        <b>${highlight(l.name, q)}</b> | IP: <code>${highlight((l.ip || '').slice(0,7) + '***', q)}</code>
-        ${l.isVpn ? '<span class="badge badge-vpn">🛡️ VPN</span>' : ''}
-        ${isShadow ? '<span class="badge badge-shadow">SHADOWBANNED</span>' : ''}
-        ${isSubWhite ? '<span class="badge" style="background:#16a34a;">SUBNET EXEMPT</span>' : ''}
-        <div class="detail-grid" style="display:flex; flex-wrap:wrap; gap:4px; margin:5px 0;">
-          <span class="badge badge-loc">${getFlagEmoji(l.countryCode)} ${esc(l.country)}</span>
-          ${l.subnet ? `<span class="badge badge-spec">Subnet: ${esc(l.subnet)}</span>` : ''}
-          ${l.device ? `<span class="badge badge-dev">${esc(l.device)}</span>` : ''}
-        </div>
-        <div style="margin:4px 0;">
-          <input id="note-${safeIpKey}" value="${esc(existingNote)}" placeholder="Internal note..." style="width:75%; display:inline-block;">
-          <button type="button" class="green" onclick="saveAdminNote('${esc(l.ip)}')">Save Note</button>
-        </div>
-        <button type="button" class="danger" onclick="openBanModal('${esc(l.ip)}')">Ban IP</button>
-        ${l.subnet && l.subnet !== 'N/A' ? `<button type="button" class="orange" onclick="banSubnet('${esc(l.subnet)}')">Ban /24 Subnet</button>` : ''}
-        ${!isSubWhite ? `<button type="button" class="green" onclick="whitelistSubnetIp('${esc(l.ip)}')">Whitelist Subnet</button>` : `<button type="button" class="orange" onclick="removeSubnetWhitelist('${esc(l.ip)}')">Remove Subnet Exemption</button>`}
-        ${l.fingerprint ? `<button type="button" class="danger" style="background:#7f1d1d;" onclick="banFingerprint('${esc(l.fingerprint)}')">Ban Device</button>` : ''}
-        <button type="button" onclick="toggleShadowban('${esc(l.ip)}', ${isShadow})">${isShadow ? 'Un-Shadowban' : 'Shadowban'}</button>
-      </div>
-    `;
-  }).join('') || 'No logs tracked';
-
-  document.getElementById('verifiedIps').innerHTML = cachedVerified.map(v => `
-    <div class="post">
-      <code>${highlight((v.ip || v.id || '').slice(0,7) + '***', q)}</code>
-      <button type="button" class="orange" onclick="unverifyIp('${esc(v.ip || v.id)}')">Remove Verification</button>
-    </div>
-  `).join('') || 'None';
-
-  document.getElementById('subnetWhitelistView').innerHTML = cachedSubnetWhitelist.map(w => `
-    <div class="post">
-      <code>${esc(w.ip || w.id)}</code> <span class="badge" style="background:#16a34a;">EXEMPT</span>
-      <button type="button" class="orange" onclick="removeSubnetWhitelist('${esc(w.ip || w.id)}')">Remove Exemption</button>
-    </div>
-  `).join('') || 'No whitelisted IPs';
-
-  document.getElementById('subnetBansList').innerHTML = cachedSubnetBans.map(s => `
-    <div class="post">
-      <code>${esc(s.subnet || s.id)}</code> <span class="badge" style="background:#ef4444;">SUBNET BAN</span>
-      <button type="button" class="green" onclick="unbanSubnet('${esc(s.subnet || s.id)}')">Unban Subnet</button>
-    </div>
-  `).join('') || 'None';
-
-  document.getElementById('fpBansList').innerHTML = cachedFpBans.map(f => `
-    <div class="post">
-      <code>${esc(f.fingerprint || f.id)}</code> <span class="badge" style="background:#ef4444;">DEVICE BAN</span>
-      <button type="button" class="green" onclick="unbanFingerprint('${esc(f.fingerprint || f.id)}')">Unban Device</button>
-    </div>
-  `).join('') || 'None';
-
-  document.getElementById('banned').innerHTML = cachedBanned.map(b => {
-    let expStr = 'Permanent';
-    if (b.bannedUntil) {
-      const expDate = b.bannedUntil._seconds ? new Date(b.bannedUntil._seconds * 1000) : new Date(b.bannedUntil);
-      expStr = 'Expires: ' + expDate.toLocaleString();
-    }
-    return `
-      <div class="post">
-        <code>${highlight((b.ip || b.id || '').slice(0,7) + '***', q)}</code> (Reason: <b>${esc(b.reason || 'spam')}</b>, ${expStr})
-        <button type="button" onclick="unban('${esc(b.ip || b.id)}')">Unban</button>
-      </div>
-    `;
-  }).join('') || 'None';
-}
-
-function openBanModal(ip) {
-  activeBanIp = ip;
-  document.getElementById('modalIpDisplay').textContent = ip;
-  document.getElementById('banModal').style.display = 'flex';
-}
-
-function closeBanModal() {
-  activeBanIp = '';
-  document.getElementById('banModal').style.display = 'none';
-}
-
-async function executeBanPreset(reason, hours) {
-  if (!activeBanIp) return;
-  const ip = activeBanIp;
-  closeBanModal();
-  try {
-    const r = await fetch('/api/admin', {
-      method: 'POST',
-      headers: headers(),
-      body: JSON.stringify({ action: 'ban', ip, reason, hours })
+      `;
     });
-    const d = await r.json();
-    if (d.success) loadAll(true);
+    document.getElementById('auditList').innerHTML = DOMPurify.sanitize(html);
+    setStatus("Audit logs loaded.");
   } catch (err) {
-    setStatus('Ban failed: ' + err.message, true);
+    setStatus(err.message, true);
   }
 }
 
-function promptCustomBan() {
-  const ip = activeBanIp;
-  closeBanModal();
-  const reason = prompt(`Enter ban reason for IP ${ip}:`, 'Custom reason');
-  if (reason === null) return;
-  const hoursStr = prompt('Ban duration in hours (0 for permanent):', '0');
-  if (hoursStr === null) return;
-  const hours = parseFloat(hoursStr) || 0;
-  
-  fetch('/api/admin', {
-    method: 'POST',
-    headers: headers(),
-    body: JSON.stringify({ action: 'ban', ip, reason, hours })
-  }).then(r => r.json()).then(d => {
-    if (d.success) loadAll(true); else setStatus(d.error || 'Ban failed', true);
-  }).catch(err => {
-    setStatus('Ban failed: ' + err.message, true);
-  });
-}
+// Event Listeners (Zero Inline OnClick)
+document.getElementById('btnLogout').addEventListener('click', logout);
+document.getElementById('btnRefreshAnalytics').addEventListener('click', loadAnalytics);
+document.getElementById('btnSearchUsers').addEventListener('click', loadUsers);
+document.getElementById('btnLoadSessions').addEventListener('click', loadSessions);
+document.getElementById('btnSaveFlag').addEventListener('click', saveFlag);
+document.getElementById('btnRefreshFlags').addEventListener('click', loadFlags);
+document.getElementById('btnPresetDrag').addEventListener('click', () => presetAnnouncement('drag'));
+document.getElementById('btnPresetMaint').addEventListener('click', () => presetAnnouncement('maint'));
+document.getElementById('btnPresetVip').addEventListener('click', () => presetAnnouncement('vip'));
+document.getElementById('btnPublishPin').addEventListener('click', () => publishAnnouncement(true));
+document.getElementById('btnClearPin').addEventListener('click', () => publishAnnouncement(false));
+document.getElementById('btnLoadAudit').addEventListener('click', loadAudit);
 
-async function delPost(id) {
-  if (!confirm('Delete post ' + id + '?')) return;
-  try {
-    const r = await fetch(`/api/admin?id=${id}`, { method: 'DELETE', headers: headers() });
-    const d = await r.json();
-    if (d.success) loadAll(true);
-  } catch (err) {
-    setStatus('Delete failed: ' + err.message, true);
-  }
-}
-
-function banFromPost(postId) {
-  const log = cachedLogs.find(l => l.postId === postId || l.id === postId);
-  if (!log) return setStatus('Log not found for post ' + postId, true);
-  if (log.ip === 'BOT') return setStatus('Cannot ban BOT', true);
-  openBanModal(log.ip);
-}
-
-async function unban(ip) {
-  if (!confirm('Unban ' + ip + '?')) return;
-  try {
-    const r = await fetch('/api/admin', { method: 'POST', headers: headers(), body: JSON.stringify({ action: 'unban', ip }) });
-    const d = await r.json();
-    if (d.success) loadAll(true);
-  } catch (err) {
-    setStatus('Unban failed: ' + err.message, true);
-  }
-}
-
-async function unverifyIp(ip) {
-  if (!confirm('Remove verification for IP ' + ip + '?')) return;
-  try {
-    const r = await fetch('/api/admin', { method: 'POST', headers: headers(), body: JSON.stringify({ action: 'unverify_ip', ip }) });
-    const d = await r.json();
-    if (d.success) loadAll(true);
-  } catch (err) {
-    setStatus('Unverify failed: ' + err.message, true);
-  }
-}
-
-async function pin(active) {
-  const text = (document.getElementById('pinText').value || '').trim();
-  const name = (document.getElementById('pinName').value || '').trim() || 'Administration Team';
-  if (active && !text) return setStatus('Enter text before publishing pin', true);
-  try {
-    const r = await fetch('/api/admin', { method: 'POST', headers: headers(), body: JSON.stringify({ action: 'pin', text, name, active }) });
-    const d = await r.json();
-    if (d.success) loadAll(true);
-  } catch (err) {
-    setStatus('Pin failed: ' + err.message, true);
-  }
-}
+// Boot
+checkAuth();
 </script>
 </body>
 </html>
