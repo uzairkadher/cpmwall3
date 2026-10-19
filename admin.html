@@ -50,6 +50,7 @@ button.gold { background: linear-gradient(180deg, #FFE68A, #FFB800); color: #000
 .badge { background: #333; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; }
 .badge.admin { background: #dc2626; color: #fff; }
 .badge.vip { background: #f59e0b; color: #000; }
+.badge.ultra { background: #9333ea; color: #fff; }
 .badge.active { background: #16a34a; color: #fff; }
 .action-row { display: flex; gap: 6px; flex-wrap: wrap; }
 #statusMsg { font-size: 12px; font-weight: 600; text-align: center; margin-bottom: 12px; min-height: 15px; color: #38bdf8; }
@@ -146,6 +147,24 @@ button.gold { background: linear-gradient(180deg, #FFE68A, #FFB800); color: #000
   <div id="auditList" style="margin-top: 12px; max-height: 300px; overflow-y: auto;"></div>
 </div>
 
+<!-- Module 7: VIP Key Generator -->
+<div class="card">
+  <h4>🔑 7. VIP Key Generator</h4>
+  <div class="grid-4" style="margin-bottom: 8px;">
+    <select id="vipKeyType">
+      <option value="VIP">VIP</option>
+      <option value="ULTRA">ULTRA VIP</option>
+    </select>
+    <input type="number" id="vipKeyCount" placeholder="Count (1-20)" min="1" max="20" value="1">
+    <input type="number" id="vipKeyDuration" placeholder="Days (e.g. 30)" value="30">
+  </div>
+  <div class="action-row">
+    <button class="green" id="btnGenerateVipKeys">Generate Keys</button>
+    <button class="gold" id="btnLoadVipKeys">Load Keys</button>
+  </div>
+  <div id="vipKeysList" style="margin-top: 12px; max-height: 300px; overflow-y: auto;"></div>
+</div>
+
 <script>
 const token = localStorage.getItem('wall_token');
 if (!token) window.location.href = '/login.html';
@@ -230,12 +249,13 @@ async function loadUsers() {
     let html = data.users.length === 0 ? '<div style="color:#a1a1aa; font-size:12px;">No users found.</div>' : '';
     data.users.forEach(u => {
       const badgeCls = u.role === 'ADMIN' ? 'admin' : (u.role === 'VIP' ? 'vip' : '');
+      const roleDisplay = u.role === 'ADMIN' ? '👑 ULTRA VIP + ADMIN' : escapeHtml(u.role || 'USER');
       const bannedTag = u.isBanned ? '<span class="badge admin">BANNED</span>' : '';
       html += `
         <div class="list-item">
           <div>
             <b>${escapeHtml(u.username)}</b> 
-            <span class="badge ${badgeCls}">${escapeHtml(u.role || 'USER')}</span>
+            <span class="badge ${badgeCls}">${roleDisplay}</span>
             ${bannedTag}
           </div>
           <div style="font-size:11px; color:#8b8fa3;">IP: ${escapeHtml(u.ip)}</div>
@@ -253,7 +273,6 @@ async function loadUsers() {
   }
 }
 
-// Event Delegation for Users List
 document.getElementById('usersList').addEventListener('click', async (e) => {
   if (e.target.classList.contains('btn-role')) {
     const uname = e.target.getAttribute('data-uname');
@@ -444,6 +463,91 @@ async function loadAudit() {
   }
 }
 
+// --- Module 7: VIP Keys ---
+async function loadVipKeys() {
+  try {
+    const res = await fetch('/api/admin/vip-keys', { headers: getAuthHeaders() });
+    if (!res.ok) throw new Error("Failed to load VIP keys");
+    const data = await res.json();
+    
+    let html = data.keys.length === 0 ? '<div style="color:#a1a1aa; font-size:12px;">No keys found.</div>' : '';
+    data.keys.forEach(k => {
+      const statusBadge = k.active 
+        ? (k.usedBy ? '<span class="badge" style="background:#64748b;">USED</span>' : '<span class="badge active">ACTIVE</span>') 
+        : '<span class="badge admin">INACTIVE</span>';
+        
+      const typeBadge = k.type === 'ULTRA' ? '<span class="badge ultra">ULTRA</span>' : '<span class="badge vip">VIP</span>';
+      
+      html += `
+        <div class="list-item">
+          <div>
+            <b>${escapeHtml(k.key)}</b> ${typeBadge} ${statusBadge}
+          </div>
+          <div style="font-size:11px; color:#a1a1aa;">
+            Duration: ${escapeHtml(k.durationDays)}d | Used by: ${escapeHtml(k.usedBy || 'None')}
+          </div>
+          <div class="action-row" style="margin-top:4px;">
+            <button class="btn-toggle-key ${k.active ? 'gold' : 'green'}" data-key="${escapeHtml(k.key)}">Toggle Status</button>
+            <button class="btn-revoke-key danger" data-key="${escapeHtml(k.key)}">Revoke/Delete</button>
+          </div>
+        </div>
+      `;
+    });
+    document.getElementById('vipKeysList').innerHTML = DOMPurify.sanitize(html);
+    setStatus("VIP Keys loaded.");
+  } catch (err) {
+    setStatus(err.message, true);
+  }
+}
+
+async function generateVipKeys() {
+  const type = document.getElementById('vipKeyType').value;
+  const count = Number(document.getElementById('vipKeyCount').value) || 1;
+  const durationDays = Number(document.getElementById('vipKeyDuration').value) || 30;
+  
+  try {
+    const res = await fetch('/api/admin/vip-keys', {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ action: 'create', type, count, durationDays })
+    });
+    if (res.ok) { 
+      setStatus(`Successfully generated ${count} ${type} keys.`); 
+      loadVipKeys(); 
+    }
+    else { const d = await res.json(); setStatus(d.error, true); }
+  } catch (err) {
+    setStatus("Generation error.", true);
+  }
+}
+
+document.getElementById('vipKeysList').addEventListener('click', async (e) => {
+  if (e.target.classList.contains('btn-toggle-key')) {
+    const keyId = e.target.getAttribute('data-key');
+    try {
+      const res = await fetch('/api/admin/vip-keys', {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ action: 'toggle', key: keyId })
+      });
+      if (res.ok) { loadVipKeys(); }
+    } catch (err) {}
+  }
+  
+  if (e.target.classList.contains('btn-revoke-key')) {
+    const keyId = e.target.getAttribute('data-key');
+    if (!confirm(`Revoke and delete key ${keyId}?`)) return;
+    try {
+      const res = await fetch('/api/admin/vip-keys', {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ action: 'revoke', key: keyId })
+      });
+      if (res.ok) { setStatus("Key revoked."); loadVipKeys(); }
+    } catch (err) {}
+  }
+});
+
 // Event Listeners (Zero Inline OnClick)
 document.getElementById('btnLogout').addEventListener('click', logout);
 document.getElementById('btnRefreshAnalytics').addEventListener('click', loadAnalytics);
@@ -457,6 +561,8 @@ document.getElementById('btnPresetVip').addEventListener('click', () => presetAn
 document.getElementById('btnPublishPin').addEventListener('click', () => publishAnnouncement(true));
 document.getElementById('btnClearPin').addEventListener('click', () => publishAnnouncement(false));
 document.getElementById('btnLoadAudit').addEventListener('click', loadAudit);
+document.getElementById('btnLoadVipKeys').addEventListener('click', loadVipKeys);
+document.getElementById('btnGenerateVipKeys').addEventListener('click', generateVipKeys);
 
 // Boot
 checkAuth();
