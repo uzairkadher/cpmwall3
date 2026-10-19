@@ -68,13 +68,13 @@ button.gold { background: linear-gradient(180deg, #FFE68A, #FFB800); color: #000
 <div id="statusMsg" style="display: none;">Authenticating securely...</div>
 
 <!-- Admin Standalone Login Box -->
-<div id="admin-login-box" class="card" style="max-width: 320px; margin: 40px auto; text-align: center; display: none;">
+<form id="admin-login-box" class="card" style="max-width: 320px; margin: 40px auto; text-align: center; display: none;">
   <h4 style="border-bottom: none; color: #FFD95A;">Admin Authentication</h4>
   <input type="text" id="adminUser" placeholder="Admin Username" autocomplete="username">
   <input type="password" id="adminPass" placeholder="Password" autocomplete="current-password">
-  <button class="gold" id="btnLoginSubmit" style="width: 100%; margin-top: 8px; padding: 10px;">Secure Login</button>
+  <button type="submit" class="gold" id="btnLoginSubmit" style="width: 100%; margin-top: 8px; padding: 10px;">Secure Login</button>
   <div id="loginError" style="color: #ef4444; font-size: 12px; margin-top: 12px; min-height: 15px;"></div>
-</div>
+</form>
 
 <!-- Protected Admin Modules -->
 <div id="admin-modules" style="display: none;">
@@ -135,9 +135,9 @@ button.gold { background: linear-gradient(180deg, #FFE68A, #FFB800); color: #000
   <div class="card">
     <h4>  5. Pinned Announcements</h4>
     <div class="action-row" style="margin-bottom: 8px;">
-      <button id="btnPresetDrag">  Drag Meet</button>
-      <button id="btnPresetMaint">  Maintenance</button>
-      <button id="btnPresetVip">  VIP Lounge</button>
+      <button type="button" id="btnPresetDrag">  Drag Meet</button>
+      <button type="button" id="btnPresetMaint">  Maintenance</button>
+      <button type="button" id="btnPresetVip">  VIP Lounge</button>
     </div>
     <input type="text" id="announceName" placeholder="Admin Name (e.g. Administration)">
     <textarea id="announceText" placeholder="Broadcast message content..." rows="3"></textarea>
@@ -647,7 +647,10 @@ document.getElementById('vipKeysList').addEventListener('click', async (e) => {
 
 // Event Listeners (Zero Inline OnClick)
 document.getElementById('btnLogout').addEventListener('click', logout);
-document.getElementById('btnLoginSubmit').addEventListener('click', handleAdminLogin);
+document.getElementById('admin-login-box').addEventListener('submit', (e) => {
+  e.preventDefault();
+  handleAdminLogin();
+});
 document.getElementById('btnRefreshAnalytics').addEventListener('click', loadAnalytics);
 document.getElementById('btnSearchUsers').addEventListener('click', loadUsers);
 document.getElementById('btnLoadSessions').addEventListener('click', loadSessions);

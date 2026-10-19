@@ -172,9 +172,9 @@
 <body>
   <main class="container">
     <header class="header-bar">
-      <h2>👤 User Settings</h2>
+      <h2>  User Settings</h2>
       <button type="button" class="back-btn" onclick="window.location.href='/'">
-        ← Back to Wall
+          Back to Wall
       </button>
     </header>
 
@@ -190,20 +190,17 @@
         >
           <span id="avatarLetter">?</span>
         </button>
-
         <input
           type="file"
           id="photoFileInput"
           accept="image/jpeg,image/png,image/webp,image/gif"
           hidden
         >
-
         <div class="profile-meta">
           <b id="profileUsername">@loading...</b>
           <span id="profileStatus">Checking status...</span>
         </div>
       </div>
-
       <p class="hint">
         Profile photos selected here are saved on this device only.
         Server-side photo uploads require a supported image-storage service.
@@ -263,7 +260,7 @@
     </section>
 
     <section class="card" id="vipSection" style="display:none;">
-      <h3 style="margin-top:0;font-size:14px;color:#f59e0b;">👑 VIP Lounge Membership</h3>
+      <h3 style="margin-top:0;font-size:14px;color:#f59e0b;">  VIP Lounge Membership</h3>
       <p class="hint" style="color:#d6c79f;">
         Unlock Gold Royal bubbles, VIP Lounge secret room, custom chat color picker,
         neon frames, and message pinning.
@@ -277,11 +274,11 @@
         target="_blank"
         rel="noopener noreferrer"
         class="btn-whatsapp"
-      >💬 Buy VIP via WhatsApp</a>
+      >  Buy VIP via WhatsApp</a>
     </section>
 
     <section class="card">
-      <button type="button" class="logout-btn" onclick="logoutUser()">🔒 Logout Account</button>
+      <button type="button" class="logout-btn" onclick="logoutUser()">  Logout Account</button>
     </section>
   </main>
 
@@ -298,7 +295,7 @@
     ]);
 
     if (!token) {
-      window.location.replace("/login.html");
+      window.location.replace("/login");
     }
 
     function setStatus(id, message, color) {
@@ -348,7 +345,6 @@
       }
 
       const reader = new FileReader();
-
       reader.onload = () => {
         if (typeof reader.result !== "string" ||
             !reader.result.startsWith("data:image/")) {
@@ -372,11 +368,9 @@
           );
         }
       };
-
       reader.onerror = () => {
         setStatus("photoStatus", "Could not read that image.", "#ef4444");
       };
-
       reader.readAsDataURL(file);
     });
 
@@ -398,7 +392,7 @@
             response.status === 404) {
           localStorage.removeItem("wall_token");
           localStorage.removeItem("wall_user");
-          window.location.replace("/login.html");
+          window.location.replace("/login");
           return;
         }
 
@@ -408,7 +402,6 @@
         }
 
         const data = await response.json();
-
         if (typeof data.username !== "string" || !data.username) {
           setStatus("profileStatus", "Invalid profile response.", "#ef4444");
           return;
@@ -416,11 +409,10 @@
 
         document.getElementById("profileUsername").textContent = "@" + data.username;
         document.getElementById("profileStatus").textContent =
-          data.isAdmin ? "🛡️ Administrator + 👑 VIP" :
-          data.isVip ? "👑 VIP Member" : "Standard Member";
+          data.isAdmin ? "  Administrator +   VIP" :
+          data.isVip ? "  VIP Member" : "Standard Member";
 
         localStorage.setItem("wall_user", data.username);
-
         const localPhoto = localStorage.getItem("wall_photo") || "";
         renderAvatar(localPhoto, data.username);
 
@@ -429,6 +421,7 @@
           data.username.toUpperCase() === "JAGGA" || data.isVip
             ? "none"
             : "block";
+
       } catch {
         // A transient network error must not erase the user's saved browser data.
         setStatus("profileStatus", "Network error. Check your connection and retry.", "#ef4444");
@@ -443,7 +436,7 @@
       if (!/^[A-Z0-9_.]{3,20}$/.test(newUsername)) {
         setStatus(
           "usernameStatus",
-          "Use 3–20 letters, numbers, underscores, or periods.",
+          "Use 3 20 letters, numbers, underscores, or periods.",
           "#ef4444"
         );
         return;
@@ -463,7 +456,6 @@
         });
 
         const data = await response.json().catch(() => ({}));
-
         if (!response.ok) {
           setStatus("usernameStatus", data.error || "Failed to update username.", "#ef4444");
           return;
@@ -493,7 +485,7 @@
       if (!oldPassword || newPassword.length < 6 || newPassword.length > 1024) {
         setStatus(
           "passwordStatus",
-          "Enter your current password and a new password of 6–1024 characters.",
+          "Enter your current password and a new password of 6 1024 characters.",
           "#ef4444"
         );
         return;
@@ -513,7 +505,6 @@
         });
 
         const data = await response.json().catch(() => ({}));
-
         if (!response.ok) {
           setStatus("passwordStatus", data.error || "Failed to update password.", "#ef4444");
           return;
@@ -532,7 +523,7 @@
     function logoutUser() {
       localStorage.removeItem("wall_token");
       localStorage.removeItem("wall_user");
-      window.location.replace("/login.html");
+      window.location.replace("/login");
     }
 
     if (token) {
