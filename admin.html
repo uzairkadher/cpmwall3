@@ -63,111 +63,123 @@ button.gold { background: linear-gradient(180deg, #FFE68A, #FFB800); color: #000
     <h1>EMPIRE STUDIO</h1>
     <div style="font-size: 12px; color: #d6c79f; margin-top: 4px;">Admin Security Module</div>
   </div>
-  <button class="danger" id="btnLogout">Logout</button>
+  <button class="danger" id="btnLogout" style="display: none;">Logout</button>
+</div>
+<div id="statusMsg" style="display: none;">Authenticating securely...</div>
+
+<!-- Admin Standalone Login Box -->
+<div id="admin-login-box" class="card" style="max-width: 320px; margin: 40px auto; text-align: center; display: none;">
+  <h4 style="border-bottom: none; color: #FFD95A;">Admin Authentication</h4>
+  <input type="text" id="adminUser" placeholder="Admin Username" autocomplete="username">
+  <input type="password" id="adminPass" placeholder="Password" autocomplete="current-password">
+  <button class="gold" id="btnLoginSubmit" style="width: 100%; margin-top: 8px; padding: 10px;">Secure Login</button>
+  <div id="loginError" style="color: #ef4444; font-size: 12px; margin-top: 12px; min-height: 15px;"></div>
 </div>
 
-<div id="statusMsg">Authenticating securely...</div>
+<!-- Protected Admin Modules -->
+<div id="admin-modules" style="display: none;">
+  
+  <!-- Module 1: Analytics -->
+  <div class="card">
+    <h4>  1. System Analytics</h4>
+    <button class="green" id="btnRefreshAnalytics">Refresh Analytics</button>
+    <div class="grid-4" id="analyticsGrid" style="margin-top: 12px;"></div>
+    <div style="margin-top: 12px; font-size: 12px; color: #a1a1aa;">
+      <b>Top Posters Today:</b>
+      <div id="topPostersList" style="margin-top: 6px;"></div>
+    </div>
+  </div>
 
-<!-- Module 1: Analytics -->
-<div class="card">
-  <h4>📊 1. System Analytics</h4>
-  <button class="green" id="btnRefreshAnalytics">Refresh Analytics</button>
-  <div class="grid-4" id="analyticsGrid" style="margin-top: 12px;"></div>
-  <div style="margin-top: 12px; font-size: 12px; color: #a1a1aa;">
-    <b>Top Posters Today:</b>
-    <div id="topPostersList" style="margin-top: 6px;"></div>
+  <!-- Module 2: Users -->
+  <div class="card">
+    <h4>  2. User Management</h4>
+    <div class="grid-2">
+      <input type="text" id="userSearch" placeholder="Search username...">
+      <select id="userRoleFilter">
+        <option value="">All Roles</option>
+        <option value="ADMIN">ADMIN</option>
+        <option value="VIP">VIP</option>
+        <option value="MOD">MOD</option>
+        <option value="USER">USER</option>
+      </select>
+    </div>
+    <button class="gold" id="btnSearchUsers">Search Users</button>
+    <div id="usersList" style="margin-top: 12px;"></div>
   </div>
-</div>
 
-<!-- Module 2: Users -->
-<div class="card">
-  <h4>👥 2. User Management</h4>
-  <div class="grid-2">
-    <input type="text" id="userSearch" placeholder="Search username...">
-    <select id="userRoleFilter">
-      <option value="">All Roles</option>
-      <option value="ADMIN">ADMIN</option>
-      <option value="VIP">VIP</option>
-      <option value="MOD">MOD</option>
-      <option value="USER">USER</option>
-    </select>
+  <!-- Module 3: Sessions -->
+  <div class="card">
+    <h4>  3. Session Control</h4>
+    <input type="text" id="sessionSearch" placeholder="Filter by exact username...">
+    <button class="gold" id="btnLoadSessions">Load Active Sessions</button>
+    <div id="sessionsList" style="margin-top: 12px;"></div>
   </div>
-  <button class="gold" id="btnSearchUsers">Search Users</button>
-  <div id="usersList" style="margin-top: 12px;"></div>
-</div>
 
-<!-- Module 3: Sessions -->
-<div class="card">
-  <h4>🛡️ 3. Session Control</h4>
-  <input type="text" id="sessionSearch" placeholder="Filter by exact username...">
-  <button class="gold" id="btnLoadSessions">Load Active Sessions</button>
-  <div id="sessionsList" style="margin-top: 12px;"></div>
-</div>
+  <!-- Module 4: Feature Flags -->
+  <div class="card">
+    <h4>  4. Feature Flags</h4>
+    <div class="grid-2">
+      <input type="text" id="flagKey" placeholder="Flag Key (e.g., raid_mode)">
+      <select id="flagEnabled">
+        <option value="true">Enabled</option>
+        <option value="false">Disabled</option>
+      </select>
+    </div>
+    <input type="text" id="flagDesc" placeholder="Description">
+    <button class="green" id="btnSaveFlag">Save Flag</button>
+    <button id="btnRefreshFlags">Refresh Flags</button>
+    <div id="flagsList" style="margin-top: 12px;"></div>
+  </div>
 
-<!-- Module 4: Feature Flags -->
-<div class="card">
-  <h4>⚙️ 4. Feature Flags</h4>
-  <div class="grid-2">
-    <input type="text" id="flagKey" placeholder="Flag Key (e.g., raid_mode)">
-    <select id="flagEnabled">
-      <option value="true">Enabled</option>
-      <option value="false">Disabled</option>
-    </select>
+  <!-- Module 5: Announcements -->
+  <div class="card">
+    <h4>  5. Pinned Announcements</h4>
+    <div class="action-row" style="margin-bottom: 8px;">
+      <button id="btnPresetDrag">  Drag Meet</button>
+      <button id="btnPresetMaint">  Maintenance</button>
+      <button id="btnPresetVip">  VIP Lounge</button>
+    </div>
+    <input type="text" id="announceName" placeholder="Admin Name (e.g. Administration)">
+    <textarea id="announceText" placeholder="Broadcast message content..." rows="3"></textarea>
+    <div class="action-row">
+      <button class="green" id="btnPublishPin">Publish Pin</button>
+      <button class="danger" id="btnClearPin">Clear Pin</button>
+    </div>
   </div>
-  <input type="text" id="flagDesc" placeholder="Description">
-  <button class="green" id="btnSaveFlag">Save Flag</button>
-  <button id="btnRefreshFlags">Refresh Flags</button>
-  <div id="flagsList" style="margin-top: 12px;"></div>
-</div>
 
-<!-- Module 5: Announcements -->
-<div class="card">
-  <h4>📢 5. Pinned Announcements</h4>
-  <div class="action-row" style="margin-bottom: 8px;">
-    <button id="btnPresetDrag">🏎️ Drag Meet</button>
-    <button id="btnPresetMaint">🔧 Maintenance</button>
-    <button id="btnPresetVip">👑 VIP Lounge</button>
+  <!-- Module 6: Audit Logs -->
+  <div class="card">
+    <h4>  6. Audit Logs</h4>
+    <div class="grid-2">
+      <input type="text" id="auditAction" placeholder="Action (e.g., BAN_USER)">
+      <input type="text" id="auditUser" placeholder="Target or Admin Username">
+    </div>
+    <button class="gold" id="btnLoadAudit">Load Logs</button>
+    <div id="auditList" style="margin-top: 12px; max-height: 300px; overflow-y: auto;"></div>
   </div>
-  <input type="text" id="announceName" placeholder="Admin Name (e.g. Administration)">
-  <textarea id="announceText" placeholder="Broadcast message content..." rows="3"></textarea>
-  <div class="action-row">
-    <button class="green" id="btnPublishPin">Publish Pin</button>
-    <button class="danger" id="btnClearPin">Clear Pin</button>
-  </div>
-</div>
 
-<!-- Module 6: Audit Logs -->
-<div class="card">
-  <h4>📋 6. Audit Logs</h4>
-  <div class="grid-2">
-    <input type="text" id="auditAction" placeholder="Action (e.g., BAN_USER)">
-    <input type="text" id="auditUser" placeholder="Target or Admin Username">
+  <!-- Module 7: VIP Key Generator -->
+  <div class="card">
+    <h4>  7. VIP Key Generator</h4>
+    <div class="grid-4" style="margin-bottom: 8px;">
+      <select id="vipKeyType">
+        <option value="VIP">VIP</option>
+        <option value="ULTRA">ULTRA VIP</option>
+      </select>
+      <input type="number" id="vipKeyCount" placeholder="Count (1-20)" min="1" max="20" value="1">
+      <input type="number" id="vipKeyDuration" placeholder="Days (e.g. 30)" value="30">
+    </div>
+    <div class="action-row">
+      <button class="green" id="btnGenerateVipKeys">Generate Keys</button>
+      <button class="gold" id="btnLoadVipKeys">Load Keys</button>
+    </div>
+    <div id="vipKeysList" style="margin-top: 12px; max-height: 300px; overflow-y: auto;"></div>
   </div>
-  <button class="gold" id="btnLoadAudit">Load Logs</button>
-  <div id="auditList" style="margin-top: 12px; max-height: 300px; overflow-y: auto;"></div>
-</div>
 
-<!-- Module 7: VIP Key Generator -->
-<div class="card">
-  <h4>🔑 7. VIP Key Generator</h4>
-  <div class="grid-4" style="margin-bottom: 8px;">
-    <select id="vipKeyType">
-      <option value="VIP">VIP</option>
-      <option value="ULTRA">ULTRA VIP</option>
-    </select>
-    <input type="number" id="vipKeyCount" placeholder="Count (1-20)" min="1" max="20" value="1">
-    <input type="number" id="vipKeyDuration" placeholder="Days (e.g. 30)" value="30">
-  </div>
-  <div class="action-row">
-    <button class="green" id="btnGenerateVipKeys">Generate Keys</button>
-    <button class="gold" id="btnLoadVipKeys">Load Keys</button>
-  </div>
-  <div id="vipKeysList" style="margin-top: 12px; max-height: 300px; overflow-y: auto;"></div>
 </div>
 
 <script>
-const token = localStorage.getItem('wall_token');
-if (!token) window.location.href = '/login.html';
+let token = localStorage.getItem('wall_token');
 
 function getAuthHeaders() {
   return {
@@ -192,25 +204,112 @@ function escapeHtml(unsafe) {
     .replace(/'/g, "&#039;");
 }
 
+function showLoginBox() {
+  document.getElementById('admin-login-box').style.display = 'block';
+  document.getElementById('admin-modules').style.display = 'none';
+  document.getElementById('btnLogout').style.display = 'none';
+  document.getElementById('statusMsg').style.display = 'none';
+}
+
+function showModules() {
+  document.getElementById('admin-login-box').style.display = 'none';
+  document.getElementById('admin-modules').style.display = 'block';
+  document.getElementById('btnLogout').style.display = 'inline-block';
+  document.getElementById('statusMsg').style.display = 'block';
+}
+
 function logout() {
   localStorage.removeItem('wall_token');
   localStorage.removeItem('wall_user');
-  window.location.href = '/login.html';
+  token = null;
+  setStatus("");
+  showLoginBox();
+}
+
+async function handleAdminLogin() {
+  const u = document.getElementById('adminUser').value.trim();
+  const p = document.getElementById('adminPass').value;
+  const errEl = document.getElementById('loginError');
+  errEl.textContent = "";
+
+  if (!u || !p) {
+    errEl.textContent = "Username and password required.";
+    return;
+  }
+
+  document.getElementById('btnLoginSubmit').textContent = "Authenticating...";
+
+  try {
+    const res = await fetch('/api/auth?action=login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: u, password: p })
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      errEl.textContent = data.error || "Login failed.";
+      document.getElementById('btnLoginSubmit').textContent = "Secure Login";
+      return;
+    }
+
+    // Temporarily hold token to verify admin authorization
+    token = data.token;
+    
+    const verifyRes = await fetch('/api/admin/analytics', { headers: getAuthHeaders() });
+    if (!verifyRes.ok) {
+        // Not an admin. Revert token state and do not store locally.
+        token = localStorage.getItem('wall_token'); 
+        errEl.textContent = "Access Denied: ADMIN only.";
+        document.getElementById('btnLoginSubmit').textContent = "Secure Login";
+        return;
+    }
+
+    // Role verified. Safely store session.
+    localStorage.setItem('wall_token', data.token);
+    localStorage.setItem('wall_user', data.username);
+
+    document.getElementById('adminUser').value = '';
+    document.getElementById('adminPass').value = '';
+    document.getElementById('btnLoginSubmit').textContent = "Secure Login";
+    
+    setStatus("Authentication successful. Modules active.");
+    showModules();
+    loadAnalytics();
+
+  } catch (err) {
+    errEl.textContent = "Network error during login.";
+    document.getElementById('btnLoginSubmit').textContent = "Secure Login";
+  }
 }
 
 // Initial API test to verify ADMIN role
 async function checkAuth() {
+  if (!token) {
+    showLoginBox();
+    return;
+  }
+  
+  setStatus("Authenticating securely...");
+  document.getElementById('statusMsg').style.display = 'block';
+
   try {
+    // Utilize the analytics endpoint as a strict ADMIN-role validation gateway
     const res = await fetch('/api/admin/analytics', { headers: getAuthHeaders() });
     if (!res.ok) {
-      setStatus("Access Denied: Not an ADMIN or token expired.", true);
-      setTimeout(logout, 2000);
+      // Token exists but belongs to a regular user. Do not delete their token.
+      const errEl = document.getElementById('loginError');
+      errEl.textContent = "Access Denied: Account is not an administrator.";
+      showLoginBox();
       return;
     }
+    
     setStatus("Authentication successful. Modules active.");
+    showModules();
     loadAnalytics();
   } catch (e) {
     setStatus("Network Error.", true);
+    showLoginBox();
   }
 }
 
@@ -232,6 +331,7 @@ async function loadAnalytics() {
       ? data.topPosters.map(p => `<span class="badge">${escapeHtml(p.username)}: ${p.count}</span>`).join(' ')
       : "No posts today.";
     document.getElementById('topPostersList').innerHTML = DOMPurify.sanitize(postersHtml);
+
     setStatus("Analytics refreshed.");
   } catch (err) {
     setStatus(err.message, true);
@@ -250,8 +350,9 @@ async function loadUsers() {
     let html = data.users.length === 0 ? '<div style="color:#a1a1aa; font-size:12px;">No users found.</div>' : '';
     data.users.forEach(u => {
       const badgeCls = u.role === 'ADMIN' ? 'admin' : (u.role === 'VIP' ? 'vip' : '');
-      const roleDisplay = u.role === 'ADMIN' ? '👑 ULTRA VIP + ADMIN' : escapeHtml(u.role || 'USER');
+      const roleDisplay = u.role === 'ADMIN' ? '  ULTRA VIP + ADMIN' : escapeHtml(u.role || 'USER');
       const bannedTag = u.isBanned ? '<span class="badge admin">BANNED</span>' : '';
+      
       html += `
         <div class="list-item">
           <div>
@@ -289,7 +390,6 @@ document.getElementById('usersList').addEventListener('click', async (e) => {
       else { const d = await res.json(); setStatus(d.error, true); }
     } catch (err) { setStatus('Request failed. Check your connection and try again.', true); }
   }
-  
   if (e.target.classList.contains('btn-ban')) {
     const uname = e.target.getAttribute('data-uname');
     const reason = prompt(`Reason for banning ${uname}:`, "Violation of rules");
@@ -378,7 +478,6 @@ async function saveFlag() {
   const enabled = document.getElementById('flagEnabled').value === "true";
   const desc = document.getElementById('flagDesc').value.trim();
   if (!key) return setStatus("Flag key is required.", true);
-  
   try {
     const res = await fetch('/api/admin/flags', {
       method: 'POST',
@@ -410,16 +509,15 @@ function presetAnnouncement(type) {
   const nameEl = document.getElementById('announceName');
   const textEl = document.getElementById('announceText');
   nameEl.value = "Administration Team";
-  if (type === 'drag') textEl.value = "🏁 Drag meet starting in Room 4! Bring your sub-6s AWD builds. Clean runs only.";
-  if (type === 'maint') textEl.value = "🔧 Lobby server maintenance in 10 minutes. Chats will briefly pause.";
-  if (type === 'vip') textEl.value = "👑 VIP Lounge ($1 / 300 PKR) & 24h Pinned slots open! Message WhatsApp to buy.";
+  if (type === 'drag') textEl.value = "  Drag meet starting in Room 4! Bring your sub-6s AWD builds. Clean runs only.";
+  if (type === 'maint') textEl.value = "  Lobby server maintenance in 10 minutes. Chats will briefly pause.";
+  if (type === 'vip') textEl.value = "  VIP Lounge ($1 / 300 PKR) & 24h Pinned slots open! Message WhatsApp to buy.";
 }
 
 async function publishAnnouncement(active) {
   const text = document.getElementById('announceText').value.trim();
   const name = document.getElementById('announceName').value.trim() || 'ADMIN';
   if (active && !text) return setStatus("Enter message content.", true);
-  
   try {
     const res = await fetch('/api/post', {
       method: 'POST',
@@ -435,7 +533,6 @@ async function publishAnnouncement(active) {
 async function loadAudit() {
   const action = document.getElementById('auditAction').value.trim();
   const user = document.getElementById('auditUser').value.trim();
-  
   let url = '/api/admin/audit?limit=50';
   if (action) url += `&action=${encodeURIComponent(action)}`;
   if (user) url += `&userId=${encodeURIComponent(user)}`;
@@ -534,7 +631,6 @@ document.getElementById('vipKeysList').addEventListener('click', async (e) => {
       if (res.ok) { loadVipKeys(); }
     } catch (err) { setStatus('Request failed. Check your connection and try again.', true); }
   }
-  
   if (e.target.classList.contains('btn-revoke-key')) {
     const keyId = e.target.getAttribute('data-key');
     if (!confirm(`Revoke and delete key ${keyId}?`)) return;
@@ -551,6 +647,7 @@ document.getElementById('vipKeysList').addEventListener('click', async (e) => {
 
 // Event Listeners (Zero Inline OnClick)
 document.getElementById('btnLogout').addEventListener('click', logout);
+document.getElementById('btnLoginSubmit').addEventListener('click', handleAdminLogin);
 document.getElementById('btnRefreshAnalytics').addEventListener('click', loadAnalytics);
 document.getElementById('btnSearchUsers').addEventListener('click', loadUsers);
 document.getElementById('btnLoadSessions').addEventListener('click', loadSessions);
