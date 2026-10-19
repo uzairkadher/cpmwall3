@@ -1,94 +1,318 @@
+
 import admin from "firebase-admin";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { verifyJwt } from "../auth.js";
 
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_KEY))
-  });
+const ALLOWED_ORIGIN = "https://cpmwall3.vercel.app";
+const BCRYPT_ROUNDS = 12;
+const MIN_PASSWORD_LENGTH = 6;
+const MAX_PASSWORD_LENGTH = 1024;
+
+function getDb() {
+  if (!admin.apps.length) {
+    const serviceKey = process.env.FIREBASE_SERVICE_KEY;
+
+    if (!serviceKey) {
+      throw new Error("FIREBASE_SERVICE_KEY is not configured");
+    }
+
+    let credentials;
+
+    try {
+      credentials = JSON.parse(serviceKey);
+    } catch {
+      throw new Error("FIREBASE_SERVICE_KEY is not valid JSON");
+    }
+
+    if (
+      !credentials ||
+      !credentials.project_id ||
+      !credentials.client_email ||
+      !credentials.private_key
+    ) {
+      throw new Error("FIREBASE_SERVICE_KEY is incomplete");
+    }
+
+    admin.initializeApp({
+      credential: admin.credential.cert(credentials)
+    });
+  }
+
+  return admin.firestore();
 }
 
-const db = admin.firestore();
+function setCorsHeaders(req, res) {
+  if (req.headers.origin === ALLOWED_ORIGIN) {
+    res.setHeader("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
+    res.setHeader("Vary", "Origin");
+  }
 
-export default async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Cache-Control", "no-store");
+}
 
-  if (req.method === "OPTIONS") return res.status(200).end();
+function getBearerToken(req) {
+  const authorization = req.headers.authorization;
+
+  if (typeof authorization !== "string") {
+    return null;
+  }
+
+  const match = authorization.match(/^Bearer\s+(\S+)$/i);
+  return match ? match[1] : null;
+}
+
+function getRequestBody(req) {
+  if (
+    req.body &&
+    typeof req.body === "object" &&
+    !Array.isArray(req.body)
+  ) {
+    return req.body;
+  }
+
+  if (typeof req.body === "string") {
+    try {
+      const parsed = JSON.parse(req.body);
+
+      if (
+        parsed &&
+        typeof parsed === "object" &&
+        !Array.isArray(parsed)
+      ) {
+        return parsed;
+      }
+    } catch {
+      return {};
+    }
+  }
+
+  return {};
+}
+
+function verifyLegacyPassword(password, storedHash) {
+  if (
+    typeof storedHash !== "string" ||
+    !/^[a-f0-9]{64}$/i.test(storedHash)
+  ) {
+    return false;
+  }
+
+  const expected = crypto
+    .createHash("sha256")
+    .update(password + "cpm_salt_2025")
+    .digest();
+
+  const actual = Buffer.from(storedHash, "hex");
+
+  return (
+    actual.length === expected.length &&
+    crypto.timingSafeEqual(actual, expected)
+  );
+}
+
+async function verifyCurrentPassword(password, userData) {
+  const passwordHash = userData.passwordHash;
+  const passHash = userData.passHash;
+
+  if (
+    typeof passwordHash === "string" &&
+    /^\$2[aby]\$/.test(passwordHash)
+  ) {
+    try {
+      return await bcrypt.compare(password, passwordHash);
+    } catch {
+      return false;
+    }
+  }
+
+  if (typeof passHash === "string") {
+    if (/^\$2[aby]\$/.test(passHash)) {
+      try {
+        return await bcrypt.compare(password, passHash);
+      } catch {
+        return false;
+      }
+    }
+
+    return verifyLegacyPassword(password, passHash);
+  }
+
+  return false;
+}
+
+function sendError(res, status, error) {
+  return res.status(status).json({ error });
+}
+
+export default async function handler(req, res) {
+  setCorsHeaders(req, res);
+
+  if (req.method === "OPTIONS") {
+    return res.status(204).end();
+  }
+
   if (req.method !== "GET" && req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
+    res.setHeader("Allow", "GET, POST, OPTIONS");
+    return sendError(res, 405, "Method not allowed");
   }
 
   try {
-    const authHeader = req.headers["authorization"] || "";
-    const token = authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : null;
-    if (!token) return res.status(401).json({ error: "Unauthorized: Missing token" });
+    const token = getBearerToken(req);
+
+    if (!token) {
+      return sendError(res, 401, "Unauthorized");
+    }
 
     const decoded = verifyJwt(token);
-    if (!decoded || !decoded.username) {
-      return res.status(401).json({ error: "Unauthorized: Invalid token" });
+
+    if (
+      !decoded ||
+      typeof decoded.username !== "string" ||
+      !/^[A-Z0-9_.]{3,20}$/.test(decoded.username)
+    ) {
+      return sendError(res, 401, "Invalid or expired token");
     }
 
     const username = decoded.username;
+    const db = getDb();
     const userRef = db.collection("users").doc(username);
     const userDoc = await userRef.get();
-    if (!userDoc.exists) return res.status(404).json({ error: "User not found" });
 
-    const userData = userDoc.data();
+    if (!userDoc.exists) {
+      return sendError(res, 404, "User not found");
+    }
+
+    const userData = userDoc.data() || {};
 
     if (req.method === "GET") {
+      const isAdmin = userData.role === "ADMIN";
+
       return res.status(200).json({
-        username: userData.username,
-        isAdmin: userData.username === "jagga",
-        isVip: Boolean(userData.isVip),
-        vipExpiresAt: userData.vipExpiresAt || null,
-        customColor: userData.customColor || "#f59e0b",
-        customFrame: userData.customFrame || "gold",
-        chatBg: userData.chatBg || "",
-        lastUsernameChange: userData.lastUsernameChange || null
+        username:
+          typeof userData.username === "string"
+            ? userData.username
+            : username,
+        isAdmin,
+        isVip: isAdmin || userData.isVip === true,
+        vipExpiresAt: userData.vipExpiresAt ?? null,
+        customColor:
+          typeof userData.customColor === "string"
+            ? userData.customColor
+            : "#f59e0b",
+        customFrame:
+          typeof userData.customFrame === "string"
+            ? userData.customFrame
+            : "gold",
+        chatBg:
+          typeof userData.chatBg === "string"
+            ? userData.chatBg
+            : "",
+        lastUsernameChange: userData.lastUsernameChange ?? null
       });
     }
 
-    const { oldPassword, newPassword } = req.body || {};
+    const { oldPassword, newPassword } = getRequestBody(req);
 
-    if (!oldPassword || typeof oldPassword !== "string" || !newPassword || typeof newPassword !== "string") {
-      return res.status(400).json({ error: "Current password and new password are required" });
+    if (
+      typeof oldPassword !== "string" ||
+      typeof newPassword !== "string" ||
+      oldPassword.length === 0 ||
+      newPassword.length === 0
+    ) {
+      return sendError(
+        res,
+        400,
+        "Current password and new password are required"
+      );
     }
 
-    if (newPassword.length < 6) {
-      return res.status(400).json({ error: "New password must be at least 6 characters" });
+    if (
+      oldPassword.length > MAX_PASSWORD_LENGTH ||
+      newPassword.length > MAX_PASSWORD_LENGTH
+    ) {
+      return sendError(res, 400, "Password is too long");
+    }
+
+    if (newPassword.length < MIN_PASSWORD_LENGTH) {
+      return sendError(
+        res,
+        400,
+        "New password must be at least 6 characters"
+      );
     }
 
     if (oldPassword === newPassword) {
-      return res.status(400).json({ error: "New password must be different from your current password" });
+      return sendError(
+        res,
+        400,
+        "New password must be different from your current password"
+      );
     }
 
-    let isOldPasswordValid = false;
-    if (userData.passwordHash) {
-      isOldPasswordValid = await bcrypt.compare(oldPassword, userData.passwordHash);
-    } else if (userData.passHash) {
-      const legacyShaHash = crypto
-        .createHash("sha256")
-        .update(oldPassword + "cpm_salt_2025")
-        .digest("hex");
-      isOldPasswordValid = (legacyShaHash === userData.passHash);
-    }
+    const isOldPasswordValid = await verifyCurrentPassword(
+      oldPassword,
+      userData
+    );
 
     if (!isOldPasswordValid) {
-      return res.status(401).json({ error: "Current password is incorrect" });
+      return sendError(res, 401, "Current password is incorrect");
     }
 
-    const newPasswordHash = await bcrypt.hash(newPassword, 10);
+    const newPasswordHash = await bcrypt.hash(
+      newPassword,
+      BCRYPT_ROUNDS
+    );
 
-    await userRef.update({
-      passwordHash: newPasswordHash,
-      passwordUpdatedAt: admin.firestore.FieldValue.serverTimestamp()
+    await db.runTransaction(async transaction => {
+      const currentSnapshot = await transaction.get(userRef);
+
+      if (!currentSnapshot.exists) {
+        const error = new Error("User not found");
+        error.statusCode = 404;
+        throw error;
+      }
+
+      const currentData = currentSnapshot.data() || {};
+
+      // Ensure the password has not changed since it was verified.
+      if (
+        currentData.passwordHash !== userData.passwordHash ||
+        currentData.passHash !== userData.passHash
+      ) {
+        const error = new Error(
+          "Account changed during the password update. Please log in again."
+        );
+        error.statusCode = 409;
+        throw error;
+      }
+
+      transaction.update(userRef, {
+        passwordHash: newPasswordHash,
+        passHash: admin.firestore.FieldValue.delete(),
+        passwordUpdatedAt: admin.firestore.FieldValue.serverTimestamp()
+      });
     });
 
-    return res.status(200).json({ success: true, message: "Password updated successfully" });
-  } catch (err) {
-    return res.status(500).json({ error: err.message || "Server error" });
+    return res.status(200).json({
+      success: true,
+      message: "Password updated successfully"
+    });
+  } catch (error) {
+    if (error?.statusCode === 404) {
+      return sendError(res, 404, "User not found");
+    }
+
+    if (error?.statusCode === 409) {
+      return sendError(
+        res,
+        409,
+        "Account changed during the password update. Please log in again."
+      );
+    }
+
+    return sendError(res, 500, "Password service error");
   }
 }

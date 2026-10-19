@@ -2,98 +2,185 @@ import admin from "firebase-admin";
 import { verifyJwt } from "../auth.js";
 
 if (!admin.apps.length) {
+  const serviceKey = process.env.FIREBASE_SERVICE_KEY;
+
+  if (!serviceKey) {
+    throw new Error("Server configuration error");
+  }
+
   admin.initializeApp({
-    credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_KEY))
+    credential: admin.credential.cert(JSON.parse(serviceKey)),
   });
 }
 
 const db = admin.firestore();
+const ALLOWED_ORIGIN = "https://cpmwall3.vercel.app";
+const FLAG_KEY_PATTERN = /^[a-zA-Z0-9_-]{1,100}$/;
+const MAX_DESCRIPTION_LENGTH = 500;
+
+function getClientIp(req) {
+  // Vercel supplies x-forwarded-for. Use the first address in that header.
+  // Only trust forwarded headers when requests arrive through your trusted host.
+  const forwarded = req.headers["x-forwarded-for"];
+
+  if (typeof forwarded === "string" && forwarded.trim()) {
+    return forwarded.split(",")[0].trim().slice(0, 100);
+  }
+
+  return String(req.socket?.remoteAddress || "unknown").slice(0, 100);
+}
 
 export default async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", "https://cpmwall3.vercel.app");
+  res.setHeader("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Cache-Control", "private, no-store");
 
-  if (req.method === "OPTIONS") return res.status(200).end();
-  if (req.method !== "GET" && req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+  if (req.method === "OPTIONS") {
+    return res.status(204).end();
+  }
+
+  if (req.method !== "GET" && req.method !== "POST") {
+    res.setHeader("Allow", "GET, POST, OPTIONS");
+    return res.status(405).json({ error: "Method not allowed" });
+  }
 
   try {
-    // 1. JWT & Role Authorization (No x-admin-key)
-    const authHeader = req.headers["authorization"] || "";
-    const token = authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : null;
-    
-    if (!token) return res.status(401).json({ error: "Unauthorized: Missing token" });
+    const authHeader = req.headers.authorization || "";
+    const token = authHeader.startsWith("Bearer ")
+      ? authHeader.slice(7).trim()
+      : "";
 
-    const decoded = verifyJwt(token);
-    if (!decoded || !decoded.username) return res.status(401).json({ error: "Unauthorized: Invalid token" });
-
-    const adminUsername = String(decoded.username).toUpperCase();
-    const adminRef = db.collection("users").doc(adminUsername);
-    const adminDoc = await adminRef.get();
-
-    if (!adminDoc.exists || adminDoc.data().role !== "ADMIN") {
-      return res.status(403).json({ error: "Forbidden: Insufficient role permissions" });
+    if (!token) {
+      return res.status(401).json({ error: "Unauthorized" });
     }
 
-    const rawIp = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || "").split(',')[0].trim() || "unknown";
+    const decoded = verifyJwt(token);
 
-    // --- GET: List Feature Flags ---
+    if (!decoded || typeof decoded.username !== "string") {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const adminUsername = decoded.username.trim().toUpperCase();
+
+    if (!adminUsername) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    // Verify the current role in Firestore on every request.
+    const adminDoc = await db.collection("users").doc(adminUsername).get();
+
+    if (!adminDoc.exists || adminDoc.data()?.role !== "ADMIN") {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
     if (req.method === "GET") {
       const snapshot = await db.collection("feature_flags").get();
-      let flags = [];
-      snapshot.forEach(doc => {
-        flags.push({ key: doc.id, ...doc.data() });
-      });
+
+      const flags = snapshot.docs.map((doc) => ({
+        key: doc.id,
+        ...doc.data(),
+      }));
+
       return res.status(200).json({ flags });
     }
 
-    // --- POST: Create, Update, or Delete Feature Flags ---
-    if (req.method === "POST") {
-      const { action, key, enabled, description } = req.body || {};
-      
-      if (!key) return res.status(400).json({ error: "Flag key is required" });
-      
-      // Sanitize the document ID to prevent invalid path injections
-      const safeKey = String(key).replace(/[^a-zA-Z0-9_-]/g, "");
+    const body = req.body || {};
+    const { action, key, enabled, description } = body;
 
-      if (action === "set") {
-        await db.collection("feature_flags").doc(safeKey).set({
-          enabled: Boolean(enabled),
-          description: String(description || ""),
-          updatedAt: admin.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
+    if (typeof key !== "string" || !FLAG_KEY_PATTERN.test(key)) {
+      return res.status(400).json({
+        error:
+          "Flag key must be 1–100 characters and contain only letters, numbers, underscores, or hyphens",
+      });
+    }
 
-        await db.collection("audit_logs").add({
-          adminUsername,
-          action: "SET_FEATURE_FLAG",
-          method: "POST",
-          ip: rawIp,
-          metadata: { key: safeKey, enabled: Boolean(enabled) },
-          timestamp: admin.firestore.FieldValue.serverTimestamp()
-        });
-
-        return res.status(200).json({ success: true, key: safeKey, enabled: Boolean(enabled) });
-      }
-
-      if (action === "delete") {
-        await db.collection("feature_flags").doc(safeKey).delete();
-
-        await db.collection("audit_logs").add({
-          adminUsername,
-          action: "DELETE_FEATURE_FLAG",
-          method: "POST",
-          ip: rawIp,
-          metadata: { key: safeKey },
-          timestamp: admin.firestore.FieldValue.serverTimestamp()
-        });
-
-        return res.status(200).json({ success: true, key: safeKey, deleted: true });
-      }
-
+    if (action !== "set" && action !== "delete") {
       return res.status(400).json({ error: "Invalid action" });
     }
 
+    const flagRef = db.collection("feature_flags").doc(key);
+    const ip = getClientIp(req);
+
+    if (action === "set") {
+      if (typeof enabled !== "boolean") {
+        return res.status(400).json({
+          error: "The enabled field must be a boolean",
+        });
+      }
+
+      if (
+        description !== undefined &&
+        typeof description !== "string"
+      ) {
+        return res.status(400).json({
+          error: "Description must be a string",
+        });
+      }
+
+      const safeDescription = (description || "").trim();
+
+      if (safeDescription.length > MAX_DESCRIPTION_LENGTH) {
+        return res.status(400).json({
+          error: `Description must be ${MAX_DESCRIPTION_LENGTH} characters or fewer`,
+        });
+      }
+
+      await flagRef.set(
+        {
+          enabled,
+          description: safeDescription,
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        },
+        { merge: true }
+      );
+
+      await db.collection("audit_logs").add({
+        adminUsername,
+        action: "SET_FEATURE_FLAG",
+        method: "POST",
+        ip,
+        metadata: {
+          key,
+          enabled,
+        },
+        timestamp: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      return res.status(200).json({
+        success: true,
+        key,
+        enabled,
+      });
+    }
+
+    const existingFlag = await flagRef.get();
+
+    if (!existingFlag.exists) {
+      return res.status(404).json({ error: "Feature flag not found" });
+    }
+
+    await flagRef.delete();
+
+    await db.collection("audit_logs").add({
+      adminUsername,
+      action: "DELETE_FEATURE_FLAG",
+      method: "POST",
+      ip,
+      metadata: { key },
+      timestamp: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    return res.status(200).json({
+      success: true,
+      key,
+      deleted: true,
+    });
   } catch (err) {
-    return res.status(500).json({ error: err.message || "Server error" });
+    console.error("Admin feature flags request failed:", err);
+
+    return res.status(500).json({
+      error: "Internal server error",
+    });
   }
 }

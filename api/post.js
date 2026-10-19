@@ -1,356 +1,665 @@
+
 import crypto from "crypto";
 import admin from "firebase-admin";
 import { verifyJwt } from "./auth.js";
 
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_KEY))
-  });
-}
+const ALLOWED_ORIGIN = "https://cpmwall3.vercel.app";
+const MAX_STANDARD_CHARS = 150;
+const MAX_VIP_CHARS = 250;
+const RATE_LIMIT = 5;
+const RATE_WINDOW_MS = 60_000;
 
-const db = admin.firestore();
+const LINK_REGEX =
+  /(https?:\/\/|www\.|discord\.gg|t\.me|telegram\.me|chat\.whatsapp\.com|\.com|\.gg|\.xyz|\.top)/i;
 
-const LINK_REGEX = /(https?:\/\/|www\.|discord\.gg|t\.me|telegram\.me|chat\.whatsapp\.com|\.com|\.gg|\.xyz|\.top)/i;
 const STATIC_BLOCKED_WORDS = [
-  "free coins", "hack cpm", "mod apk", "cpm hack", "coin generator",
-  "buy followers", "free w16", "cpm unlimited", "bit.ly", "tinyurl",
-  "chutiya", "madarchod", "gandu", "bhenchod", "harami", "bitch",
-  "nigger", "faggot", "scam"
+  "free coins", "hack cpm", "mod apk", "cpm hack",
+  "coin generator", "buy followers", "free w16",
+  "cpm unlimited", "bit.ly", "tinyurl",
+  "chutiya", "madarchod", "gandu", "bhenchod",
+  "harami", "bitch", "nigger", "faggot", "scam"
 ];
 
+function getDb() {
+  if (!process.env.FIREBASE_SERVICE_KEY) {
+    throw new Error("Firebase service configuration is missing.");
+  }
+
+  if (!admin.apps.length) {
+    let serviceAccount;
+
+    try {
+      serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_KEY);
+    } catch {
+      throw new Error("Firebase service configuration is invalid.");
+    }
+
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount)
+    });
+  }
+
+  return admin.firestore();
+}
+
 function getSubnet24(ip = "") {
-  const parts = ip.split('.');
-  if (parts.length === 4) return `${parts[0]}.${parts[1]}.${parts[2]}.0`;
+  const parts = ip.split(".");
+  if (
+    parts.length === 4 &&
+    parts.every(part => /^\d{1,3}$/.test(part) && Number(part) <= 255)
+  ) {
+    return `${parts[0]}.${parts[1]}.${parts[2]}.0`;
+  }
+
   return null;
+}
+
+function getClientIp(req) {
+  // Use Vercel's trusted request metadata, not an arbitrary
+  // client-supplied forwarding header.
+  const candidate =
+    req.headers["x-vercel-forwarded-for"] ||
+    req.headers["x-real-ip"] ||
+    req.socket?.remoteAddress ||
+    "";
+
+  const ip = String(candidate).split(",")[0].trim();
+
+  if (
+    ip.length > 64 ||
+    !/^[a-fA-F0-9:.]+$/.test(ip) ||
+    ip === "unknown"
+  ) {
+    return "unknown";
+  }
+
+  return ip;
+}
+
+function getSafeIpKey(ip) {
+  return crypto.createHash("sha256").update(ip).digest("hex");
+}
+
+function getDeviceFingerprint(headers = {}) {
+  const ua = String(headers["user-agent"] || "unknown").slice(0, 512);
+  const lang = String(headers["accept-language"] || "unknown").slice(0, 128);
+  const platform = String(headers["sec-ch-ua-platform"] || "unknown").slice(0, 128);
+
+  return crypto
+    .createHash("sha256")
+    .update(`${ua}_${lang}_${platform}`)
+    .digest("hex");
 }
 
 function parseUserAgent(ua = "") {
   let os = "Unknown OS";
   if (/windows nt 10/i.test(ua)) os = "Windows 10/11";
-  else if (/android (\d+(\.\d+)?)/i.test(ua)) os = "Android " + (ua.match(/android (\d+(\.\d+)?)/i)?.[1] || "");
-  else if (/iphone os (\d+[_\d]*)/i.test(ua)) os = "iOS " + (ua.match(/iphone os (\d+[_\d]*)/i)?.[1]?.replace(/_/g, '.') || "");
-  
+  else if (/android/i.test(ua)) os = "Android";
+  else if (/iphone|ipad/i.test(ua)) os = "iOS";
+
   let browser = "Browser";
   if (/instagram/i.test(ua)) browser = "Instagram App";
   else if (/whatsapp/i.test(ua)) browser = "WhatsApp App";
   else if (/edg\//i.test(ua)) browser = "Edge";
   else if (/chrome\//i.test(ua)) browser = "Chrome";
   else if (/safari\//i.test(ua)) browser = "Safari";
-  
-  let device = "Desktop";
-  if (/mobile|android|iphone|ipad/i.test(ua)) device = "Mobile";
+
+  let device = /mobile|android|iphone|ipad/i.test(ua) ? "Mobile" : "Desktop";
   if (/iphone/i.test(ua)) device = "iPhone";
-  
+
   return { os, browser, device };
 }
 
-function getDeviceFingerprint(headers = {}) {
-  const ua = headers['user-agent'] || 'unknown';
-  const lang = headers['accept-language'] || 'unknown';
-  const platform = headers['sec-ch-ua-platform'] || 'unknown';
-  return crypto.createHash('sha256').update(`${ua}_${lang}_${platform}`).digest('hex');
-}
+async function containsBlockedContent(db, text) {
+  if (LINK_REGEX.test(text)) return true;
 
-async function containsBlockedContent(text) {
-  const lower = text.toLowerCase();
-  if (LINK_REGEX.test(lower)) return true;
-  
-  let dynamicWords = [];
   try {
     const filterDoc = await db.collection("settings").doc("filters").get();
-    if (filterDoc.exists && filterDoc.data().words) dynamicWords = filterDoc.data().words;
-  } catch (e) {}
+    const configuredWords = filterDoc.exists
+      ? filterDoc.data()?.words
+      : [];
 
-  const allBlocked = [...STATIC_BLOCKED_WORDS, ...dynamicWords];
-  if (allBlocked.some(word => lower.includes(word))) return true;
-  return false;
+    const dynamicWords = Array.isArray(configuredWords)
+      ? configuredWords.filter(
+          word => typeof word === "string" && word.length > 0
+        )
+      : [];
+
+    const lower = text.toLowerCase();
+
+    return [...STATIC_BLOCKED_WORDS, ...dynamicWords].some(
+      word => lower.includes(word.toLowerCase())
+    );
+  } catch {
+    // Do not silently bypass moderation if its configuration cannot
+    // be read.
+    throw new Error("Moderation service is temporarily unavailable.");
+  }
 }
 
 async function sendWebhookAlert(message) {
   const webhookUrl = process.env.ALERT_WEBHOOK_URL;
   if (!webhookUrl) return;
+
   try {
     await fetch(webhookUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ content: `🚨 **Security Alert** 🚨\n${message}` })
+      body: JSON.stringify({ content: `Security alert: ${message}` }),
+      signal: AbortSignal.timeout(5000)
     });
-  } catch (e) {}
+  } catch {
+    // Alert delivery failure must not expose server details.
+  }
 }
 
 async function askApexRacer(userMessage) {
   const apiKey = process.env.GEMINI_API_KEY;
-  const fallbackReply = "I'm under the hood right now! Double-check your gear ratios and tire pressure, I'll be back soon.";
+  const fallbackReply =
+    "I'm under the hood right now! Double-check your gear ratios and tire pressure, I'll be back soon.";
+
   if (!apiKey) return fallbackReply;
 
   try {
-    const aiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        system_instruction: { 
-          parts: [{ text: "You are an expert virtual mechanic and player named Apex Racer, specializing in Car Parking Multiplayer tuning logic (gear ratios, final drives, tire pressure). Be helpful, conversational, and keep answers under 2 sentences." }] 
-        },
-        contents: [{ role: "user", parts: [{ text: userMessage }] }]
-      }),
-      signal: AbortSignal.timeout(8000)
-    });
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          system_instruction: {
+            parts: [{
+              text:
+                "You are Apex Racer, an expert Car Parking Multiplayer tuning assistant. Be helpful and keep answers under two sentences."
+            }]
+          },
+          contents: [{
+            role: "user",
+            parts: [{ text: userMessage.slice(0, 1000) }]
+          }]
+        }),
+        signal: AbortSignal.timeout(8000)
+      }
+    );
 
-    if (!aiRes.ok) return fallbackReply;
-    const data = await aiRes.json();
-    return data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || fallbackReply;
-  } catch (err) {
-    return fallbackReply; 
+    if (!response.ok) return fallbackReply;
+
+    const data = await response.json();
+    return (
+      data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ||
+      fallbackReply
+    ).slice(0, 1500);
+  } catch {
+    return fallbackReply;
   }
 }
 
-export default async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", "*");
+function validDocumentId(value) {
+  return (
+    typeof value === "string" &&
+    value.length > 0 &&
+    value.length <= 1500 &&
+    !value.includes("/")
+  );
+}
+
+function setCors(req, res) {
+  const origin = req.headers.origin;
+
+  if (origin === ALLOWED_ORIGIN) {
+    res.setHeader("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
+    res.setHeader("Vary", "Origin");
+  }
+
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, x-admin-key");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Cache-Control", "no-store");
+}
 
-  if (req.method === "OPTIONS") return res.status(200).end();
+export default async function handler(req, res) {
+  setCors(req, res);
 
+  if (req.method === "OPTIONS") {
+    if (
+      req.headers.origin &&
+      req.headers.origin !== ALLOWED_ORIGIN
+    ) {
+      return res.status(403).end();
+    }
+
+    return res.status(204).end();
+  }
+
+  if (req.headers.origin && req.headers.origin !== ALLOWED_ORIGIN) {
+    return res.status(403).json({ error: "Origin not allowed." });
+  }
+
+  if (!["GET", "POST"].includes(req.method)) {
+    res.setHeader("Allow", "GET, POST, OPTIONS");
+    return res.status(405).json({ error: "Method not allowed." });
+  }
+
+  let db;
+
+  try {
+    db = getDb();
+  } catch {
+    return res.status(500).json({ error: "Server configuration error." });
+  }
+
+  // Public post feed. Do not expose internal moderation or IP logs.
   if (req.method === "GET") {
     try {
-      const snap = await db.collection("posts").orderBy("createdAt", "desc").limit(100).get();
-      const posts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const snap = await db
+        .collection("posts")
+        .orderBy("createdAt", "desc")
+        .limit(100)
+        .get();
+
+      const posts = snap.docs
+        .map(doc => {
+          const data = doc.data();
+
+          return {
+            id: doc.id,
+            name: data.name || "Unknown",
+            userId: data.userId || data.name || "Unknown",
+            message: data.message || "",
+            createdAt: data.createdAt || null,
+            isVerified: Boolean(data.isVerified),
+            isVip: Boolean(data.isVip),
+            isAdmin: Boolean(data.isAdmin),
+            isBot: Boolean(data.isBot),
+            likes: Number.isSafeInteger(data.likes) ? data.likes : 0,
+            room: data.room || "public",
+            replyTo: data.replyTo || null
+          };
+        })
+        .filter(post => !post.isShadowbanned);
+
       return res.status(200).json(posts);
-    } catch (e) {
-      return res.status(500).json({ error: e.message });
+    } catch {
+      return res.status(500).json({ error: "Could not load posts." });
     }
   }
 
-  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
-
   try {
-    const authHeader = req.headers["authorization"] || "";
-    const token = authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : null;
-    if (!token) return res.status(401).json({ error: "Unauthorized: Missing authentication token" });
+    const authorization = req.headers.authorization || "";
+    const tokenMatch = authorization.match(/^Bearer\s+(\S+)$/);
 
-    const decoded = verifyJwt(token);
-    if (!decoded || !decoded.username) return res.status(401).json({ error: "Unauthorized: Invalid token" });
-    
-    const username = String(decoded.username).toUpperCase();
-    const userDoc = await db.collection("users").doc(username).get();
-    const userData = userDoc.exists ? userDoc.data() : {};
-    
-    // Ensure "ADMIN" string check respects the Blueprint naming convention
-    const isRealAdmin = (username === "ADMIN" || userData.role === "ADMIN");
-    const isVipUser = isRealAdmin || Boolean(userData.isVip);
+    if (!tokenMatch) {
+      return res.status(401).json({ error: "Authentication required." });
+    }
+
+    let decoded;
+
+    try {
+      decoded = verifyJwt(tokenMatch[1]);
+    } catch {
+      return res.status(401).json({ error: "Invalid or expired session." });
+    }
+
+    const username =
+      typeof decoded?.username === "string"
+        ? decoded.username.toUpperCase()
+        : "";
+
+    if (!/^[A-Z0-9_.]{3,20}$/.test(username)) {
+      return res.status(401).json({ error: "Invalid session." });
+    }
+
+    const userRef = db.collection("users").doc(username);
+    const userSnap = await userRef.get();
+
+    if (!userSnap.exists) {
+      return res.status(401).json({ error: "Account not found." });
+    }
+
+    const userData = userSnap.data() || {};
+    const isRealAdmin = userData.role === "ADMIN";
+    const isVipUser =
+      isRealAdmin &&
+      true ||
+      Boolean(userData.isVip);
     const isVerifiedUser = isVipUser || Boolean(userData.isVerified);
 
-    const { action, postId, message, room, replyTo } = req.body || {};
+    const body =
+      req.body && typeof req.body === "object" && !Array.isArray(req.body)
+        ? req.body
+        : {};
 
-    // --- ADMIN ACTION HANDLERS ---
+    const { action, postId, message, room, replyTo } = body;
+
+    // Administrative actions require the role stored in Firestore.
+    // The username "ADMIN" alone does not grant privileges.
     if (action === "delete") {
-      if (!isRealAdmin) return res.status(403).json({ error: "Unauthorized: Only ADMIN can delete posts." });
-      if (!postId) return res.status(400).json({ error: "Missing postId" });
+      if (!isRealAdmin) {
+        return res.status(403).json({ error: "Admin permission required." });
+      }
+
+      if (!validDocumentId(postId)) {
+        return res.status(400).json({ error: "Invalid post ID." });
+      }
+
       const batch = db.batch();
       batch.delete(db.collection("posts").doc(postId));
       batch.delete(db.collection("ip_logs").doc(postId));
       await batch.commit();
+
       return res.status(200).json({ success: true });
     }
 
     if (action === "pin") {
-      if (!isRealAdmin) return res.status(403).json({ error: "Unauthorized: Only ADMIN can pin posts." });
-      const { text, name, active, isAnnouncement } = req.body || {};
+      if (!isRealAdmin) {
+        return res.status(403).json({ error: "Admin permission required." });
+      }
+
+      const text = typeof body.text === "string" ? body.text.trim() : "";
+
+      if (text.length > 200) {
+        return res.status(400).json({ error: "Pinned text is too long." });
+      }
+
       await db.collection("pinned").doc("current").set({
-        text: String(text || "").substring(0, 200),
-        name: String(name || "ADMIN"),
-        active: Boolean(active),
-        isAnnouncement: Boolean(isAnnouncement),
+        text,
+        name: username,
+        active: body.active === true,
+        isAnnouncement: body.isAnnouncement === true,
         updatedAt: admin.firestore.FieldValue.serverTimestamp()
       }, { merge: true });
+
       return res.status(200).json({ success: true });
     }
 
-    const rawIp = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || "").split(',')[0].trim() || "unknown";
-    const safeIp = rawIp.replace(/[^a-zA-Z0-9.:]/g, '_');
-    const subnet = getSubnet24(rawIp) || "N/A";
+    const rawIp = getClientIp(req);
+    const ipKey = getSafeIpKey(rawIp);
+    const subnet = getSubnet24(rawIp);
     const fingerprint = getDeviceFingerprint(req.headers);
-    const isVpn = req.headers['x-vercel-ip-country'] && !req.headers['x-vercel-ip-city'];
 
     if (action === "like") {
-      if (!postId) return res.status(400).json({ error: "Missing postId" });
-      await db.collection("posts").doc(postId).update({ likes: admin.firestore.FieldValue.increment(1) });
+      if (!validDocumentId(postId)) {
+        return res.status(400).json({ error: "Invalid post ID." });
+      }
+
+      const postRef = db.collection("posts").doc(postId);
+
+      // The original increment endpoint allowed unlimited repeat likes.
+      // Use a per-user marker to prevent repeated likes from this account.
+      const likeRef = postRef.collection("likes").doc(username);
+
+      try {
+        await db.runTransaction(async transaction => {
+          const postSnap = await transaction.get(postRef);
+          const likeSnap = await transaction.get(likeRef);
+
+          if (!postSnap.exists) {
+            const error = new Error("POST_NOT_FOUND");
+            throw error;
+          }
+
+          if (likeSnap.exists) {
+            const error = new Error("ALREADY_LIKED");
+            throw error;
+          }
+
+          transaction.create(likeRef, {
+            username,
+            createdAt: admin.firestore.FieldValue.serverTimestamp()
+          });
+
+          transaction.update(postRef, {
+            likes: admin.firestore.FieldValue.increment(1)
+          });
+        });
+      } catch (error) {
+        if (error.message === "POST_NOT_FOUND") {
+          return res.status(404).json({ error: "Post not found." });
+        }
+
+        if (error.message === "ALREADY_LIKED") {
+          return res.status(409).json({ error: "You already liked this post." });
+        }
+
+        throw error;
+      }
+
       return res.status(200).json({ success: true });
     }
 
-    if (!message) return res.status(400).json({ error: "Message required" });
-    
-    const maxChars = isVipUser ? 250 : 150;
-    const cleanMsg = message.trim().substring(0, maxChars);
+    if (action && action !== "post") {
+      return res.status(400).json({ error: "Unknown action." });
+    }
+
+    if (typeof message !== "string") {
+      return res.status(400).json({ error: "Message required." });
+    }
+
+    const cleanMsg = message.trim();
+
+    if (!cleanMsg) {
+      return res.status(400).json({ error: "Message cannot be empty." });
+    }
+
+    const maxChars = isVipUser ? MAX_VIP_CHARS : MAX_STANDARD_CHARS;
+
+    if (cleanMsg.length > maxChars) {
+      return res.status(400).json({
+        error: `Message exceeds the ${maxChars}-character limit.`
+      });
+    }
+
+    const pinnedRef = db.collection("pinned").doc("current");
 
     const [
-      bannedDoc, 
-      fingerprintDoc, 
-      subnetBanDoc, 
-      subnetWhiteDoc, 
-      shadowDoc, 
-      pinnedDoc, 
-      rateLimitDoc,
-      strikeDoc
+      banSnap,
+      fingerprintBanSnap,
+      subnetBanSnap,
+      whitelistSnap,
+      shadowSnap,
+      pinnedSnap
     ] = await Promise.all([
-      db.collection("banned").doc(safeIp).get(),
+      db.collection("banned").doc(ipKey).get(),
       db.collection("fingerprint_bans").doc(fingerprint).get(),
-      subnet !== "N/A" ? db.collection("subnet_bans").doc(subnet.replace(/\*/g, '0')).get() : null,
-      db.collection("subnet_whitelist").doc(safeIp).get(),
-      db.collection("shadowbanned").doc(safeIp).get(),
-      db.collection("pinned").doc("current").get(),
-      db.collection("rate_limits").doc(safeIp).get(),
-      db.collection("strikes").doc(safeIp).get()
+      subnet
+        ? db.collection("subnet_bans").doc(subnet).get()
+        : Promise.resolve(null),
+      db.collection("subnet_whitelist").doc(ipKey).get(),
+      db.collection("shadowbanned").doc(ipKey).get(),
+      pinnedRef.get()
     ]);
 
-    // 1. Global State Checks
-    const pinnedData = pinnedDoc.exists ? pinnedDoc.data() : {};
+    const pinnedData = pinnedSnap.exists ? pinnedSnap.data() : {};
+
     if (pinnedData.chatLocked && !isRealAdmin) {
-      return res.status(403).json({ error: "Chat is currently locked by administrators." });
-    }
-    if (pinnedData.raidMode && !isVerifiedUser && !isVipUser && !isRealAdmin) {
-      return res.status(403).json({ error: "Panic Raid Mode is active. Only VIP and Verified users can post." });
+      return res.status(403).json({ error: "Chat is locked." });
     }
 
-    // 2. Ban Checks
+    if (pinnedData.raidMode && !isVerifiedUser && !isRealAdmin) {
+      return res.status(403).json({
+        error: "Only verified and VIP users can post during raid mode."
+      });
+    }
+
     if (!isRealAdmin) {
-      if (bannedDoc.exists) {
-        const banData = bannedDoc.data();
-        if (!banData.bannedUntil || banData.bannedUntil.toDate() > new Date()) {
-          return res.status(403).json({ error: `You are banned. Reason: ${banData.reason || 'Violation'}` });
+      if (banSnap.exists) {
+        const banData = banSnap.data();
+        const until = banData.bannedUntil?.toDate?.();
+
+        if (!until || until > new Date()) {
+          return res.status(403).json({
+            error: "Posting is restricted for this network."
+          });
         }
       }
-      if (fingerprintDoc.exists) {
-        return res.status(403).json({ error: "Your device has been permanently restricted from the platform." });
-      }
-      if (subnetBanDoc && subnetBanDoc.exists && (!subnetWhiteDoc || !subnetWhiteDoc.exists)) {
-        return res.status(403).json({ error: "Your mobile carrier network is temporarily blocked due to spam. Connect to Wi-Fi." });
-      }
-    }
 
-    // 3. Strict 5-Per-Minute Rate Limiting & Legacy Slow Mode
-    let windowStartMillis = Date.now();
-    let currentCount = 0;
-
-    if (rateLimitDoc.exists) {
-      const rlData = rateLimitDoc.data();
-      const dbWindowStart = rlData.windowStart?.toMillis ? rlData.windowStart.toMillis() : 0;
-      
-      // If we are within the rolling 1-minute window
-      if (Date.now() - dbWindowStart < 60000) {
-        currentCount = rlData.count || 0;
-        windowStartMillis = dbWindowStart;
-        
-        // Enforce 5 posts max per minute
-        if (currentCount >= 5 && !isRealAdmin) {
-          const retryAfter = Math.ceil((60000 - (Date.now() - dbWindowStart)) / 1000);
-          res.setHeader("Retry-After", String(retryAfter));
-          return res.status(429).json({ error: `Rate limit exceeded (5 posts/min). Please wait ${retryAfter} seconds.` });
-        }
-      } else {
-        // Window expired, reset counter and window timestamp
-        windowStartMillis = Date.now();
-        currentCount = 0;
-      }
-      
-      // Keep legacy dynamic slow mode functionality for individual posts if needed
-      const slowModeSeconds = pinnedData.slowModeSeconds || 10;
-      if (!isRealAdmin && !isVipUser) {
-        const lastPostTime = rlData.lastPostAt?.toMillis ? rlData.lastPostAt.toMillis() : 0;
-        const secondsSinceLastPost = (Date.now() - lastPostTime) / 1000;
-        if (secondsSinceLastPost < slowModeSeconds) {
-          return res.status(429).json({ error: `Slow mode active. Please wait ${Math.ceil(slowModeSeconds - secondsSinceLastPost)}s.` });
-        }
-      }
-    }
-
-    // 4. Content Moderation & Strike Evaluation
-    const isBlocked = await containsBlockedContent(cleanMsg);
-    if (isBlocked && !isRealAdmin) {
-      const currentStrikes = strikeDoc.exists ? strikeDoc.data().count : 0;
-      const newStrikeCount = currentStrikes + 1;
-      
-      const batch = db.batch();
-      batch.set(db.collection("strikes").doc(safeIp), {
-        ip: rawIp,
-        username,
-        count: newStrikeCount,
-        lastStrikeAt: admin.firestore.FieldValue.serverTimestamp()
-      }, { merge: true });
-
-      if (newStrikeCount >= 3) {
-        const bannedUntil = new Date(Date.now() + 24 * 3600 * 1000);
-        batch.set(db.collection("banned").doc(safeIp), {
-          ip: rawIp,
-          reason: "Automated: 3 Profanity/Spam Strikes",
-          bannedAt: admin.firestore.FieldValue.serverTimestamp(),
-          bannedUntil: admin.firestore.Timestamp.fromDate(bannedUntil)
+      if (fingerprintBanSnap.exists) {
+        return res.status(403).json({
+          error: "This device is restricted from posting."
         });
-        await batch.commit();
-        await sendWebhookAlert(`User **${username}** (${rawIp}) auto-banned for 24h after 3 strikes.`);
-        return res.status(403).json({ error: "Account suspended for 24 hours due to repeated violations." });
       }
-      
-      await batch.commit();
-      return res.status(400).json({ error: `Message blocked. Strike ${newStrikeCount}/3. Three strikes will result in an automated ban.` });
+
+      if (
+        subnetBanSnap?.exists &&
+        !whitelistSnap.exists
+      ) {
+        return res.status(403).json({
+          error: "Posting is restricted on this network."
+        });
+      }
     }
 
-    // 5. Build Document
-    const isShadowbanned = shadowDoc.exists;
-    let finalRoom = "public";
-    if (room === "vip" && (isVipUser || isRealAdmin)) finalRoom = "vip";
-    else if (room === "market") finalRoom = "market";
+    let isBlocked;
 
-    const batch = db.batch();
+    try {
+      isBlocked = await containsBlockedContent(db, cleanMsg);
+    } catch {
+      return res.status(503).json({
+        error: "Moderation is temporarily unavailable. Please retry."
+      });
+    }
+
+    if (isBlocked && !isRealAdmin) {
+      const strikeRef = db.collection("strikes").doc(ipKey);
+      let strikeCount = 0;
+
+      await db.runTransaction(async transaction => {
+        const snap = await transaction.get(strikeRef);
+        strikeCount = (snap.exists ? Number(snap.data().count) || 0 : 0) + 1;
+
+        transaction.set(strikeRef, {
+          ip: rawIp,
+          username,
+          count: strikeCount,
+          lastStrikeAt: admin.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+
+        if (strikeCount >= 3) {
+          transaction.set(db.collection("banned").doc(ipKey), {
+            ip: rawIp,
+            reason: "Automated spam/content violations",
+            bannedAt: admin.firestore.FieldValue.serverTimestamp(),
+            bannedUntil: admin.firestore.Timestamp.fromDate(
+              new Date(Date.now() + 24 * 60 * 60 * 1000)
+            )
+          });
+        }
+      });
+
+      if (strikeCount >= 3) {
+        await sendWebhookAlert(
+          `Account ${username} was restricted after repeated content violations.`
+        );
+
+        return res.status(403).json({
+          error: "Posting suspended after repeated content violations."
+        });
+      }
+
+      return res.status(400).json({
+        error: `Message blocked. Strike ${strikeCount}/3.`
+      });
+    }
+
+    const finalRoom =
+      room === "vip" && isVipUser
+        ? "vip"
+        : room === "market"
+          ? "market"
+          : "public";
+
     const postRef = db.collection("posts").doc();
-    
-    batch.set(postRef, {
-      name: username,
-      userId: username,
-      message: cleanMsg,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      isVerified: isVerifiedUser,
-      isVip: isVipUser,
-      isAdmin: isRealAdmin,
-      isShadowbanned,
-      likes: 0,
-      room: finalRoom,
-      replyTo: replyTo || null
+    const ipLogRef = db.collection("ip_logs").doc(postRef.id);
+    const rateRef = db.collection("rate_limits").doc(ipKey);
+
+    const userAgent = parseUserAgent(
+      String(req.headers["user-agent"] || "")
+    );
+
+    // Atomically check and increment the persistent Firestore rate limit.
+    // This prevents concurrent requests from bypassing the five-post cap.
+    await db.runTransaction(async transaction => {
+      const rateSnap = await transaction.get(rateRef);
+      const now = Date.now();
+      const data = rateSnap.exists ? rateSnap.data() : {};
+      const windowStart = data.windowStart?.toMillis?.() || 0;
+      const inWindow = now - windowStart < RATE_WINDOW_MS;
+      const count = inWindow ? Number(data.count) || 0 : 0;
+      const slowModeSeconds = Math.max(
+        0,
+        Math.min(300, Number(pinnedData.slowModeSeconds) || 10)
+      );
+      const lastPostAt = data.lastPostAt?.toMillis?.() || 0;
+
+      if (!isRealAdmin && count >= RATE_LIMIT) {
+        const error = new Error("RATE_LIMIT");
+        error.retryAfter = Math.max(
+          1,
+          Math.ceil((RATE_WINDOW_MS - (now - windowStart)) / 1000)
+        );
+        throw error;
+      }
+
+      if (
+        !isRealAdmin &&
+        !isVipUser &&
+        lastPostAt &&
+        now - lastPostAt < slowModeSeconds * 1000
+      ) {
+        const error = new Error("SLOW_MODE");
+        error.retryAfter = Math.ceil(
+          (slowModeSeconds * 1000 - (now - lastPostAt)) / 1000
+        );
+        throw error;
+      }
+
+      transaction.set(postRef, {
+        name: username,
+        userId: username,
+        message: cleanMsg,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        isVerified: isVerifiedUser,
+        isVip: isVipUser,
+        isAdmin: isRealAdmin,
+        isShadowbanned: shadowSnap.exists,
+        likes: 0,
+        room: finalRoom,
+        replyTo: replyTo && typeof replyTo === "object"
+          ? {
+              name: String(replyTo.name || "").slice(0, 20),
+              text: String(replyTo.text || "").slice(0, 250)
+            }
+          : null
+      });
+
+      transaction.set(ipLogRef, {
+        postId: postRef.id,
+        ip: rawIp,
+        name: username,
+        message: cleanMsg,
+        country: String(req.headers["x-vercel-ip-country"] || "Unknown").slice(0, 100),
+        city: String(req.headers["x-vercel-ip-city"] || "Unknown").slice(0, 100),
+        device: userAgent.device,
+        os: userAgent.os,
+        browser: userAgent.browser,
+        subnet: subnet || "N/A",
+        fingerprint,
+        createdAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+
+      if (!isRealAdmin) {
+        transaction.set(rateRef, {
+          count: count + 1,
+          windowStart: admin.firestore.Timestamp.fromMillis(
+            inWindow ? windowStart : now
+          ),
+          lastPostAt: admin.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+      }
     });
 
-    const uaMeta = parseUserAgent(req.headers['user-agent']);
-    batch.set(db.collection("ip_logs").doc(postRef.id), {
-      postId: postRef.id,
-      ip: rawIp,
-      name: username,
-      message: cleanMsg,
-      country: req.headers['x-vercel-ip-country'] || 'Unknown',
-      city: req.headers['x-vercel-ip-city'] || 'Unknown',
-      device: uaMeta.device,
-      os: uaMeta.os,
-      browser: uaMeta.browser,
-      subnet,
-      fingerprint,
-      isVpn,
-      createdAt: admin.firestore.FieldValue.serverTimestamp()
-    });
-
-    // Write updated Rate Limit stateful window
-    if (!isRealAdmin) {
-      batch.set(db.collection("rate_limits").doc(safeIp), {
-        count: currentCount + 1,
-        windowStart: admin.firestore.Timestamp.fromMillis(windowStartMillis),
-        lastPostAt: admin.firestore.FieldValue.serverTimestamp() // Legacy marker for dynamic slow-mode
-      }, { merge: true });
-    }
-
-    await batch.commit();
-
-    // 6. AI Integration
     if (cleanMsg.includes("@Apex_Racer")) {
       const aiReply = await askApexRacer(cleanMsg);
-      const botPostRef = db.collection("posts").doc();
-      await botPostRef.set({
+      await db.collection("posts").add({
         name: "Apex_Racer",
         userId: "BOT",
         message: aiReply,
@@ -359,14 +668,32 @@ export default async function handler(req, res) {
         isBot: true,
         isVip: false,
         isAdmin: false,
+        isShadowbanned: false,
         likes: 0,
         room: finalRoom,
         replyTo: { name: username, text: cleanMsg }
       });
     }
 
-    return res.status(200).json({ success: true, isShadowbanned });
-  } catch (e) {
-    return res.status(500).json({ error: e.message || "Server error" });
+    return res.status(200).json({
+      success: true,
+      isShadowbanned: shadowSnap.exists
+    });
+  } catch (error) {
+    if (error.message === "RATE_LIMIT" || error.message === "SLOW_MODE") {
+      const retryAfter = Math.max(1, Number(error.retryAfter) || 1);
+      res.setHeader("Retry-After", String(retryAfter));
+
+      return res.status(429).json({
+        error:
+          error.message === 
+          "RATE_LIMIT"
+            ? `Rate limit exceeded. Please wait ${retryAfter} seconds.`
+            : `Slow mode active. Please wait ${retryAfter} seconds.`
+      });
+    }
+
+    console.error("Post API failure:", error.message || "Unknown error");
+    return res.status(500).json({ error: "An internal server error occurred." });
   }
 }

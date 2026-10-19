@@ -3,144 +3,262 @@ import crypto from "crypto";
 import { verifyJwt } from "../auth.js";
 
 if (!admin.apps.length) {
+  const serviceKey = process.env.FIREBASE_SERVICE_KEY;
+
+  if (!serviceKey) {
+    throw new Error("Server configuration error");
+  }
+
   admin.initializeApp({
-    credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_KEY))
+    credential: admin.credential.cert(JSON.parse(serviceKey)),
   });
 }
 
 const db = admin.firestore();
+const ALLOWED_ORIGIN = "https://cpmwall3.vercel.app";
+const MAX_KEYS_PER_REQUEST = 20;
+const MAX_DURATION_DAYS = 3650;
+const KEY_PATTERN = /^ES-(VIP|ULTRA)-[A-F0-9]{4}-[A-F0-9]{4}$/;
 
 function generateKeyString(type) {
-  const p1 = crypto.randomBytes(2).toString('hex').toUpperCase();
-  const p2 = crypto.randomBytes(2).toString('hex').toUpperCase();
+  const p1 = crypto.randomBytes(2).toString("hex").toUpperCase();
+  const p2 = crypto.randomBytes(2).toString("hex").toUpperCase();
   return `ES-${type}-${p1}-${p2}`;
 }
 
+function getClientIp(req) {
+  const forwarded = req.headers["x-forwarded-for"];
+
+  if (typeof forwarded === "string" && forwarded.trim()) {
+    return forwarded.split(",")[0].trim().slice(0, 100);
+  }
+
+  return String(req.socket?.remoteAddress || "unknown").slice(0, 100);
+}
+
+function validKeyId(value) {
+  return typeof value === "string" && KEY_PATTERN.test(value);
+}
+
 export default async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", "https://cpmwall3.vercel.app");
+  res.setHeader("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Cache-Control", "private, no-store");
 
-  if (req.method === "OPTIONS") return res.status(200).end();
-  if (req.method !== "GET" && req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+  if (req.method === "OPTIONS") {
+    return res.status(204).end();
+  }
+
+  if (req.method !== "GET" && req.method !== "POST") {
+    res.setHeader("Allow", "GET, POST, OPTIONS");
+    return res.status(405).json({ error: "Method not allowed" });
+  }
 
   try {
-    // 1. JWT & Role Authorization (No x-admin-key)
-    const authHeader = req.headers["authorization"] || "";
-    const token = authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : null;
-    
-    if (!token) return res.status(401).json({ error: "Unauthorized: Missing token" });
+    const authHeader = req.headers.authorization || "";
+    const token = authHeader.startsWith("Bearer ")
+      ? authHeader.slice(7).trim()
+      : "";
 
-    const decoded = verifyJwt(token);
-    if (!decoded || !decoded.username) return res.status(401).json({ error: "Unauthorized: Invalid token" });
-
-    const adminUsername = String(decoded.username).toUpperCase();
-    const adminRef = db.collection("users").doc(adminUsername);
-    const adminDoc = await adminRef.get();
-
-    if (!adminDoc.exists || adminDoc.data().role !== "ADMIN") {
-      return res.status(403).json({ error: "Forbidden: Insufficient role permissions" });
+    if (!token) {
+      return res.status(401).json({ error: "Unauthorized" });
     }
 
-    const rawIp = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || "").split(',')[0].trim() || "unknown";
+    const decoded = verifyJwt(token);
 
-    // --- GET: List VIP Keys ---
+    if (!decoded || typeof decoded.username !== "string") {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const adminUsername = decoded.username.trim().toUpperCase();
+
+    if (!adminUsername) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    // Check the current Firestore role, not a role claim from the JWT.
+    const adminDoc = await db.collection("users").doc(adminUsername).get();
+
+    if (!adminDoc.exists || adminDoc.data()?.role !== "ADMIN") {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
     if (req.method === "GET") {
-      const snapshot = await db.collection("vip_keys").orderBy("createdAt", "desc").limit(100).get();
-      let keys = [];
-      snapshot.forEach(doc => {
-        keys.push({ id: doc.id, ...doc.data() });
-      });
+      const snapshot = await db
+        .collection("vip_keys")
+        .orderBy("createdAt", "desc")
+        .limit(100)
+        .get();
+
+      const keys = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
       return res.status(200).json({ keys });
     }
 
-    // --- POST: VIP Key Management Actions ---
-    if (req.method === "POST") {
-      const { action } = req.body || {};
+    const body = req.body || {};
+    const { action } = body;
+    const ip = getClientIp(req);
 
-      if (action === "create") {
-        const type = req.body.type === "ULTRA" ? "ULTRA" : "VIP";
-        const count = Math.min(20, Math.max(1, Number(req.body.count) || 1));
-        const durationDays = Math.max(1, Number(req.body.durationDays) || 30);
+    if (action === "create") {
+      const type = body.type === "ULTRA" ? "ULTRA" : "VIP";
 
-        const batch = db.batch();
-        const generated = [];
+      const countValue = body.count === undefined ? 1 : Number(body.count);
+      const durationValue =
+        body.durationDays === undefined ? 30 : Number(body.durationDays);
 
-        for (let i = 0; i < count; i++) {
-          const newKey = generateKeyString(type);
-          const keyRef = db.collection("vip_keys").doc(newKey);
-          batch.set(keyRef, {
-            key: newKey,
-            type: type,
-            createdBy: adminUsername,
-            usedBy: null,
-            usedAt: null,
-            active: true,
-            durationDays: durationDays,
-            createdAt: admin.firestore.FieldValue.serverTimestamp()
-          });
-          generated.push(newKey);
-        }
-
-        await batch.commit();
-
-        await db.collection("audit_logs").add({
-          adminUsername,
-          action: "GENERATE_VIP_KEYS",
-          method: "POST",
-          ip: rawIp,
-          metadata: { count, type, durationDays },
-          timestamp: admin.firestore.FieldValue.serverTimestamp()
+      if (
+        !Number.isInteger(countValue) ||
+        countValue < 1 ||
+        countValue > MAX_KEYS_PER_REQUEST
+      ) {
+        return res.status(400).json({
+          error: `Count must be an integer between 1 and ${MAX_KEYS_PER_REQUEST}`,
         });
-
-        return res.status(200).json({ success: true, count, generated });
       }
 
-      if (action === "revoke") {
-        const keyId = req.body.key;
-        if (!keyId) return res.status(400).json({ error: "Key required" });
-        
-        await db.collection("vip_keys").doc(keyId).delete();
-        
-        await db.collection("audit_logs").add({
-          adminUsername,
-          action: "REVOKE_VIP_KEY",
-          method: "POST",
-          ip: rawIp,
-          metadata: { keyId },
-          timestamp: admin.firestore.FieldValue.serverTimestamp()
+      if (
+        !Number.isInteger(durationValue) ||
+        durationValue < 1 ||
+        durationValue > MAX_DURATION_DAYS
+      ) {
+        return res.status(400).json({
+          error: `Duration must be an integer between 1 and ${MAX_DURATION_DAYS} days`,
         });
-
-        return res.status(200).json({ success: true, key: keyId, revoked: true });
       }
 
-      if (action === "toggle") {
-        const keyId = req.body.key;
-        if (!keyId) return res.status(400).json({ error: "Key required" });
-        
-        const keyRef = db.collection("vip_keys").doc(keyId);
-        const keyDoc = await keyRef.get();
-        if (!keyDoc.exists) return res.status(404).json({ error: "Key not found" });
-        
-        const newActiveState = !keyDoc.data().active;
-        await keyRef.update({ active: newActiveState });
+      const batch = db.batch();
+      const generated = [];
 
-        await db.collection("audit_logs").add({
-          adminUsername,
-          action: "TOGGLE_VIP_KEY",
-          method: "POST",
-          ip: rawIp,
-          metadata: { keyId, active: newActiveState },
-          timestamp: admin.firestore.FieldValue.serverTimestamp()
+      for (let i = 0; i < countValue; i++) {
+        const newKey = generateKeyString(type);
+        const keyRef = db.collection("vip_keys").doc(newKey);
+
+        batch.create(keyRef, {
+          key: newKey,
+          type,
+          createdBy: adminUsername,
+          usedBy: null,
+          usedAt: null,
+          active: true,
+          durationDays: durationValue,
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
         });
 
-        return res.status(200).json({ success: true, key: keyId, active: newActiveState });
+        generated.push(newKey);
       }
 
-      return res.status(400).json({ error: "Invalid action" });
+      await batch.commit();
+
+      await db.collection("audit_logs").add({
+        adminUsername,
+        action: "GENERATE_VIP_KEYS",
+        method: "POST",
+        ip,
+        metadata: {
+          count: countValue,
+          type,
+          durationDays: durationValue,
+        },
+        timestamp: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      return res.status(200).json({
+        success: true,
+        count: countValue,
+        generated,
+      });
     }
 
+    if (action === "revoke") {
+      const keyId = body.key;
+
+      if (!validKeyId(keyId)) {
+        return res.status(400).json({ error: "Invalid VIP key" });
+      }
+
+      const keyRef = db.collection("vip_keys").doc(keyId);
+      const keyDoc = await keyRef.get();
+
+      if (!keyDoc.exists) {
+        return res.status(404).json({ error: "Key not found" });
+      }
+
+      await keyRef.delete();
+
+      await db.collection("audit_logs").add({
+        adminUsername,
+        action: "REVOKE_VIP_KEY",
+        method: "POST",
+        ip,
+        metadata: { keyId },
+        timestamp: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      return res.status(200).json({
+        success: true,
+        key: keyId,
+        revoked: true,
+      });
+    }
+
+    if (action === "toggle") {
+      const keyId = body.key;
+
+      if (!validKeyId(keyId)) {
+        return res.status(400).json({ error: "Invalid VIP key" });
+      }
+
+      const keyRef = db.collection("vip_keys").doc(keyId);
+
+      const result = await db.runTransaction(async (transaction) => {
+        const keyDoc = await transaction.get(keyRef);
+
+        if (!keyDoc.exists) {
+          return { notFound: true };
+        }
+
+        const newActiveState = keyDoc.data().active !== true;
+
+        transaction.update(keyRef, {
+          active: newActiveState,
+        });
+
+        return { active: newActiveState };
+      });
+
+      if (result.notFound) {
+        return res.status(404).json({ error: "Key not found" });
+      }
+
+      await db.collection("audit_logs").add({
+        adminUsername,
+        action: "TOGGLE_VIP_KEY",
+        method: "POST",
+        ip,
+        metadata: {
+          keyId,
+          active: result.active,
+        },
+        timestamp: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      return res.status(200).json({
+        success: true,
+        key: keyId,
+        active: result.active,
+      });
+    }
+
+    return res.status(400).json({ error: "Invalid action" });
   } catch (err) {
-    return res.status(500).json({ error: err.message || "Server error" });
+    console.error("Admin VIP key request failed:", err);
+
+    return res.status(500).json({
+      error: "Internal server error",
+    });
   }
 }

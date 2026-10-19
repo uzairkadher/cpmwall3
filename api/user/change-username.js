@@ -1,82 +1,292 @@
+
 import admin from "firebase-admin";
 import { verifyJwt } from "../auth.js";
 
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_KEY))
-  });
-}
-const db = admin.firestore();
+const ALLOWED_ORIGIN = "https://cpmwall3.vercel.app";
+const USERNAME_PATTERN = /^[A-Z0-9_.]{3,20}$/;
+const USERNAME_COOLDOWN_DAYS = 30;
+const FIRESTORE_BATCH_LIMIT = 400;
 
-export default async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", "*");
+function getDb() {
+  if (!admin.apps.length) {
+    const serviceKey = process.env.FIREBASE_SERVICE_KEY;
+
+    if (!serviceKey) {
+      throw new Error("FIREBASE_SERVICE_KEY is not configured");
+    }
+
+    let credentials;
+
+    try {
+      credentials = JSON.parse(serviceKey);
+    } catch {
+      throw new Error("FIREBASE_SERVICE_KEY is not valid JSON");
+    }
+
+    if (
+      !credentials ||
+      !credentials.project_id ||
+      !credentials.client_email ||
+      !credentials.private_key
+    ) {
+      throw new Error("FIREBASE_SERVICE_KEY is incomplete");
+    }
+
+    admin.initializeApp({
+      credential: admin.credential.cert(credentials)
+    });
+  }
+
+  return admin.firestore();
+}
+
+function setCorsHeaders(req, res) {
+  if (req.headers.origin === ALLOWED_ORIGIN) {
+    res.setHeader("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
+    res.setHeader("Vary", "Origin");
+  }
+
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  if (req.method === "OPTIONS") return res.status(200).end();
+  res.setHeader("Cache-Control", "no-store");
+}
 
-  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+function getBearerToken(req) {
+  const authorization = req.headers.authorization;
 
-  try {
-    const authHeader = req.headers["authorization"] || "";
-    const token = authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : null;
-    if (!token) return res.status(401).json({ error: "Unauthorized: Missing token" });
+  if (typeof authorization !== "string") {
+    return null;
+  }
 
-    const decoded = verifyJwt(token);
-    if (!decoded || !decoded.username) return res.status(401).json({ error: "Unauthorized: Invalid token" });
+  const match = authorization.match(/^Bearer\s+(\S+)$/i);
+  return match ? match[1] : null;
+}
 
-    const oldUsername = decoded.username;
-    const { newUsername } = req.body || {};
-    const cleanNew = String(newUsername || "").toLowerCase().trim();
+function getRequestBody(req) {
+  if (
+    req.body &&
+    typeof req.body === "object" &&
+    !Array.isArray(req.body)
+  ) {
+    return req.body;
+  }
 
-    if (!/^[a-z0-9_.]{3,20}$/.test(cleanNew)) {
-      return res.status(400).json({ error: "Invalid username format (3-20 chars: a-z, 0-9, _, .)" });
-    }
+  if (typeof req.body === "string") {
+    try {
+      const parsed = JSON.parse(req.body);
 
-    if (cleanNew === oldUsername) {
-      return res.status(400).json({ error: "New username is the same as current username" });
-    }
-
-    const userRef = db.collection("users").doc(oldUsername);
-    const userSnap = await userRef.get();
-    if (!userSnap.exists) return res.status(404).json({ error: "User not found" });
-
-    const userData = userSnap.data();
-
-    if (userData.lastUsernameChange) {
-      const lastChange = userData.lastUsernameChange.toDate ? userData.lastUsernameChange.toDate() : new Date(userData.lastUsernameChange);
-      const daysSince = (Date.now() - lastChange.getTime()) / (1000 * 3600 * 24);
-      if (daysSince < 30) {
-        const remaining = Math.ceil(30 - daysSince);
-        return res.status(403).json({ error: `Username change locked. Please wait ${remaining} more days.` });
+      if (
+        parsed &&
+        typeof parsed === "object" &&
+        !Array.isArray(parsed)
+      ) {
+        return parsed;
       }
+    } catch {
+      return {};
     }
+  }
 
-    const targetSnap = await db.collection("users").doc(cleanNew).get();
-    if (targetSnap.exists) {
-      return res.status(400).json({ error: "Username is already taken" });
-    }
+  return {};
+}
 
-    const newUserData = { ...userData, username: cleanNew, lastUsernameChange: admin.firestore.FieldValue.serverTimestamp() };
-    delete newUserData.username; // Firestore document ID acts as username or store inside
+function getDateMillis(value) {
+  if (value && typeof value.toMillis === "function") {
+    return value.toMillis();
+  }
 
+  if (value && typeof value.toDate === "function") {
+    return value.toDate().getTime();
+  }
+
+  if (typeof value === "string" || typeof value === "number") {
+    const parsed = new Date(value).getTime();
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  return null;
+}
+
+function sendError(res, status, error) {
+  return res.status(status).json({ error });
+}
+
+async function updateNamesInChunks(db, documents, newUsername) {
+  for (
+    let offset = 0;
+    offset < documents.length;
+    offset += FIRESTORE_BATCH_LIMIT
+  ) {
     const batch = db.batch();
-    batch.set(db.collection("users").doc(cleanNew), { ...userData, username: cleanNew, lastUsernameChange: admin.firestore.FieldValue.serverTimestamp() });
-    batch.delete(userRef);
+    const chunk = documents.slice(
+      offset,
+      offset + FIRESTORE_BATCH_LIMIT
+    );
 
-    const postsSnap = await db.collection("posts").where("name", "==", oldUsername).get();
-    postsSnap.forEach(doc => {
-      batch.update(doc.ref, { name: cleanNew });
-    });
-
-    const ipLogsSnap = await db.collection("ip_logs").where("name", "==", oldUsername).get();
-    ipLogsSnap.forEach(doc => {
-      batch.update(doc.ref, { name: cleanNew });
-    });
+    for (const document of chunk) {
+      batch.update(document.ref, { name: newUsername });
+    }
 
     await batch.commit();
+  }
+}
 
-    return res.status(200).json({ success: true, newUsername: cleanNew });
-  } catch (err) {
-    return res.status(500).json({ error: err.message || "Server error" });
+export default async function handler(req, res) {
+  setCorsHeaders(req, res);
+
+  if (req.method === "OPTIONS") {
+    return res.status(204).end();
+  }
+
+  if (req.method !== "POST") {
+    res.setHeader("Allow", "POST, OPTIONS");
+    return sendError(res, 405, "Method not allowed");
+  }
+
+  try {
+    const token = getBearerToken(req);
+
+    if (!token) {
+      return sendError(res, 401, "Unauthorized");
+    }
+
+    const decoded = verifyJwt(token);
+
+    if (
+      !decoded ||
+      typeof decoded.username !== "string" ||
+      !USERNAME_PATTERN.test(decoded.username)
+    ) {
+      return sendError(res, 401, "Invalid or expired token");
+    }
+
+    const body = getRequestBody(req);
+
+    if (typeof body.newUsername !== "string") {
+      return sendError(res, 400, "newUsername is required");
+    }
+
+    const oldUsername = decoded.username;
+    const newUsername = body.newUsername.trim().toUpperCase();
+
+    if (!USERNAME_PATTERN.test(newUsername)) {
+      return sendError(
+        res,
+        400,
+        "Invalid username format (3-20 chars: A-Z, 0-9, _, .)"
+      );
+    }
+
+    if (newUsername === oldUsername) {
+      return sendError(
+        res,
+        400,
+        "New username is the same as current username"
+      );
+    }
+
+    const db = getDb();
+    const oldUserRef = db.collection("users").doc(oldUsername);
+    const newUserRef = db.collection("users").doc(newUsername);
+
+    // Read both username records and enforce uniqueness atomically.
+    let migratedUserData;
+
+    try {
+      await db.runTransaction(async transaction => {
+        const oldUserSnap = await transaction.get(oldUserRef);
+
+        if (!oldUserSnap.exists) {
+          const error = new Error("User not found");
+          error.statusCode = 404;
+          throw error;
+        }
+
+        const newUserSnap = await transaction.get(newUserRef);
+
+        if (newUserSnap.exists) {
+          const error = new Error("Username is already taken");
+          error.statusCode = 409;
+          throw error;
+        }
+
+        const userData = oldUserSnap.data() || {};
+
+        if (userData.lastUsernameChange) {
+          const lastChangeMillis = getDateMillis(
+            userData.lastUsernameChange
+          );
+
+          if (lastChangeMillis === null) {
+            const error = new Error(
+              "Username cooldown data is invalid; contact support"
+            );
+            error.statusCode = 409;
+            throw error;
+          }
+
+          const elapsedMillis = Date.now() - lastChangeMillis;
+          const cooldownMillis =
+            USERNAME_COOLDOWN_DAYS * 24 * 60 * 60 * 1000;
+
+          if (elapsedMillis < cooldownMillis) {
+            const remainingDays = Math.ceil(
+              (cooldownMillis - elapsedMillis) /
+                (24 * 60 * 60 * 1000)
+            );
+
+            const error = new Error(
+              `Username change locked. Please wait ${remainingDays} more days.`
+            );
+            error.statusCode = 403;
+            throw error;
+          }
+        }
+
+        migratedUserData = {
+          ...userData,
+          username: newUsername,
+          lastUsernameChange:
+            admin.firestore.FieldValue.serverTimestamp()
+        };
+
+        transaction.create(newUserRef, migratedUserData);
+        transaction.delete(oldUserRef);
+      });
+    } catch (error) {
+      if (error?.statusCode) {
+        return sendError(res, error.statusCode, error.message);
+      }
+
+      throw error;
+    }
+
+    // Find existing content using the exact old display name.
+    const [postsSnapshot, ipLogsSnapshot] = await Promise.all([
+      db.collection("posts").where("name", "==", oldUsername).get(),
+      db.collection("ip_logs").where("name", "==", oldUsername).get()
+    ]);
+
+    // Firestore batches have a finite write limit. Commit bounded batches
+    // rather than attempting an unbounded single batch.
+    await updateNamesInChunks(
+      db,
+      postsSnapshot.docs,
+      newUsername
+    );
+
+    await updateNamesInChunks(
+      db,
+      ipLogsSnapshot.docs,
+      newUsername
+    );
+
+    return res.status(200).json({
+      success: true,
+      newUsername,
+      message: "Username changed. Please log in again."
+    });
+  } catch {
+    return sendError(res, 500, "Username service error");
   }
 }

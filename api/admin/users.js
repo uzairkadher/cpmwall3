@@ -1,165 +1,386 @@
+
 import admin from "firebase-admin";
 import { verifyJwt } from "../auth.js";
 
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_KEY))
+const ALLOWED_ORIGIN = "https://cpmwall3.vercel.app";
+const VALID_ROLES = ["ADMIN", "VIP", "USER", "MOD"];
+const MAX_BAN_HOURS = 24 * 365;
+
+function getDb() {
+  if (!process.env.FIREBASE_SERVICE_KEY) {
+    throw new Error("Firebase configuration missing.");
+  }
+
+  if (!admin.apps.length) {
+    let serviceAccount;
+
+    try {
+      serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_KEY);
+    } catch {
+      throw new Error("Firebase configuration invalid.");
+    }
+
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount)
+    });
+  }
+
+  return admin.firestore();
+}
+
+function setCors(req, res) {
+  if (req.headers.origin === ALLOWED_ORIGIN) {
+    res.setHeader("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
+    res.setHeader("Vary", "Origin");
+  }
+
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Cache-Control", "no-store");
+}
+
+function cleanUsername(value) {
+  if (typeof value !== "string") return "";
+
+  const username = value.trim().toUpperCase();
+
+  return /^[A-Z0-9_.]{3,20}$/.test(username)
+    ? username
+    : "";
+}
+
+function cleanText(value, maxLength, fallback = "") {
+  if (typeof value !== "string") return fallback;
+
+  return value
+    .replace(/[\u0000-\u001F\u007F]/g, "")
+    .trim()
+    .slice(0, maxLength) || fallback;
+}
+
+function getClientIp(req) {
+  const candidate =
+    req.headers["x-vercel-forwarded-for"] ||
+    req.headers["x-real-ip"] ||
+    req.socket?.remoteAddress ||
+    "";
+
+  const ip = String(candidate).split(",")[0].trim();
+
+  if (
+    ip.length > 64 ||
+    !/^[a-fA-F0-9:.]+$/.test(ip)
+  ) {
+    return "unknown";
+  }
+
+  return ip;
+}
+
+function safeIpDocumentId(ip) {
+  return ip.replace(/[^a-zA-Z0-9.:]/g, "_").slice(0, 100);
+}
+
+function parsePositiveHours(value) {
+  if (value === undefined || value === null || value === "") {
+    return null;
+  }
+
+  const hours = Number(value);
+
+  if (
+    !Number.isFinite(hours) ||
+    hours <= 0 ||
+    hours > MAX_BAN_HOURS
+  ) {
+    return undefined;
+  }
+
+  return hours;
+}
+
+function safeUserRecord(doc) {
+  const data = doc.data() || {};
+
+  // Explicit allowlist: never return arbitrary private user fields.
+  return {
+    username: doc.id,
+    role: data.role || "USER",
+    isVip: Boolean(data.isVip),
+    isVerified: Boolean(data.isVerified),
+    isBanned: Boolean(data.isBanned),
+    bannedReason: cleanText(data.bannedReason, 250),
+    createdAt: data.createdAt || null,
+    lastUsernameChange: data.lastUsernameChange || null,
+    vipExpiresAt: data.vipExpiresAt || null
+  };
+}
+
+async function writeAudit(db, data) {
+  await db.collection("audit_logs").add({
+    ...data,
+    timestamp: admin.firestore.FieldValue.serverTimestamp()
   });
 }
 
-const db = admin.firestore();
-
 export default async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", "https://cpmwall3.vercel.app");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  setCors(req, res);
 
-  if (req.method === "OPTIONS") return res.status(200).end();
-  if (req.method !== "GET" && req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+  if (req.method === "OPTIONS") {
+    if (
+      req.headers.origin &&
+      req.headers.origin !== ALLOWED_ORIGIN
+    ) {
+      return res.status(403).end();
+    }
+
+    return res.status(204).end();
+  }
+
+  if (req.headers.origin && req.headers.origin !== ALLOWED_ORIGIN) {
+    return res.status(403).json({ error: "Origin not allowed." });
+  }
+
+  if (!["GET", "POST"].includes(req.method)) {
+    res.setHeader("Allow", "GET, POST, OPTIONS");
+    return res.status(405).json({ error: "Method not allowed." });
+  }
+
+  let db;
 
   try {
-    // 1. JWT & Role Authorization (NO x-admin-key used)
-    const authHeader = req.headers["authorization"] || "";
-    const token = authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : null;
-    
-    if (!token) return res.status(401).json({ error: "Unauthorized: Missing token" });
+    db = getDb();
+  } catch {
+    return res.status(500).json({ error: "Server configuration error." });
+  }
 
-    const decoded = verifyJwt(token);
-    if (!decoded || !decoded.username) return res.status(401).json({ error: "Unauthorized: Invalid token" });
+  try {
+    const authorization = req.headers.authorization || "";
+    const match = authorization.match(/^Bearer\s+(\S+)$/);
 
-    const adminUsername = String(decoded.username).toUpperCase();
-    const adminRef = db.collection("users").doc(adminUsername);
-    const adminDoc = await adminRef.get();
-
-    if (!adminDoc.exists || adminDoc.data().role !== "ADMIN") {
-      return res.status(403).json({ error: "Forbidden: Insufficient role permissions" });
+    if (!match) {
+      return res.status(401).json({ error: "Authentication required." });
     }
 
-    const rawIp = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || "").split(',')[0].trim() || "unknown";
+    let decoded;
 
-    // --- GET: List Users (Pagination, Search, Role Filter) ---
+    try {
+      decoded = verifyJwt(match[1]);
+    } catch {
+      return res.status(401).json({ error: "Invalid or expired session." });
+    }
+
+    const adminUsername = cleanUsername(decoded?.username);
+
+    if (!adminUsername) {
+      return res.status(401).json({ error: "Invalid session." });
+    }
+
+    const adminRef = db.collection("users").doc(adminUsername);
+    const adminSnap = await adminRef.get();
+
+    if (
+      !adminSnap.exists ||
+      adminSnap.data()?.role !== "ADMIN"
+    ) {
+      return res.status(403).json({ error: "Admin permission required." });
+    }
+
+    const rawIp = getClientIp(req);
+
     if (req.method === "GET") {
-      const q = (req.query.q || "").toUpperCase();
-      const roleFilter = req.query.role ? String(req.query.role).toUpperCase() : null;
-      const limitVal = Math.min(100, Math.max(1, Number(req.query.limit) || 50));
-      const page = Math.max(1, Number(req.query.page) || 1);
+      const q = cleanText(req.query?.q, 20).toUpperCase();
+      const roleFilter = cleanText(req.query?.role, 20).toUpperCase();
+      const limit = Math.min(
+        100,
+        Math.max(1, Number(req.query?.limit) || 50)
+      );
+      const page = Math.min(
+        10000,
+        Math.max(1, Number(req.query?.page) || 1)
+      );
 
-      // Fetch base pool (Ordered by creation if available, or just fetch pool)
-      let queryRef = db.collection("users").limit(300); // Fetch a reasonable pool for memory filtering
-      const snapshot = await queryRef.get();
-      
-      let results = [];
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        let match = true;
-        
-        if (q && !data.username?.toUpperCase().includes(q)) match = false;
-        if (roleFilter && data.role !== roleFilter) match = false;
-        
-        if (match) {
-          // Strip sensitive auth data before returning
-          const safeData = { ...data };
-          delete safeData.passHash;
-          delete safeData.passwordHash;
-          results.push(safeData);
+      if (roleFilter && !VALID_ROLES.includes(roleFilter)) {
+        return res.status(400).json({ error: "Invalid role filter." });
+      }
+
+      // Avoid scanning an arbitrary pool and presenting incomplete
+      // results as a complete user directory.
+      const snapshot = await db
+        .collection("users")
+        .orderBy(admin.firestore.FieldPath.documentId())
+        .limit(500)
+        .get();
+
+      const filtered = snapshot.docs.filter(doc => {
+        const data = doc.data() || {};
+        const username = doc.id.toUpperCase();
+
+        if (q && !username.includes(q)) return false;
+        if (roleFilter && (data.role || "USER") !== roleFilter) {
+          return false;
         }
+
+        return true;
       });
 
-      // Simple array pagination
-      const totalResults = results.length;
-      const startIndex = (page - 1) * limitVal;
-      const paginatedResults = results.slice(startIndex, startIndex + limitVal);
+      const start = (page - 1) * limit;
+      const users = filtered
+        .slice(start, start + limit)
+        .map(safeUserRecord);
 
       return res.status(200).json({
-        users: paginatedResults,
-        total: totalResults,
+        users,
+        total: filtered.length,
         page,
-        totalPages: Math.ceil(totalResults / limitVal)
+        limit,
+        totalPages: Math.ceil(filtered.length / limit),
+        truncated: snapshot.size === 500
       });
     }
 
-    // --- POST: Update Role / Ban User ---
-    if (req.method === "POST") {
-      const { action, targetUsername, role, reason, hours, banIp } = req.body || {};
-      const cleanTarget = String(targetUsername || "").toUpperCase().trim();
+    const body =
+      req.body &&
+      typeof req.body === "object" &&
+      !Array.isArray(req.body)
+        ? req.body
+        : {};
 
-      if (!cleanTarget) return res.status(400).json({ error: "Target username required" });
-      if (cleanTarget === adminUsername) return res.status(400).json({ error: "Cannot modify own account" });
-      
-      const targetRef = db.collection("users").doc(cleanTarget);
-      const targetDoc = await targetRef.get();
-      
-      if (!targetDoc.exists) return res.status(404).json({ error: "Target user not found" });
-      const targetData = targetDoc.data();
+    const action = cleanText(body.action, 40);
+    const targetUsername = cleanUsername(body.targetUsername);
 
-      // Action: Update Role
-      if (action === "update_role") {
-        if (!role) return res.status(400).json({ error: "Role value required" });
-        const allowed = ["ADMIN","VIP","USER","MOD"];
-        const cleanRole = String(role).toUpperCase();
-        if (!allowed.includes(cleanRole)) return res.status(400).json({ error: "Invalid role" });
-        
-        await targetRef.update({ role: cleanRole });
-        
-        await db.collection("audit_logs").add({
-          adminUsername,
-          action: "UPDATE_USER_ROLE",
-          method: "POST",
-          ip: rawIp,
-          targetUser: cleanTarget,
-          metadata: { newRole: cleanRole },
-          timestamp: admin.firestore.FieldValue.serverTimestamp()
-        });
-        
-        return res.status(200).json({ success: true, target: cleanTarget, role: cleanRole });
-      }
-
-      // Action: Ban User
-      if (action === "ban") {
-        const batch = db.batch();
-        let bannedUntil = null;
-        if (hours && Number(hours) > 0) {
-          bannedUntil = admin.firestore.Timestamp.fromMillis(Date.now() + Number(hours) * 3600 * 1000);
-        }
-
-        // Update user document
-        batch.update(targetRef, { 
-          isBanned: true,
-          bannedReason: reason || "Administrative Ban"
-        });
-
-        // Add to ban ledger (if IP is provided or available on user doc)
-        const ipToBan = banIp || targetData.ip;
-        if (ipToBan && ipToBan !== "unknown") {
-          const safeIp = ipToBan.replace(/[^a-zA-Z0-9.:]/g, "_");
-          batch.set(db.collection("banned").doc(safeIp), {
-            ip: ipToBan,
-            username: cleanTarget,
-            reason: reason || "Administrative Action",
-            bannedAt: admin.firestore.FieldValue.serverTimestamp(),
-            bannedUntil
-          });
-        }
-
-        await batch.commit();
-
-        await db.collection("audit_logs").add({
-          adminUsername,
-          action: "BAN_USER",
-          method: "POST",
-          ip: rawIp,
-          targetUser: cleanTarget,
-          metadata: { reason: reason || "None", hours: hours || "Permanent" },
-          timestamp: admin.firestore.FieldValue.serverTimestamp()
-        });
-
-        return res.status(200).json({ success: true, target: cleanTarget, isBanned: true });
-      }
-
-      return res.status(400).json({ error: "Invalid action" });
+    if (!targetUsername) {
+      return res.status(400).json({ error: "Valid target username required." });
     }
 
-  } catch (err) {
-    return res.status(500).json({ error: err.message || "Server error" });
+    if (targetUsername === adminUsername) {
+      return res.status(400).json({ error: "Cannot modify your own account." });
+    }
+
+    const targetRef = db.collection("users").doc(targetUsername);
+    const targetSnap = await targetRef.get();
+
+    if (!targetSnap.exists) {
+      return res.status(404).json({ error: "Target user not found." });
+    }
+
+    const targetData = targetSnap.data() || {};
+
+    if (action === "update_role") {
+      const role = cleanText(body.role, 20).toUpperCase();
+
+      if (!VALID_ROLES.includes(role)) {
+        return res.status(400).json({ error: "Invalid role." });
+      }
+
+      // Prevent demoting the last administrator.
+      if (targetData.role === "ADMIN" && role !== "ADMIN") {
+        const admins = await db
+          .collection("users")
+          .where("role", "==", "ADMIN")
+          .limit(2)
+          .get();
+
+        if (admins.size <= 1) {
+          return res.status(409).json({
+            error: "Cannot remove the last administrator."
+          });
+        }
+      }
+
+      await targetRef.update({ role });
+
+      await writeAudit(db, {
+        adminUsername,
+        action: "UPDATE_USER_ROLE",
+        method: "POST",
+        ip: rawIp,
+        targetUser: targetUsername,
+        metadata: { newRole: role }
+      });
+
+      return res.status(200).json({
+        success: true,
+        target: targetUsername,
+        role
+      });
+    }
+
+    if (action === "ban") {
+      const reason = cleanText(body.reason, 250, "Administrative ban");
+      const hours = parsePositiveHours(body.hours);
+
+      if (hours === undefined) {
+        return res.status(400).json({
+          error: `Ban duration must be between 1 hour and ${MAX_BAN_HOURS} hours.`
+        });
+      }
+
+      // Do not accept an arbitrary banIp from the browser. Use only
+      // an IP already associated with the target's server-side record.
+      const ipToBan =
+        typeof targetData.ip === "string" &&
+        targetData.ip.length <= 64
+          ? targetData.ip
+          : "";
+
+      const bannedUntil = hours === null
+        ? null
+        : admin.firestore.Timestamp.fromMillis(
+            Date.now() + hours * 60 * 60 * 1000
+          );
+
+      const batch = db.batch();
+
+      batch.update(targetRef, {
+        isBanned: true,
+        bannedReason: reason,
+        bannedAt: admin.firestore.FieldValue.serverTimestamp(),
+        bannedUntil
+      });
+
+      if (ipToBan && ipToBan !== "unknown") {
+        batch.set(
+          db.collection("banned").doc(safeIpDocumentId(ipToBan)),
+          {
+            ip: ipToBan,
+            username: targetUsername,
+            reason,
+            bannedAt: admin.firestore.FieldValue.serverTimestamp(),
+            bannedUntil
+          },
+          { merge: true }
+        );
+      }
+
+      batch.set(db.collection("audit_logs").doc(), {
+        adminUsername,
+        action: "BAN_USER",
+        method: "POST",
+        ip: rawIp,
+        targetUser: targetUsername,
+        metadata: {
+          reason,
+          hours: hours === null ? "Permanent" : hours
+        },
+        timestamp: admin.firestore.FieldValue.serverTimestamp()
+      });
+
+      await batch.commit();
+
+      return res.status(200).json({
+        success: true,
+        target: targetUsername,
+        isBanned: true
+      });
+    }
+
+    return res.status(400).json({ error: "Invalid action." });
+  } catch (error) {
+    console.error("Admin users API failure:", error?.message || "Unknown error");
+
+    return res.status(500).json({
+      error: "An internal server error occurred."
+    });
   }
 }

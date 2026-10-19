@@ -1,325 +1,543 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<meta name="robots" content="noindex, nofollow">
-<title>Settings - EMPIRE STUDIO</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
-<style>
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-body {
-  margin: 0;
-  padding: 16px;
-  min-height: 100vh;
-  background: radial-gradient(900px at 50% -20%, rgba(255,184,0,.3), transparent), radial-gradient(700px at 100% 100%, rgba(255,217,90,.15), transparent), #07070A;
-  color: #fff;
-  font-family: Inter, sans-serif;
-  display: flex;
-  justify-content: center;
-}
-.container {
-  width: 100%;
-  max-width: 440px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-.header-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: linear-gradient(135deg, #1e2240, #151830);
-  border: 1px solid rgba(255,217,90,0.3);
-  border-radius: 16px;
-  padding: 12px 16px;
-}
-.header-bar h2 { font-family: Syne, sans-serif; font-size: 16px; margin: 0; color: #fef08a; }
-.back-btn {
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,217,90,0.3);
-  color: #fff;
-  padding: 6px 12px;
-  border-radius: 10px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-}
-.card {
-  background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.02));
-  border: 1px solid rgba(255,217,90,.25);
-  border-radius: 20px;
-  padding: 18px;
-  backdrop-filter: blur(15px);
-}
-.profile-info {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-bottom: 14px;
-}
-.avatar-lg {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: radial-gradient(180deg, #FFD95A, #FF9A00);
-  display: grid;
-  place-items: center;
-  font-family: Syne, sans-serif;
-  font-weight: 800;
-  font-size: 24px;
-  color: #000;
-  box-shadow: 0 0 6px rgba(255,184,0,0.4);
-  cursor: pointer;
-  overflow: hidden;
-  position: relative;
-  border: 2px solid #f59e0b;
-}
-.avatar-lg img { width: 100%; height: 100%; object-fit: cover; }
-.profile-meta b { font-size: 16px; color: #fff; display: block; }
-.profile-meta span { font-size: 12px; color: #d6c79f; }
-.input-wrap { margin-top: 12px; }
-.input-wrap label { font-size: 11px; color: #d6c79f; font-weight: 600; display: block; margin-bottom: 4px; }
-.input-wrap input {
-  width: 100%;
-  background: rgba(0,0,0,0.5);
-  border: 1px solid rgba(255,217,90,0.3);
-  border-radius: 12px;
-  padding: 10px 14px;
-  color: #fff;
-  font-size: 13px;
-  outline: none;
-}
-.input-wrap input:focus { border-color: #FFD95A; }
-.btn-gold {
-  margin-top: 12px;
-  width: 100%;
-  background: linear-gradient(180deg, #FFE68A, #FFB800);
-  border: none;
-  padding: 12px;
-  border-radius: 12px;
-  font-weight: 800;
-  font-size: 14px;
-  color: #000;
-  cursor: pointer;
-  box-shadow: 0 0 6px rgba(255,184,0,0.4);
-}
-.btn-gold:active { transform: scale(0.98); }
-.btn-whatsapp {
-  background: #25d366;
-  color: #fff;
-  text-decoration: none;
-  display: block;
-  text-align: center;
-  padding: 12px;
-  border-radius: 12px;
-  font-weight: 800;
-  font-size: 14px;
-  margin-top: 10px;
-  box-shadow: 0 0 6px rgba(37,211,102,0.4);
-}
-.logout-btn {
-  background: #dc2626;
-  color: #fff;
-  border: none;
-  width: 100%;
-  padding: 14px;
-  border-radius: 14px;
-  font-weight: 800;
-  font-size: 15px;
-  cursor: pointer;
-  box-shadow: 0 0 6px rgba(220,38,38,0.4);
-}
-.status-msg { font-size: 11px; margin-top: 6px; font-weight: 600; min-height: 14px; }
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Settings - EMPIRE STUDIO</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      margin: 0;
+      padding: 16px;
+      min-height: 100vh;
+      background: radial-gradient(900px at 50% -20%, rgba(255,184,0,.3), transparent), radial-gradient(700px at 100% 100%, rgba(255,217,90,.15), transparent), #07070A;
+      color: #fff;
+      font-family: Inter, sans-serif;
+      display: flex;
+      justify-content: center;
+    }
+    .container {
+      width: 100%;
+      max-width: 440px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: linear-gradient(135deg, #1e2240, #151830);
+      border: 1px solid rgba(255,217,90,.3);
+      border-radius: 16px;
+      padding: 12px 16px;
+    }
+    .header-bar h2 {
+      font-family: Syne, sans-serif;
+      font-size: 16px;
+      margin: 0;
+      color: #fef08a;
+    }
+    .back-btn {
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,217,90,.3);
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.02));
+      border: 1px solid rgba(255,217,90,.25);
+      border-radius: 20px;
+      padding: 18px;
+      backdrop-filter: blur(15px);
+    }
+    .profile-info {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+    .avatar-lg {
+      width: 60px;
+      height: 60px;
+      flex: 0 0 60px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #FFD95A, #FF9A00);
+      display: grid;
+      place-items: center;
+      font-family: Syne, sans-serif;
+      font-weight: 800;
+      font-size: 24px;
+      color: #000;
+      box-shadow: 0 0 6px rgba(255,184,0,.4);
+      cursor: pointer;
+      overflow: hidden;
+      position: relative;
+      border: 2px solid #f59e0b;
+    }
+    .avatar-lg img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .profile-meta { min-width: 0; }
+    .profile-meta b {
+      font-size: 16px;
+      color: #fff;
+      display: block;
+      overflow-wrap: anywhere;
+    }
+    .profile-meta span { font-size: 12px; color: #d6c79f; }
+    .input-wrap { margin-top: 12px; }
+    .input-wrap label {
+      font-size: 11px;
+      color: #d6c79f;
+      font-weight: 600;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .input-wrap input {
+      width: 100%;
+      background: rgba(0,0,0,.5);
+      border: 1px solid rgba(255,217,90,.3);
+      border-radius: 12px;
+      padding: 10px 14px;
+      color: #fff;
+      font-size: 13px;
+      outline: none;
+    }
+    .input-wrap input:focus { border-color: #FFD95A; }
+    .btn-gold {
+      margin-top: 12px;
+      width: 100%;
+      background: linear-gradient(180deg, #FFE68A, #FFB800);
+      border: none;
+      padding: 12px;
+      border-radius: 12px;
+      font-weight: 800;
+      font-size: 14px;
+      color: #000;
+      cursor: pointer;
+      box-shadow: 0 0 6px rgba(255,184,0,.4);
+    }
+    .btn-gold:disabled { opacity: .6; cursor: not-allowed; }
+    .btn-gold:active { transform: scale(.98); }
+    .btn-whatsapp {
+      background: #25d366;
+      color: #fff;
+      text-decoration: none;
+      display: block;
+      text-align: center;
+      padding: 12px;
+      border-radius: 12px;
+      font-weight: 800;
+      font-size: 14px;
+      margin-top: 10px;
+      box-shadow: 0 0 6px rgba(37,211,102,.4);
+    }
+    .logout-btn {
+      background: #dc2626;
+      color: #fff;
+      border: none;
+      width: 100%;
+      padding: 14px;
+      border-radius: 14px;
+      font-weight: 800;
+      font-size: 15px;
+      cursor: pointer;
+      box-shadow: 0 0 6px rgba(220,38,38,.4);
+    }
+    .status-msg {
+      font-size: 11px;
+      margin-top: 6px;
+      font-weight: 600;
+      min-height: 14px;
+      overflow-wrap: anywhere;
+    }
+    .hint {
+      font-size: 11px;
+      color: #8b8fa3;
+      line-height: 1.5;
+    }
+  </style>
 </head>
 <body>
+  <main class="container">
+    <header class="header-bar">
+      <h2>👤 User Settings</h2>
+      <button type="button" class="back-btn" onclick="window.location.href='/'">
+        ← Back to Wall
+      </button>
+    </header>
 
-<div class="container">
-  <div class="header-bar">
-    <h2>👤 User Settings</h2>
-    <button type="button" class="back-btn" onclick="window.location.href='/'">← Back to Wall</button>
-  </div>
+    <section class="card">
+      <div class="profile-info">
+        <button
+          type="button"
+          class="avatar-lg"
+          id="avatarContainer"
+          aria-label="Change profile photo"
+          title="Change profile photo"
+          onclick="triggerPhotoUpload()"
+        >
+          <span id="avatarLetter">?</span>
+        </button>
 
-  <div class="card">
-    <div class="profile-info">
-      <div class="avatar-lg" id="avatarContainer" onclick="triggerPhotoUpload()" title="Click to upload profile photo">
-        <span id="avatarLetter">J</span>
+        <input
+          type="file"
+          id="photoFileInput"
+          accept="image/jpeg,image/png,image/webp,image/gif"
+          hidden
+        >
+
+        <div class="profile-meta">
+          <b id="profileUsername">@loading...</b>
+          <span id="profileStatus">Checking status...</span>
+        </div>
       </div>
-      <input type="file" id="photoFileInput" accept="image/*" style="display:none;" onchange="handlePhotoSelected(event)">
-      <div class="profile-meta">
-        <b id="profileUsername">@loading...</b>
-        <span id="profileStatus">Checking status...</span>
+
+      <p class="hint">
+        Profile photos selected here are saved on this device only.
+        Server-side photo uploads require a supported image-storage service.
+      </p>
+      <div id="photoStatus" class="status-msg" role="status" aria-live="polite"></div>
+      <button type="button" class="btn-gold" onclick="clearLocalPhoto()">
+        Remove Local Photo
+      </button>
+    </section>
+
+    <section class="card">
+      <h3 style="margin-top:0;font-size:14px;color:#fef08a;">Change Username</h3>
+      <p class="hint">A 30-day cooldown applies between username changes.</p>
+      <div class="input-wrap">
+        <label for="newUsernameInput">NEW USERNAME</label>
+        <input
+          type="text"
+          id="newUsernameInput"
+          placeholder="New unique username"
+          minlength="3"
+          maxlength="20"
+          autocomplete="username"
+        >
       </div>
-    </div>
-    <div style="font-size:10px; color:#8b8fa3; text-align:center;">Click avatar above to change profile photo</div>
-  </div>
+      <div id="usernameStatus" class="status-msg" role="status" aria-live="polite"></div>
+      <button type="button" class="btn-gold" id="usernameButton" onclick="updateUsername()">
+        Update Username
+      </button>
+    </section>
 
-  <div class="card">
-    <h3 style="margin-top:0; font-size:14px; color:#fef08a;">Change Username</h3>
-    <p style="font-size:11px; color:#8b8fa3; margin-top:0;">Note: 30-day cooldown applies between username changes.</p>
-    <div class="input-wrap">
-      <label>NEW USERNAME</label>
-      <input type="text" id="newUsernameInput" placeholder="New unique username">
-    </div>
-    <div id="usernameStatus" class="status-msg"></div>
-    <button type="button" class="btn-gold" onclick="updateUsername()">Update Username</button>
-  </div>
+    <section class="card">
+      <h3 style="margin-top:0;font-size:14px;color:#fef08a;">Change Password</h3>
+      <div class="input-wrap">
+        <label for="oldPassInput">OLD PASSWORD</label>
+        <input
+          type="password"
+          id="oldPassInput"
+          placeholder="Current password"
+          autocomplete="current-password"
+        >
+      </div>
+      <div class="input-wrap">
+        <label for="newPassInput">NEW PASSWORD</label>
+        <input
+          type="password"
+          id="newPassInput"
+          placeholder="At least 6 characters"
+          minlength="6"
+          maxlength="1024"
+          autocomplete="new-password"
+        >
+      </div>
+      <div id="passwordStatus" class="status-msg" role="status" aria-live="polite"></div>
+      <button type="button" class="btn-gold" id="passwordButton" onclick="updatePassword()">
+        Update Password
+      </button>
+    </section>
 
-  <div class="card">
-    <h3 style="margin-top:0; font-size:14px; color:#fef08a;">Change Password</h3>
-    <div class="input-wrap">
-      <label>OLD PASSWORD</label>
-      <input type="password" id="oldPassInput" placeholder="Current password">
-    </div>
-    <div class="input-wrap">
-      <label>NEW PASSWORD</label>
-      <input type="password" id="newPassInput" placeholder="At least 6 characters">
-    </div>
-    <div id="passwordStatus" class="status-msg"></div>
-    <button type="button" class="btn-gold" onclick="updatePassword()">Update Password</button>
-  </div>
+    <section class="card" id="vipSection" style="display:none;">
+      <h3 style="margin-top:0;font-size:14px;color:#f59e0b;">👑 VIP Lounge Membership</h3>
+      <p class="hint" style="color:#d6c79f;">
+        Unlock Gold Royal bubbles, VIP Lounge secret room, custom chat color picker,
+        neon frames, and message pinning.
+      </p>
+      <div style="font-size:13px;font-weight:700;color:#22c55e;margin:8px 0;">
+        Price: 300 PKR ($1)
+      </div>
+      <a
+        id="whatsappVipBtn"
+        href="https://wa.me/923558182875?text=Salam%20Jagga%20Bhai%2C%20I%20want%20to%20buy%20VIP"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="btn-whatsapp"
+      >💬 Buy VIP via WhatsApp</a>
+    </section>
 
-  <div class="card" id="vipSection" style="display:none;">
-    <h3 style="margin-top:0; font-size:14px; color:#f59e0b;">👑 VIP Lounge Membership</h3>
-    <p style="font-size:11px; color:#d6c79f; line-height:1.4;">Unlock Gold Royal bubbles, VIP Lounge secret room, custom chat color picker, neon frames, and message pinning.</p>
-    <div style="font-size:13px; font-weight:700; color:#22c55e; margin: 8px 0;">Price: 300 PKR ($1)</div>
-    <a id="whatsappVipBtn" href="https://wa.me/923558182875?text=Salam%20Jagga%20Bhai%2C%20I%20want%20to%20buy%20VIP" target="_blank" class="btn-whatsapp">💬 Buy VIP via WhatsApp</a>
-  </div>
+    <section class="card">
+      <button type="button" class="logout-btn" onclick="logoutUser()">🔒 Logout Account</button>
+    </section>
+  </main>
 
-  <div class="card">
-    <button type="button" class="logout-btn" onclick="logoutUser()">🔒 Logout Account</button>
-  </div>
-</div>
+  <script>
+    "use strict";
 
-<script>
-const token = localStorage.getItem('wall_token');
-if (!token) window.location.href = '/login.html';
+    const token = localStorage.getItem("wall_token");
+    const MAX_LOCAL_PHOTO_BYTES = 1024 * 1024;
+    const ALLOWED_PHOTO_TYPES = new Set([
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "image/gif"
+    ]);
 
-function triggerPhotoUpload() {
-  document.getElementById('photoFileInput').click();
-}
+    if (!token) {
+      window.location.replace("/login.html");
+    }
 
-function handlePhotoSelected(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = async function(e) {
-    const base64Img = e.target.result;
-    localStorage.setItem('wall_photo', base64Img);
-    renderAvatar(base64Img, localStorage.getItem('wall_user') || 'J');
-    try {
-      await fetch('/api/user/me', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ photoURL: base64Img })
-      });
-    } catch {}
-  };
-  reader.readAsDataURL(file);
-}
+    function setStatus(id, message, color) {
+      const element = document.getElementById(id);
+      element.textContent = message;
+      element.style.color = color || "#8b8fa3";
+    }
 
-function renderAvatar(photoURL, username) {
-  const container = document.getElementById('avatarContainer');
-  if (photoURL) {
-    container.innerHTML = `<img src="${photoURL}" alt="Avatar">`;
-  } else {
-    container.innerHTML = `<span id="avatarLetter">${username.charAt(0).toUpperCase()}</span>`;
-  }
-}
+    function triggerPhotoUpload() {
+      document.getElementById("photoFileInput").click();
+    }
 
-async function fetchProfile() {
-  try {
-    const res = await fetch('/api/user/me', {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    if (res.ok) {
-      const data = await res.json();
-      document.getElementById('profileUsername').textContent = '@' + data.username;
-      document.getElementById('profileStatus').textContent = data.isAdmin ? '🛡️ Administrator + 👑 VIP' : (data.isVip ? '👑 VIP Member' : 'Standard Member');
-      
-      const photo = data.photoURL || localStorage.getItem('wall_photo') || '';
-      renderAvatar(photo, data.username);
-      localStorage.setItem('wall_photo', photo);
-      localStorage.setItem('wall_user', data.username);
+    function renderAvatar(photoURL, username) {
+      const container = document.getElementById("avatarContainer");
+      container.replaceChildren();
 
-      if (data.username === 'jagga') {
-        document.getElementById('vipSection').style.display = 'none';
-      } else if (!data.isVip) {
-        document.getElementById('vipSection').style.display = 'block';
+      if (typeof photoURL === "string" && photoURL.startsWith("data:image/")) {
+        const image = document.createElement("img");
+        image.alt = "Profile photo";
+        image.src = photoURL;
+        container.appendChild(image);
+        return;
       }
-    } else {
-      localStorage.clear();
-      window.location.href = '/login.html';
+
+      const letter = document.createElement("span");
+      letter.textContent =
+        typeof username === "string" && username.length
+          ? username.charAt(0).toUpperCase()
+          : "?";
+      container.appendChild(letter);
     }
-  } catch {
-    localStorage.clear();
-    window.location.href = '/login.html';
-  }
-}
-fetchProfile();
 
-async function updateUsername() {
-  const newUsername = (document.getElementById('newUsernameInput').value || '').trim().toLowerCase();
-  const statusEl = document.getElementById('usernameStatus');
-  statusEl.textContent = 'Updating...';
-  statusEl.style.color = '#38bdf8';
+    document.getElementById("photoFileInput").addEventListener("change", (event) => {
+      const file = event.target.files && event.target.files[0];
+      event.target.value = "";
 
-  try {
-    const res = await fetch('/api/user/change-username', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify({ newUsername })
+      if (!file) return;
+
+      if (!ALLOWED_PHOTO_TYPES.has(file.type)) {
+        setStatus("photoStatus", "Choose a JPEG, PNG, WebP, or GIF image.", "#ef4444");
+        return;
+      }
+
+      if (file.size > MAX_LOCAL_PHOTO_BYTES) {
+        setStatus("photoStatus", "Image must be 1 MB or smaller.", "#ef4444");
+        return;
+      }
+
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        if (typeof reader.result !== "string" ||
+            !reader.result.startsWith("data:image/")) {
+          setStatus("photoStatus", "Could not read that image.", "#ef4444");
+          return;
+        }
+
+        try {
+          localStorage.setItem("wall_photo", reader.result);
+          renderAvatar(reader.result, localStorage.getItem("wall_user") || "");
+          setStatus(
+            "photoStatus",
+            "Photo saved on this device. It has not been uploaded to the server.",
+            "#22c55e"
+          );
+        } catch {
+          setStatus(
+            "photoStatus",
+            "Browser storage is full. Remove the old photo or choose a smaller image.",
+            "#ef4444"
+          );
+        }
+      };
+
+      reader.onerror = () => {
+        setStatus("photoStatus", "Could not read that image.", "#ef4444");
+      };
+
+      reader.readAsDataURL(file);
     });
-    const data = await res.json();
-    if (res.ok) {
-      localStorage.setItem('wall_user', data.newUsername);
-      statusEl.textContent = 'Username updated successfully!';
-      statusEl.style.color = '#22c55e';
-      setTimeout(() => fetchProfile(), 1000);
-    } else {
-      statusEl.textContent = data.error || 'Failed to update username';
-      statusEl.style.color = '#ef4444';
+
+    function clearLocalPhoto() {
+      localStorage.removeItem("wall_photo");
+      renderAvatar("", localStorage.getItem("wall_user") || "");
+      setStatus("photoStatus", "Local photo removed.", "#22c55e");
     }
-  } catch (err) {
-    statusEl.textContent = 'Network error: ' + err.message;
-    statusEl.style.color = '#ef4444';
-  }
-}
 
-async function updatePassword() {
-  const oldPassword = document.getElementById('oldPassInput').value;
-  const newPassword = document.getElementById('newPassInput').value;
-  const statusEl = document.getElementById('passwordStatus');
-  statusEl.textContent = 'Updating...';
-  statusEl.style.color = '#38bdf8';
+    async function fetchProfile() {
+      try {
+        const response = await fetch("/api/user/me", {
+          method: "GET",
+          headers: { Authorization: `Bearer ${token}` },
+          cache: "no-store"
+        });
 
-  try {
-    const res = await fetch('/api/user/change-password', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify({ oldPassword, newPassword })
-    });
-    const data = await res.json();
-    if (res.ok) {
-      statusEl.textContent = 'Password updated successfully!';
-      statusEl.style.color = '#22c55e';
-      document.getElementById('oldPassInput').value = '';
-      document.getElementById('newPassInput').value = '';
-    } else {
-      statusEl.textContent = data.error || 'Failed to update password';
-      statusEl.style.color = '#ef4444';
+        if (response.status === 401 || response.status === 403 ||
+            response.status === 404) {
+          localStorage.removeItem("wall_token");
+          localStorage.removeItem("wall_user");
+          window.location.replace("/login.html");
+          return;
+        }
+
+        if (!response.ok) {
+          setStatus("profileStatus", "Unable to load profile. Try again.", "#ef4444");
+          return;
+        }
+
+        const data = await response.json();
+
+        if (typeof data.username !== "string" || !data.username) {
+          setStatus("profileStatus", "Invalid profile response.", "#ef4444");
+          return;
+        }
+
+        document.getElementById("profileUsername").textContent = "@" + data.username;
+        document.getElementById("profileStatus").textContent =
+          data.isAdmin ? "🛡️ Administrator + 👑 VIP" :
+          data.isVip ? "👑 VIP Member" : "Standard Member";
+
+        localStorage.setItem("wall_user", data.username);
+
+        const localPhoto = localStorage.getItem("wall_photo") || "";
+        renderAvatar(localPhoto, data.username);
+
+        const vipSection = document.getElementById("vipSection");
+        vipSection.style.display =
+          data.username.toUpperCase() === "JAGGA" || data.isVip
+            ? "none"
+            : "block";
+      } catch {
+        // A transient network error must not erase the user's saved browser data.
+        setStatus("profileStatus", "Network error. Check your connection and retry.", "#ef4444");
+      }
     }
-  } catch (err) {
-    statusEl.textContent = 'Network error: ' + err.message;
-    statusEl.style.color = '#ef4444';
-  }
-}
 
-function logoutUser() {
-  localStorage.clear();
-  window.location.href = '/login.html';
-}
-</script>
+    async function updateUsername() {
+      const input = document.getElementById("newUsernameInput");
+      const button = document.getElementById("usernameButton");
+      const newUsername = input.value.trim().toUpperCase();
+
+      if (!/^[A-Z0-9_.]{3,20}$/.test(newUsername)) {
+        setStatus(
+          "usernameStatus",
+          "Use 3–20 letters, numbers, underscores, or periods.",
+          "#ef4444"
+        );
+        return;
+      }
+
+      button.disabled = true;
+      setStatus("usernameStatus", "Updating...", "#38bdf8");
+
+      try {
+        const response = await fetch("/api/user/change-username", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ newUsername })
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          setStatus("usernameStatus", data.error || "Failed to update username.", "#ef4444");
+          return;
+        }
+
+        if (typeof data.newUsername === "string" && data.newUsername) {
+          localStorage.setItem("wall_user", data.newUsername);
+        }
+
+        setStatus("usernameStatus", "Username updated successfully.", "#22c55e");
+        input.value = "";
+        await fetchProfile();
+      } catch {
+        setStatus("usernameStatus", "Network error. Please try again.", "#ef4444");
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    async function updatePassword() {
+      const oldInput = document.getElementById("oldPassInput");
+      const newInput = document.getElementById("newPassInput");
+      const button = document.getElementById("passwordButton");
+      const oldPassword = oldInput.value;
+      const newPassword = newInput.value;
+
+      if (!oldPassword || newPassword.length < 6 || newPassword.length > 1024) {
+        setStatus(
+          "passwordStatus",
+          "Enter your current password and a new password of 6–1024 characters.",
+          "#ef4444"
+        );
+        return;
+      }
+
+      button.disabled = true;
+      setStatus("passwordStatus", "Updating...", "#38bdf8");
+
+      try {
+        const response = await fetch("/api/user/change-password", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ oldPassword, newPassword })
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          setStatus("passwordStatus", data.error || "Failed to update password.", "#ef4444");
+          return;
+        }
+
+        setStatus("passwordStatus", "Password updated successfully.", "#22c55e");
+        oldInput.value = "";
+        newInput.value = "";
+      } catch {
+        setStatus("passwordStatus", "Network error. Please try again.", "#ef4444");
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    function logoutUser() {
+      localStorage.removeItem("wall_token");
+      localStorage.removeItem("wall_user");
+      window.location.replace("/login.html");
+    }
+
+    if (token) {
+      fetchProfile();
+    }
+  </script>
 </body>
 </html>

@@ -701,7 +701,7 @@ async function verifyAuthAndProfile() {
       currentUser = String(data.username).toUpperCase();
       localStorage.setItem('wall_user', currentUser);
       isUserVip = Boolean(data.isVip);
-      isUserAdmin = (currentUser === 'ADMIN');
+      isUserAdmin = data.isAdmin === true;
       
       document.getElementById('topUsername').textContent = '@' + currentUser;
       
@@ -722,7 +722,8 @@ async function verifyAuthAndProfile() {
         if (adminBtn) adminBtn.style.display = 'block';
       }
     } else {
-      localStorage.clear();
+      localStorage.removeItem('wall_token');
+      localStorage.removeItem('wall_user');
       window.location.href = '/login.html';
     }
   } catch {}

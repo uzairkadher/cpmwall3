@@ -2,80 +2,133 @@ import admin from "firebase-admin";
 import { verifyJwt } from "../auth.js";
 
 if (!admin.apps.length) {
+  const serviceKey = process.env.FIREBASE_SERVICE_KEY;
+
+  if (!serviceKey) {
+    throw new Error("Server configuration error");
+  }
+
   admin.initializeApp({
-    credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_KEY))
+    credential: admin.credential.cert(JSON.parse(serviceKey)),
   });
 }
 
 const db = admin.firestore();
+const ALLOWED_ORIGIN = "https://cpmwall3.vercel.app";
+const TOP_POSTS_SAMPLE_LIMIT = 1000;
 
 export default async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", "https://cpmwall3.vercel.app");
+  res.setHeader("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Cache-Control", "private, no-store");
 
-  if (req.method === "OPTIONS") return res.status(200).end();
-  if (req.method !== "GET") return res.status(405).json({ error: "Method not allowed" });
+  if (req.method === "OPTIONS") {
+    return res.status(204).end();
+  }
+
+  if (req.method !== "GET") {
+    res.setHeader("Allow", "GET, OPTIONS");
+    return res.status(405).json({ error: "Method not allowed" });
+  }
 
   try {
-    // 1. JWT & Role Authorization (No x-admin-key)
-    const authHeader = req.headers["authorization"] || "";
-    const token = authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : null;
-    
-    if (!token) return res.status(401).json({ error: "Unauthorized: Missing token" });
+    const authorization = req.headers.authorization || "";
+    const token = authorization.startsWith("Bearer ")
+      ? authorization.slice(7).trim()
+      : "";
 
-    const decoded = verifyJwt(token);
-    if (!decoded || !decoded.username) return res.status(401).json({ error: "Unauthorized: Invalid token" });
-
-    const adminUsername = String(decoded.username).toUpperCase();
-    const adminRef = db.collection("users").doc(adminUsername);
-    const adminDoc = await adminRef.get();
-
-    if (!adminDoc.exists || adminDoc.data().role !== "ADMIN") {
-      return res.status(403).json({ error: "Forbidden: Insufficient role permissions" });
+    if (!token) {
+      return res.status(401).json({ error: "Unauthorized" });
     }
 
-    // --- GET: Fetch Analytics ---
+    const decoded = verifyJwt(token);
+
+    if (!decoded || typeof decoded.username !== "string") {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const adminUsername = decoded.username.trim().toUpperCase();
+
+    if (!adminUsername) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    // Check the current role in Firestore rather than trusting JWT role claims.
+    const adminDoc = await db.collection("users").doc(adminUsername).get();
+
+    if (!adminDoc.exists || adminDoc.data()?.role !== "ADMIN") {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    // Use the server's local calendar day, matching the original endpoint's
+    // date-boundary behavior. Change this deliberately if UTC is required.
     const now = new Date();
-    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfDay = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate()
+    );
     const startTimestamp = admin.firestore.Timestamp.fromDate(startOfDay);
 
-    // Fetch aggregate counts and recent posts concurrently for optimal performance
-    const [totalUsersSnap, totalPostsSnap, activeTodaySnap, postsTodaySnap, recentPostsSnap] = await Promise.all([
-      db.collection("users").count().get(),
-      db.collection("posts").count().get(),
-      db.collection("visitors").where("lastSeen", ">=", startTimestamp).count().get(),
-      db.collection("posts").where("createdAt", ">=", startTimestamp).count().get(),
-      db.collection("posts").where("createdAt", ">=", startTimestamp).get() // Needed for topPosters calculation
+    const usersCollection = db.collection("users");
+    const postsCollection = db.collection("posts");
+    const visitorsCollection = db.collection("visitors");
+
+    const [
+      totalUsersSnapshot,
+      totalPostsSnapshot,
+      activeTodaySnapshot,
+      postsTodaySnapshot,
+      recentPostsSnapshot,
+    ] = await Promise.all([
+      usersCollection.count().get(),
+      postsCollection.count().get(),
+      visitorsCollection
+        .where("lastSeen", ">=", startTimestamp)
+        .count()
+        .get(),
+      postsCollection
+        .where("createdAt", ">=", startTimestamp)
+        .count()
+        .get(),
+      postsCollection
+        .where("createdAt", ">=", startTimestamp)
+        .orderBy("createdAt", "desc")
+        .limit(TOP_POSTS_SAMPLE_LIMIT)
+        .get(),
     ]);
 
-    const totalUsers = totalUsersSnap.data().count;
-    const totalPosts = totalPostsSnap.data().count;
-    const activeToday = activeTodaySnap.data().count;
-    const postsToday = postsTodaySnap.data().count;
+    const userPostCounts = Object.create(null);
 
-    // Calculate Top Posters from today's activity in-memory
-    const userPostCounts = {};
-    recentPostsSnap.forEach(doc => {
+    recentPostsSnapshot.forEach((doc) => {
       const data = doc.data();
-      const uname = data.name || data.userId || "Unknown";
-      userPostCounts[uname] = (userPostCounts[uname] || 0) + 1;
+      const rawUsername = data.name || data.userId || "Unknown";
+      const username =
+        typeof rawUsername === "string"
+          ? rawUsername.slice(0, 80)
+          : "Unknown";
+
+      userPostCounts[username] = (userPostCounts[username] || 0) + 1;
     });
 
     const topPosters = Object.entries(userPostCounts)
       .map(([username, count]) => ({ username, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 10); // Return top 10
+      .sort((a, b) => b.count - a.count || a.username.localeCompare(b.username))
+      .slice(0, 10);
 
     return res.status(200).json({
-      totalUsers,
-      activeToday,
-      totalPosts,
-      postsToday,
-      topPosters
+      totalUsers: totalUsersSnapshot.data().count,
+      activeToday: activeTodaySnapshot.data().count,
+      totalPosts: totalPostsSnapshot.data().count,
+      postsToday: postsTodaySnapshot.data().count,
+      topPosters,
+      topPostersSampled: postsTodaySnapshot.data().count >
+        TOP_POSTS_SAMPLE_LIMIT,
     });
-
   } catch (err) {
-    return res.status(500).json({ error: err.message || "Server error" });
+    // Log the internal error on the server; never return its details to clients.
+    console.error("Admin analytics request failed:", err);
+    return res.status(500).json({ error: "Internal server error" });
   }
 }

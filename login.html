@@ -1,202 +1,337 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<meta name="robots" content="noindex, nofollow">
-<title>Login - EMPIRE STUDIO</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
-<style>
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-body {
-  margin: 0;
-  padding: 14px;
-  min-height: 100vh;
-  background: radial-gradient(900px at 50% -20%, rgba(255,184,0,.3), transparent), radial-gradient(700px at 100% 100%, rgba(255,217,90,.15), transparent), #07070A;
-  color: #fff;
-  font-family: Inter, sans-serif;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-.card-luxury {
-  position: relative;
-  width: 100%;
-  max-width: 380px;
-  background: linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.03));
-  border: 1px solid rgba(255,217,90,.35);
-  border-radius: 28px;
-  padding: 28px 24px 22px;
-  box-shadow: 0 0 0 1px rgba(255,217,90,.08), 0 0 80px rgba(255,184,0,.25), inset 0 1px 0 rgba(255,255,255,.2);
-  backdrop-filter: blur(20px);
-  text-align: center;
-}
-.logo-wrap { display: grid; place-items: center; margin-bottom: 14px; }
-.logo-luxury {
-  width: 84px;
-  height: 84px;
-  border-radius: 50%;
-  background: radial-gradient(180deg, #FFD95A, #FF9A00);
-  display: grid;
-  place-items: center;
-  font-family: Syne, sans-serif;
-  font-weight: 800;
-  font-size: 28px;
-  color: black;
-  box-shadow: 0 0 40px rgba(255,184,0,.8), inset 0 2px 0 rgba(255,255,255,.6);
-}
-.card-luxury h1 { font-family: Syne, sans-serif; color: white; font-size: 22px; letter-spacing: 1px; margin: 0; }
-.sub-luxury { margin-top: 6px; color: #d6c79f; font-size: 12px; }
-.tabs { display: flex; gap: 8px; margin-top: 20px; background: rgba(0,0,0,0.4); padding: 4px; border-radius: 14px; border: 1px solid rgba(255,217,90,0.2); }
-.tab { flex: 1; background: transparent; border: none; color: #a1a1aa; padding: 10px; font-weight: 700; font-size: 12px; border-radius: 10px; cursor: pointer; transition: 0.2s; }
-.tab.active { background: linear-gradient(180deg, #FFE68A, #FFB800); color: #000; }
-.input-wrap { position: relative; margin-top: 16px; text-align: left; }
-.input-wrap label { font-size: 11px; color: #d6c79f; margin-left: 4px; font-weight: 600; }
-.input-wrap input {
-  width: 100%;
-  background: rgba(0,0,0,.5);
-  border: 1px solid rgba(255,217,90,.35);
-  border-radius: 14px;
-  padding: 12px 14px;
-  color: white;
-  outline: none;
-  font-size: 13px;
-  margin-top: 4px;
-  transition: .2s;
-}
-.input-wrap input:focus { border-color: #FFD95A; box-shadow: 0 0 0 3px rgba(255,217,90,.15); }
-.login-btn-luxury {
-  margin-top: 20px;
-  width: 100%;
-  background: linear-gradient(180deg, #FFE68A, #FFB800);
-  border: none;
-  padding: 14px;
-  border-radius: 14px;
-  font-weight: 800;
-  font-size: 16px;
-  cursor: pointer;
-  box-shadow: 0 10px 30px rgba(255,184,0,.4);
-  color: #000;
-  transition: 0.15s;
-}
-.login-btn-luxury:active { transform: scale(.98); }
-.switch-mode { margin-top: 16px; font-size: 12px; color: #a1a1aa; cursor: pointer; }
-.switch-mode span { color: #FFD95A; font-weight: 700; text-decoration: underline; }
-#authError { color: #ef4444; font-size: 11px; margin-top: 8px; font-weight: 600; min-height: 14px; }
-.foot { margin-top: 16px; color: #b49c6a; font-size: 10px; }
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Login - EMPIRE STUDIO</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      margin: 0;
+      padding: 14px;
+      min-height: 100vh;
+      background:
+        radial-gradient(900px at 50% -20%, rgba(255,184,0,.3), transparent),
+        radial-gradient(700px at 100% 100%, rgba(255,217,90,.15), transparent),
+        #07070A;
+      color: #fff;
+      font-family: Inter, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .card-luxury {
+      width: 100%;
+      max-width: 380px;
+      background: linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.03));
+      border: 1px solid rgba(255,217,90,.35);
+      border-radius: 28px;
+      padding: 28px 24px 22px;
+      box-shadow: 0 0 0 1px rgba(255,217,90,.08), 0 0 80px rgba(255,184,0,.25), inset 0 1px 0 rgba(255,255,255,.2);
+      backdrop-filter: blur(20px);
+      text-align: center;
+    }
+    .logo-wrap { display: grid; place-items: center; margin-bottom: 14px; }
+    .logo-luxury {
+      width: 84px;
+      height: 84px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #FFD95A, #FF9A00);
+      display: grid;
+      place-items: center;
+      font-family: Syne, sans-serif;
+      font-weight: 800;
+      font-size: 28px;
+      color: black;
+      box-shadow: 0 0 40px rgba(255,184,0,.8), inset 0 2px 0 rgba(255,255,255,.6);
+    }
+    .card-luxury h1 {
+      font-family: Syne, sans-serif;
+      color: white;
+      font-size: 22px;
+      letter-spacing: 1px;
+      margin: 0;
+    }
+    .sub-luxury { margin-top: 6px; color: #d6c79f; font-size: 12px; }
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-top: 20px;
+      background: rgba(0,0,0,.4);
+      padding: 4px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,217,90,.2);
+    }
+    .tab {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #a1a1aa;
+      padding: 10px;
+      font-weight: 700;
+      font-size: 12px;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    .tab.active {
+      background: linear-gradient(180deg, #FFE68A, #FFB800);
+      color: #000;
+    }
+    .input-wrap { margin-top: 16px; text-align: left; }
+    .input-wrap label {
+      font-size: 11px;
+      color: #d6c79f;
+      margin-left: 4px;
+      font-weight: 600;
+      display: block;
+    }
+    .input-wrap input {
+      width: 100%;
+      background: rgba(0,0,0,.5);
+      border: 1px solid rgba(255,217,90,.35);
+      border-radius: 14px;
+      padding: 12px 14px;
+      color: white;
+      outline: none;
+      font-size: 13px;
+      margin-top: 4px;
+    }
+    .input-wrap input:focus {
+      border-color: #FFD95A;
+      box-shadow: 0 0 0 3px rgba(255,217,90,.15);
+    }
+    .login-btn-luxury {
+      margin-top: 20px;
+      width: 100%;
+      background: linear-gradient(180deg, #FFE68A, #FFB800);
+      border: none;
+      padding: 14px;
+      border-radius: 14px;
+      font-weight: 800;
+      font-size: 16px;
+      cursor: pointer;
+      box-shadow: 0 10px 30px rgba(255,184,0,.4);
+      color: #000;
+    }
+    .login-btn-luxury:disabled { opacity: .6; cursor: not-allowed; }
+    .login-btn-luxury:active:not(:disabled) { transform: scale(.98); }
+    .switch-mode { margin-top: 16px; font-size: 12px; color: #a1a1aa; }
+    .switch-mode button {
+      background: none;
+      border: none;
+      padding: 0;
+      color: #FFD95A;
+      font: inherit;
+      font-weight: 700;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+    #authError {
+      color: #ef4444;
+      font-size: 11px;
+      margin-top: 8px;
+      font-weight: 600;
+      min-height: 14px;
+      overflow-wrap: anywhere;
+    }
+    .foot { margin-top: 16px; color: #b49c6a; font-size: 10px; }
+  </style>
 </head>
 <body>
+  <main class="card-luxury">
+    <div class="logo-wrap"><div class="logo-luxury">ES</div></div>
+    <h1>EMPIRE STUDIO</h1>
+    <div class="sub-luxury">Car Parking Multiplayer Community Wall</div>
 
-<div class="card-luxury">
-  <div class="logo-wrap"><div class="logo-luxury">ES</div></div>
-  <h1>EMPIRE STUDIO</h1>
-  <div class="sub-luxury">Car Parking Multiplayer Community Wall</div>
+    <div class="tabs" role="group" aria-label="Authentication mode">
+      <button type="button" id="tabLogin" class="tab active" aria-pressed="true">Login</button>
+      <button type="button" id="tabRegister" class="tab" aria-pressed="false">Create Account</button>
+    </div>
 
-  <div class="tabs">
-    <button type="button" id="tabLogin" class="tab active" onclick="switchMode('login')">Login</button>
-    <button type="button" id="tabRegister" class="tab" onclick="switchMode('register')">Create Account</button>
-  </div>
+    <form id="authForm" novalidate>
+      <div class="input-wrap">
+        <label for="userInput">USERNAME</label>
+        <input
+          type="text"
+          id="userInput"
+          placeholder="e.g. driver_77"
+          autocomplete="username"
+          minlength="3"
+          maxlength="20"
+          required
+        >
+      </div>
 
-  <div class="input-wrap">
-    <label>USERNAME</label>
-    <input type="text" id="userInput" placeholder="e.g. driver_77 (a-z, 0-9, _, .)" autocomplete="username">
-  </div>
+      <div class="input-wrap">
+        <label for="passInput">PASSWORD</label>
+        <input
+          type="password"
+          id="passInput"
+          placeholder="At least 6 characters"
+          autocomplete="current-password"
+          minlength="6"
+          maxlength="1024"
+          required
+        >
+      </div>
 
-  <div class="input-wrap">
-    <label>PASSWORD</label>
-    <input type="password" id="passInput" placeholder="At least 6 characters" autocomplete="current-password">
-  </div>
+      <div class="input-wrap" id="confirmWrap" hidden>
+        <label for="confirmInput">CONFIRM PASSWORD</label>
+        <input
+          type="password"
+          id="confirmInput"
+          placeholder="Re-enter password"
+          autocomplete="new-password"
+          maxlength="1024"
+        >
+      </div>
 
-  <div class="input-wrap" id="confirmWrap" style="display:none;">
-    <label>CONFIRM PASSWORD</label>
-    <input type="password" id="confirmInput" placeholder="Re-enter password" autocomplete="new-password">
-  </div>
+      <div id="authError" role="status" aria-live="polite"></div>
+      <button type="submit" class="login-btn-luxury" id="submitBtn">Login</button>
+    </form>
 
-  <div id="authError"></div>
+    <div class="switch-mode">
+      <span id="switchPrompt">Don't have an account?</span>
+      <button type="button" id="switchButton">Create Account</button>
+    </div>
 
-  <button type="button" class="login-btn-luxury" id="submitBtn" onclick="handleSubmit()">Login</button>
+    <div class="foot">Secure JWT Authentication • v2.1.0</div>
+  </main>
 
-  <div class="switch-mode" id="switchText" onclick="toggleMode()">
-    Don't have account? <span>Create Account</span>
-  </div>
+  <script>
+    "use strict";
 
-  <div class="foot">Secure JWT Authentication • v2.1.0</div>
-</div>
+    let mode = "login";
+    let submitting = false;
 
-<script>
-let mode = 'login';
+    const form = document.getElementById("authForm");
+    const usernameInput = document.getElementById("userInput");
+    const passwordInput = document.getElementById("passInput");
+    const confirmInput = document.getElementById("confirmInput");
+    const confirmWrap = document.getElementById("confirmWrap");
+    const errorElement = document.getElementById("authError");
+    const submitButton = document.getElementById("submitBtn");
+    const tabLogin = document.getElementById("tabLogin");
+    const tabRegister = document.getElementById("tabRegister");
+    const switchPrompt = document.getElementById("switchPrompt");
+    const switchButton = document.getElementById("switchButton");
 
-function switchMode(m) {
-  mode = m;
-  const isReg = (mode === 'register');
-  document.getElementById('tabLogin').className = isReg ? 'tab' : 'tab active';
-  document.getElementById('tabRegister').className = isReg ? 'tab active' : 'tab';
-  document.getElementById('confirmWrap').style.display = isReg ? 'block' : 'none';
-  document.getElementById('submitBtn').textContent = isReg ? 'Create Account' : 'Login';
-  document.getElementById('switchText').innerHTML = isReg ? 'I already have account? <span>Login</span>' : "Don't have account? <span>Create Account</span>";
-  document.getElementById('authError').textContent = '';
-}
-
-function toggleMode() {
-  switchMode(mode === 'login' ? 'register' : 'login');
-}
-
-async function handleSubmit() {
-  const username = (document.getElementById('userInput').value || '').trim().toLowerCase();
-  const password = document.getElementById('passInput').value || '';
-  const confirmPassword = document.getElementById('confirmInput').value || '';
-  const errEl = document.getElementById('authError');
-
-  errEl.textContent = '';
-  if (!username || !password) {
-    errEl.textContent = 'Please fill in all fields.';
-    return;
-  }
-
-  if (mode === 'register') {
-    if (!/^[a-z0-9_.]{3,20}$/.test(username)) {
-      errEl.textContent = 'Username must be 3-20 chars (a-z, 0-9, _, .)';
-      return;
+    function setError(message) {
+      errorElement.textContent = message;
     }
-    if (password.length < 6) {
-      errEl.textContent = 'Password must be at least 6 characters.';
-      return;
-    }
-    if (password !== confirmPassword) {
-      errEl.textContent = 'Passwords do not match.';
-      return;
-    }
-  }
 
-  const btn = document.getElementById('submitBtn');
-  btn.disabled = true;
-  btn.textContent = 'Processing...';
+    function switchMode(nextMode) {
+      if (nextMode !== "login" && nextMode !== "register") return;
+      if (submitting) return;
 
-  try {
-    const endpoint = `/api/auth?action=${mode}`;
-    const res = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password, confirmPassword })
+      mode = nextMode;
+      const registering = mode === "register";
+
+      tabLogin.classList.toggle("active", !registering);
+      tabRegister.classList.toggle("active", registering);
+
+      tabLogin.setAttribute("aria-pressed", String(!registering));
+      tabRegister.setAttribute("aria-pressed", String(registering));
+
+      confirmWrap.hidden = !registering;
+      confirmInput.required = registering;
+      passwordInput.autocomplete = registering ? "new-password" : "current-password";
+
+      submitButton.textContent = registering ? "Create Account" : "Login";
+      switchPrompt.textContent = registering
+        ? "Already have an account?"
+        : "Don't have an account?";
+      switchButton.textContent = registering ? "Login" : "Create Account";
+
+      setError("");
+    }
+
+    tabLogin.addEventListener("click", () => switchMode("login"));
+    tabRegister.addEventListener("click", () => switchMode("register"));
+    switchButton.addEventListener("click", () => {
+      switchMode(mode === "login" ? "register" : "login");
     });
-    const data = await res.json();
 
-    if (res.ok && data.token) {
-      localStorage.setItem('wall_token', data.token);
-      localStorage.setItem('wall_user', data.username);
-      window.location.href = '/';
-    } else {
-      errEl.textContent = data.error || 'Authentication failed.';
-      btn.disabled = false;
-      btn.textContent = mode === 'register' ? 'Create Account' : 'Login';
-    }
-  } catch (err) {
-    errEl.textContent = 'Network error: ' + err.message;
-    btn.disabled = false;
-    btn.textContent = mode === 'register' ? 'Create Account' : 'Login';
-  }
-}
-</script>
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      if (submitting) return;
+
+      const username = usernameInput.value.trim().toUpperCase();
+      const password = passwordInput.value;
+      const confirmPassword = confirmInput.value;
+
+      setError("");
+
+      if (!/^[A-Z0-9_.]{3,20}$/.test(username)) {
+        setError("Username must be 3–20 characters: letters, numbers, underscores, or periods.");
+        return;
+      }
+
+      if (password.length < 6 || password.length > 1024) {
+        setError("Password must be between 6 and 1024 characters.");
+        return;
+      }
+
+      if (mode === "register" && password !== confirmPassword) {
+        setError("Passwords do not match.");
+        return;
+      }
+
+      submitting = true;
+      submitButton.disabled = true;
+      submitButton.textContent = "Processing...";
+
+      try {
+        const response = await fetch(`/api/auth?action=${mode}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          cache: "no-store",
+          body: JSON.stringify({
+            username,
+            password,
+            confirmPassword
+          })
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          setError(
+            typeof data.error === "string"
+              ? data.error.slice(0, 300)
+              : "Authentication failed. Please try again."
+          );
+          return;
+        }
+
+        if (typeof data.token !== "string" || !data.token ||
+            typeof data.username !== "string" || !data.username) {
+          setError("The server returned an invalid authentication response.");
+          return;
+        }
+
+        try {
+          localStorage.setItem("wall_token", data.token);
+          localStorage.setItem("wall_user", data.username);
+        } catch {
+          localStorage.removeItem("wall_token");
+          localStorage.removeItem("wall_user");
+          setError("Browser storage is unavailable. Enable site storage and try again.");
+          return;
+        }
+
+        window.location.replace("/");
+      } catch {
+        setError("Unable to reach the server. Check your connection and try again.");
+      } finally {
+        submitting = false;
+        submitButton.disabled = false;
+        submitButton.textContent = mode === "register" ? "Create Account" : "Login";
+      }
+    });
+  </script>
 </body>
 </html>
