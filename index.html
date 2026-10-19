@@ -18,7 +18,7 @@
 <meta property="og:title" content="Car Parking Multiplayer Wall">
 <meta property="og:description" content="Live room codes, drag setups, and real-time lobby chat.">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://cpmwall3-liard.vercel.app/">
+<meta property="og:url" content="https://cpmwall3.vercel.app/">
 <meta property="og:image" content="https://cdn-icons-png.flaticon.com/512/3202/3202926.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -34,7 +34,8 @@
   --text: #ffffff;
   --muted: #8b8fa3;
 }
-box-sizing: border-box;
+* {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
   font-family: 'Inter', sans-serif;
@@ -67,7 +68,6 @@ body {
   position: relative;
   overflow: hidden;
 }
-/* HEADER OPTION C */
 .header {
   background: rgba(21, 24, 37, 0.85);
   backdrop-filter: blur(15px);
@@ -332,7 +332,7 @@ body {
   font-size: 0.85rem;
   line-height: 1.4;
   word-break: break-word;
-  color: #ffffff !important; /* Pure white readable text */
+  color: #ffffff !important;
   width: 100%;
   display: block;
 }
