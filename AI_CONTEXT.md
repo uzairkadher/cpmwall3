@@ -30,6 +30,7 @@
 - What: `sendPost()` preserves composer text and reply targets changed while a post is pending.
 - Files: `index.html`, `evidence/phase1_wall_draft.log`, `AI_CONTEXT.md`, `blueprint.md`, `PROGRESS.md`, `TEST_RESULTS.md`.
 - Verified: Mocked headless Chrome proof covered normal send, draft replacement, reply-target replacement and normal reply clearing, failed POST preservation, four rapid Enter presses producing one POST, zero page errors, and DOM IDs unchanged versus `main`. Evidence: `evidence/phase1_wall_draft.log`; mocks only, not production.
+- Verified: A mocked rejected-fetch run showed the uncertain-outcome toast and retained the input; raw output is appended to `evidence/phase1_wall_draft.log` (commit 1634ca4db6f7ed0a6638c2918ab6307f5aa7f03e).
 - Decisions: Clear the input only if it still equals the submitted text, and clear the reply target only if its object identity is unchanged.
 - Tokens used: not tracked.
 
