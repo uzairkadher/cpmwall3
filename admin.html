@@ -1,668 +1,752 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<meta name="robots" content="noindex, nofollow">
-<title>Admin - EMPIRE STUDIO</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
-<style>
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-body {
-  margin: 0;
-  padding: 14px;
-  min-height: 100vh;
-  background: radial-gradient(900px at 50% -20%, rgba(255,184,0,.3), transparent), radial-gradient(700px at 100% 100%, rgba(255,217,90,.15), transparent), #07070A;
-  color: #fff;
-  font-family: Inter, sans-serif;
-  -webkit-touch-callout: none;
-}
-.header-card {
-  background: linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.03));
-  border: 1px solid rgba(255,217,90,.35);
-  border-radius: 16px;
-  padding: 16px;
-  box-shadow: 0 0 40px rgba(255,184,0,.15);
-  backdrop-filter: blur(20px);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-.header-card h1 { font-family: Syne, sans-serif; font-size: 20px; margin: 0; color: #FFD95A; }
-.card { background: #111; border: 1px solid #222; border-radius: 12px; padding: 14px; margin-bottom: 12px; }
-.card h4 { margin-top: 0; margin-bottom: 12px; color: #fff; font-family: Syne, sans-serif; font-size: 16px; border-bottom: 1px solid #333; padding-bottom: 8px; }
-input, textarea, select { width: 100%; padding: 9px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 8px; margin-bottom: 8px; font-size: 13px; outline: none; }
-input:focus, select:focus, textarea:focus { border-color: #FFD95A; }
-button { background: #3b82f6; color: #fff; border: 0; padding: 8px 14px; border-radius: 8px; font-weight: 700; font-size: 12px; cursor: pointer; transition: 0.15s; }
-button:active { transform: scale(0.98); }
-button.danger { background: #dc2626; }
-button.green { background: #16a34a; }
-button.gold { background: linear-gradient(180deg, #FFE68A, #FFB800); color: #000; }
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; }
-.stat-box { background: #18181b; border: 1px solid #27272a; border-radius: 8px; padding: 12px; text-align: center; }
-.stat-val { font-size: 1.5rem; font-weight: 700; color: #38bdf8; }
-.stat-label { font-size: 0.75rem; color: #a1a1aa; margin-top: 4px; }
-.list-item { border-bottom: 1px solid #222; padding: 10px 0; font-size: 13px; display: flex; flex-direction: column; gap: 6px; }
-.list-item:last-child { border-bottom: none; }
-.badge { background: #333; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; }
-.badge.admin { background: #dc2626; color: #fff; }
-.badge.vip { background: #f59e0b; color: #000; }
-.badge.ultra { background: #9333ea; color: #fff; }
-.badge.active { background: #16a34a; color: #fff; }
-.action-row { display: flex; gap: 6px; flex-wrap: wrap; }
-#statusMsg { font-size: 12px; font-weight: 600; text-align: center; margin-bottom: 12px; min-height: 15px; color: #38bdf8; }
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Admin - Empire Studio</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+  <link rel="stylesheet" href="/design-tokens.css">
+  <style>
+    /* Empire Studio Admin Layout */
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg-obsidian);
+      background-image: radial-gradient(circle at top, rgba(124, 58, 237, 0.08), transparent 60%);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      padding: var(--space-2);
+    }
+    
+    .header-card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-lg);
+      padding: var(--space-2) var(--space-3);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-3);
+    }
+    .header-card h1 { 
+      font-size: var(--text-20); 
+      font-weight: 700; 
+      color: var(--violet); 
+      letter-spacing: 0.5px;
+    }
+    
+    .card { 
+      background: var(--surface-raised); 
+      border: 1px solid var(--border-subtle); 
+      border-radius: var(--radius-lg); 
+      padding: var(--space-3); 
+      margin-bottom: var(--space-2); 
+    }
+    .card h4 { 
+      margin-bottom: var(--space-2); 
+      color: var(--cyan); 
+      font-size: var(--text-16); 
+      border-bottom: 1px solid var(--border-strong); 
+      padding-bottom: 8px; 
+    }
+    
+    input, textarea, select { 
+      width: 100%; 
+      padding: 12px 14px; 
+      background: var(--bg-obsidian); 
+      border: 1px solid var(--border-strong); 
+      color: var(--text-primary); 
+      border-radius: var(--radius-sm); 
+      margin-bottom: 8px; 
+      font-size: var(--text-14); 
+      outline: none; 
+      transition: border-color var(--transition-fast);
+    }
+    input:focus, select:focus, textarea:focus { 
+      border-color: var(--violet); 
+      outline: var(--focus-ring);
+    }
+    
+    button { 
+      background: var(--surface-elevated); 
+      color: var(--text-primary); 
+      border: 1px solid var(--border-strong); 
+      padding: 10px 16px; 
+      border-radius: var(--radius-sm); 
+      font-weight: 600; 
+      font-size: var(--text-14); 
+      cursor: pointer; 
+      min-height: 44px;
+    }
+    button.danger { background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.4); color: #fca5a5; }
+    button.green { background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.4); color: #6ee7b7; }
+    button.gold { background: rgba(245, 158, 11, 0.1); border-color: rgba(245, 158, 11, 0.4); color: #fcd34d; }
+    button.primary { background: var(--violet); color: #fff; border: none; }
+    
+    .grid-2 { display: grid; grid-template-columns: 1fr; gap: 8px; }
+    .grid-4 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    @media (min-width: 640px) {
+      .grid-2 { grid-template-columns: 1fr 1fr; }
+      .grid-4 { grid-template-columns: repeat(4, 1fr); }
+    }
+    
+    .stat-box { 
+      background: var(--surface-elevated); 
+      border: 1px solid var(--border-subtle); 
+      border-radius: var(--radius-sm); 
+      padding: var(--space-2); 
+      text-align: center; 
+    }
+    .stat-val { font-size: var(--text-24); font-weight: 700; color: var(--cyan); }
+    .stat-label { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+    
+    /* Mobile-first card layout for list items */
+    .list-item { 
+      background: var(--surface-elevated);
+      border: 1px solid var(--border-strong); 
+      border-radius: var(--radius-sm);
+      padding: 14px; 
+      margin-bottom: 8px;
+      font-size: var(--text-14); 
+      display: flex; 
+      flex-direction: column; 
+      gap: 8px; 
+    }
+    .list-item b { color: var(--text-primary); font-size: var(--text-16); }
+    
+    .badge { 
+      background: var(--surface-raised); 
+      border: 1px solid var(--border-strong);
+      padding: 4px 8px; 
+      border-radius: var(--radius-sm); 
+      font-size: 10px; 
+      font-weight: 700; 
+      display: inline-block;
+    }
+    .badge.admin { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border-color: #ef4444; }
+    .badge.vip { background: rgba(245, 158, 11, 0.15); color: #fcd34d; border-color: #f59e0b; }
+    .badge.ultra { background: rgba(124, 58, 237, 0.15); color: #c4b5fd; border-color: var(--violet); }
+    .badge.active { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; border-color: #10b981; }
+    
+    .action-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+    .action-row button { flex: 1; min-width: max-content; }
+    
+    #statusMsg { 
+      font-size: var(--text-14); 
+      font-weight: 600; 
+      text-align: center; 
+      margin-bottom: var(--space-3); 
+      padding: 12px;
+      border-radius: var(--radius-sm);
+      background: var(--surface-elevated);
+      border: 1px solid var(--border-strong);
+      color: var(--cyan); 
+      display: none;
+    }
+  </style>
 </head>
 <body>
-
-<div class="header-card">
-  <div>
-    <h1>EMPIRE STUDIO</h1>
-    <div style="font-size: 12px; color: #d6c79f; margin-top: 4px;">Admin Security Module</div>
+  <div class="header-card">
+    <div>
+      <h1>EMPIRE STUDIO</h1>
+      <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Admin Security Module</div>
+    </div>
+    <button class="danger interactive-active" id="btnLogout" style="display: none;">Logout</button>
   </div>
-  <button class="danger" id="btnLogout" style="display: none;">Logout</button>
-</div>
-<div id="statusMsg" style="display: none;">Authenticating securely...</div>
-
-<!-- Admin Standalone Login Box -->
-<form id="admin-login-box" class="card" style="max-width: 320px; margin: 40px auto; text-align: center; display: none;" onsubmit="event.preventDefault(); handleAdminLogin();">
-  <h4 style="border-bottom: none; color: #FFD95A;">Admin Authentication</h4>
-  <input type="text" id="adminUser" placeholder="Admin Username" autocomplete="username">
-  <input type="password" id="adminPass" placeholder="Password" autocomplete="current-password">
-  <button type="submit" class="gold" id="btnLoginSubmit" style="width: 100%; margin-top: 8px; padding: 10px;">Secure Login</button>
-  <div id="loginError" style="color: #ef4444; font-size: 12px; margin-top: 12px; min-height: 15px;"></div>
-</form>
-
-<!-- Protected Admin Modules -->
-<div id="admin-modules" style="display: none;">
   
-  <!-- Module 1: Analytics -->
-  <div class="card">
-    <h4>  1. System Analytics</h4>
-    <button class="green" id="btnRefreshAnalytics">Refresh Analytics</button>
-    <div class="grid-4" id="analyticsGrid" style="margin-top: 12px;"></div>
-    <div style="margin-top: 12px; font-size: 12px; color: #a1a1aa;">
-      <b>Top Posters Today:</b>
-      <div id="topPostersList" style="margin-top: 6px;"></div>
-    </div>
-  </div>
-
-  <!-- Module 2: Users -->
-  <div class="card">
-    <h4>  2. User Management</h4>
-    <div class="grid-2">
-      <input type="text" id="userSearch" placeholder="Search username...">
-      <select id="userRoleFilter">
-        <option value="">All Roles</option>
-        <option value="ADMIN">ADMIN</option>
-        <option value="VIP">VIP</option>
-        <option value="MOD">MOD</option>
-        <option value="USER">USER</option>
-      </select>
-    </div>
-    <button class="gold" id="btnSearchUsers">Search Users</button>
-    <div id="usersList" style="margin-top: 12px;"></div>
-  </div>
-
-  <!-- Module 3: Sessions -->
-  <div class="card">
-    <h4>  3. Session Control</h4>
-    <input type="text" id="sessionSearch" placeholder="Filter by exact username...">
-    <button class="gold" id="btnLoadSessions">Load Active Sessions</button>
-    <div id="sessionsList" style="margin-top: 12px;"></div>
-  </div>
-
-  <!-- Module 4: Feature Flags -->
-  <div class="card">
-    <h4>  4. Feature Flags</h4>
-    <div class="grid-2">
-      <input type="text" id="flagKey" placeholder="Flag Key (e.g., raid_mode)">
-      <select id="flagEnabled">
-        <option value="true">Enabled</option>
-        <option value="false">Disabled</option>
-      </select>
-    </div>
-    <input type="text" id="flagDesc" placeholder="Description">
-    <button class="green" id="btnSaveFlag">Save Flag</button>
-    <button id="btnRefreshFlags">Refresh Flags</button>
-    <div id="flagsList" style="margin-top: 12px;"></div>
-  </div>
-
-  <!-- Module 5: Announcements -->
-  <div class="card">
-    <h4>  5. Pinned Announcements</h4>
-    <div class="action-row" style="margin-bottom: 8px;">
-      <button type="button" id="btnPresetDrag">  Drag Meet</button>
-      <button type="button" id="btnPresetMaint">  Maintenance</button>
-      <button type="button" id="btnPresetVip">  VIP Lounge</button>
-    </div>
-    <input type="text" id="announceName" placeholder="Admin Name (e.g. Administration)">
-    <textarea id="announceText" placeholder="Broadcast message content..." rows="3"></textarea>
-    <div class="action-row">
-      <button class="green" id="btnPublishPin">Publish Pin</button>
-      <button class="danger" id="btnClearPin">Clear Pin</button>
-    </div>
-  </div>
-
-  <!-- Module 6: Audit Logs -->
-  <div class="card">
-    <h4>  6. Audit Logs</h4>
-    <div class="grid-2">
-      <input type="text" id="auditAction" placeholder="Action (e.g., BAN_USER)">
-      <input type="text" id="auditUser" placeholder="Target or Admin Username">
-    </div>
-    <button class="gold" id="btnLoadAudit">Load Logs</button>
-    <div id="auditList" style="margin-top: 12px; max-height: 300px; overflow-y: auto;"></div>
-  </div>
-
-  <!-- Module 7: VIP Key Generator -->
-  <div class="card">
-    <h4>  7. VIP Key Generator</h4>
-    <div class="grid-4" style="margin-bottom: 8px;">
-      <select id="vipKeyType">
-        <option value="VIP">VIP</option>
-        <option value="ULTRA">ULTRA VIP</option>
-      </select>
-      <input type="number" id="vipKeyCount" placeholder="Count (1-20)" min="1" max="20" value="1">
-      <input type="number" id="vipKeyDuration" placeholder="Days (e.g. 30)" value="30">
-    </div>
-    <div class="action-row">
-      <button class="green" id="btnGenerateVipKeys">Generate Keys</button>
-      <button class="gold" id="btnLoadVipKeys">Load Keys</button>
-    </div>
-    <div id="vipKeysList" style="margin-top: 12px; max-height: 300px; overflow-y: auto;"></div>
-  </div>
-
-</div>
-
-<script>
-let token = localStorage.getItem('wall_token');
-
-function getAuthHeaders() {
-  return {
-    "Content-Type": "application/json",
-    "Authorization": `Bearer ${token}`
-  };
-}
-
-function setStatus(msg, isError = false) {
-  const el = document.getElementById('statusMsg');
-  el.textContent = msg;
-  el.style.color = isError ? '#ef4444' : '#38bdf8';
-}
-
-function escapeHtml(unsafe) {
-  if (!unsafe) return '';
-  return String(unsafe)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
-
-function showLoginBox() {
-  document.getElementById('admin-login-box').style.display = 'block';
-  document.getElementById('admin-modules').style.display = 'none';
-  document.getElementById('btnLogout').style.display = 'none';
-  document.getElementById('statusMsg').style.display = 'none';
-}
-
-function showModules() {
-  document.getElementById('admin-login-box').style.display = 'none';
-  document.getElementById('admin-modules').style.display = 'block';
-  document.getElementById('btnLogout').style.display = 'inline-block';
-  document.getElementById('statusMsg').style.display = 'block';
-}
-
-function logout() {
-  localStorage.removeItem('wall_token');
-  localStorage.removeItem('wall_user');
-  token = null;
-  setStatus("");
-  showLoginBox();
-}
-
-async function handleAdminLogin() {
-  const u = document.getElementById('adminUser').value.trim();
-  const p = document.getElementById('adminPass').value;
-  const errEl = document.getElementById('loginError');
-  errEl.textContent = "";
-
-  if (!u || !p) {
-    errEl.textContent = "Username and password required.";
-    return;
-  }
-
-  document.getElementById('btnLoginSubmit').textContent = "Authenticating...";
-
-  try {
-    const res = await fetch('/api/auth?action=login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: u, password: p })
-    });
-
-    const data = await res.json();
-    if (!res.ok) {
-      errEl.textContent = data.error || "Login failed.";
-      document.getElementById('btnLoginSubmit').textContent = "Secure Login";
-      return;
-    }
-
-    // Temporarily hold token to verify admin authorization
-    token = data.token;
-    
-    const verifyRes = await fetch('/api/admin/analytics', { headers: getAuthHeaders() });
-    if (!verifyRes.ok) {
-        // Not an admin. Revert token state and do not store locally.
-        token = localStorage.getItem('wall_token'); 
-        errEl.textContent = "Access Denied: ADMIN only.";
-        document.getElementById('btnLoginSubmit').textContent = "Secure Login";
-        return;
-    }
-
-    // Role verified. Safely store session.
-    localStorage.setItem('wall_token', data.token);
-    localStorage.setItem('wall_user', data.username);
-
-    document.getElementById('adminUser').value = '';
-    document.getElementById('adminPass').value = '';
-    document.getElementById('btnLoginSubmit').textContent = "Secure Login";
-    
-    setStatus("Authentication successful. Modules active.");
-    showModules();
-    loadAnalytics();
-
-  } catch (err) {
-    errEl.textContent = "Network error during login.";
-    document.getElementById('btnLoginSubmit').textContent = "Secure Login";
-  }
-}
-
-// Initial API test to verify ADMIN role
-async function checkAuth() {
-  if (!token) {
-    showLoginBox();
-    return;
-  }
+  <div id="statusMsg" class="animate-slide-up">Authenticating securely...</div>
   
-  setStatus("Authenticating securely...");
-  document.getElementById('statusMsg').style.display = 'block';
+  <!-- Admin Standalone Login Box (ID and onsubmit exactly preserved) -->
+  <form id="admin-login-box" class="card glass-panel" style="max-width: 360px; margin: 40px auto; text-align: center; display: none;" onsubmit="event.preventDefault(); handleAdminLogin();">
+    <h4 style="border-bottom: none; color: var(--violet); font-size: var(--text-20);">Admin Authentication</h4>
+    <input type="text" id="adminUser" placeholder="Admin Username" autocomplete="username">
+    <input type="password" id="adminPass" placeholder="Password" autocomplete="current-password">
+    <button type="submit" class="primary interactive-active" id="btnLoginSubmit" style="width: 100%; margin-top: 12px;">Secure Login</button>
+    <div id="loginError" style="color: #ef4444; font-size: 13px; margin-top: 12px; min-height: 15px;"></div>
+  </form>
+  
+  <!-- Protected Admin Modules -->
+  <div id="admin-modules" style="display: none;" class="animate-fade-in">
+    
+    <!-- Module 1: Analytics -->
+    <div class="card">
+      <h4>1. System Analytics</h4>
+      <button class="green interactive-active" id="btnRefreshAnalytics" style="width:100%;">Refresh Analytics</button>
+      <div class="grid-4" id="analyticsGrid" style="margin-top: 16px;"></div>
+      <div style="margin-top: 16px; font-size: 13px; color: var(--text-secondary);">
+        <b style="color:var(--text-primary); margin-bottom:8px; display:block;">Top Posters Today:</b>
+        <div id="topPostersList" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
+      </div>
+    </div>
+    
+    <!-- Module 2: Users -->
+    <div class="card">
+      <h4>2. User Management</h4>
+      <div class="grid-2">
+        <input type="text" id="userSearch" placeholder="Search username...">
+        <select id="userRoleFilter">
+          <option value="">All Roles</option>
+          <option value="ADMIN">ADMIN</option>
+          <option value="VIP">VIP</option>
+          <option value="MOD">MOD</option>
+          <option value="USER">USER</option>
+        </select>
+      </div>
+      <button class="gold interactive-active" id="btnSearchUsers" style="width:100%;">Search Users</button>
+      <div id="usersList" style="margin-top: 16px;"></div>
+    </div>
+    
+    <!-- Module 3: Sessions -->
+    <div class="card">
+      <h4>3. Session Control</h4>
+      <input type="text" id="sessionSearch" placeholder="Filter by exact username...">
+      <button class="gold interactive-active" id="btnLoadSessions" style="width:100%;">Load Active Sessions</button>
+      <div id="sessionsList" style="margin-top: 16px;"></div>
+    </div>
+    
+    <!-- Module 4: Feature Flags -->
+    <div class="card">
+      <h4>4. Feature Flags</h4>
+      <div class="grid-2">
+        <input type="text" id="flagKey" placeholder="Flag Key (e.g., raid_mode)">
+        <select id="flagEnabled">
+          <option value="true">Enabled</option>
+          <option value="false">Disabled</option>
+        </select>
+      </div>
+      <input type="text" id="flagDesc" placeholder="Description">
+      <div class="grid-2">
+        <button class="green interactive-active" id="btnSaveFlag">Save Flag</button>
+        <button class="interactive-active" id="btnRefreshFlags">Refresh Flags</button>
+      </div>
+      <div id="flagsList" style="margin-top: 16px;"></div>
+    </div>
+    
+    <!-- Module 5: Announcements -->
+    <div class="card">
+      <h4>5. Pinned Announcements</h4>
+      <div class="action-row" style="margin-bottom: 12px;">
+        <button type="button" class="interactive-active" id="btnPresetDrag">Drag Meet</button>
+        <button type="button" class="interactive-active" id="btnPresetMaint">Maintenance</button>
+        <button type="button" class="interactive-active" id="btnPresetVip">VIP Lounge</button>
+      </div>
+      <input type="text" id="announceName" placeholder="Admin Name (e.g. Administration)">
+      <textarea id="announceText" placeholder="Broadcast message content..." rows="3"></textarea>
+      <div class="grid-2">
+        <button class="green interactive-active" id="btnPublishPin">Publish Pin</button>
+        <button class="danger interactive-active" id="btnClearPin">Clear Pin</button>
+      </div>
+    </div>
+    
+    <!-- Module 6: Audit Logs -->
+    <div class="card">
+      <h4>6. Audit Logs</h4>
+      <div class="grid-2">
+        <input type="text" id="auditAction" placeholder="Action (e.g., BAN_USER)">
+        <input type="text" id="auditUser" placeholder="Target or Admin Username">
+      </div>
+      <button class="gold interactive-active" id="btnLoadAudit" style="width:100%;">Load Logs</button>
+      <div id="auditList" style="margin-top: 16px; max-height: 400px; overflow-y: auto;"></div>
+    </div>
+    
+    <!-- Module 7: VIP Key Generator -->
+    <div class="card">
+      <h4>7. VIP Key Generator</h4>
+      <div class="grid-4" style="margin-bottom: 12px;">
+        <select id="vipKeyType">
+          <option value="VIP">VIP</option>
+          <option value="ULTRA">ULTRA VIP</option>
+        </select>
+        <input type="number" id="vipKeyCount" placeholder="Count (1-20)" min="1" max="20" value="1">
+        <input type="number" id="vipKeyDuration" placeholder="Days (e.g. 30)" value="30">
+      </div>
+      <div class="grid-2">
+        <button class="green interactive-active" id="btnGenerateVipKeys">Generate Keys</button>
+        <button class="gold interactive-active" id="btnLoadVipKeys">Load Keys</button>
+      </div>
+      <div id="vipKeysList" style="margin-top: 16px; max-height: 400px; overflow-y: auto;"></div>
+    </div>
+    
+  </div>
 
-  try {
-    // Utilize the analytics endpoint as a strict ADMIN-role validation gateway
-    const res = await fetch('/api/admin/analytics', { headers: getAuthHeaders() });
-    if (!res.ok) {
-      // Token exists but belongs to a regular user. Do not delete their token.
-      const errEl = document.getElementById('loginError');
-      errEl.textContent = "Access Denied: Account is not an administrator.";
+  <script>
+    let token = localStorage.getItem('wall_token');
+    
+    function getAuthHeaders() {
+      return {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      };
+    }
+    
+    function setStatus(msg, isError = false) {
+      const el = document.getElementById('statusMsg');
+      el.style.display = 'block';
+      el.textContent = msg;
+      el.style.borderColor = isError ? 'rgba(239, 68, 68, 0.4)' : 'rgba(6, 182, 212, 0.4)';
+      el.style.color = isError ? '#fca5a5' : 'var(--cyan)';
+    }
+    
+    function escapeHtml(unsafe) {
+      if (!unsafe) return '';
+      return String(unsafe)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+    
+    function showLoginBox() {
+      document.getElementById('admin-login-box').style.display = 'block';
+      document.getElementById('admin-modules').style.display = 'none';
+      document.getElementById('btnLogout').style.display = 'none';
+      document.getElementById('statusMsg').style.display = 'none';
+    }
+    
+    function showModules() {
+      document.getElementById('admin-login-box').style.display = 'none';
+      document.getElementById('admin-modules').style.display = 'block';
+      document.getElementById('btnLogout').style.display = 'inline-block';
+    }
+    
+    function logout() {
+      localStorage.removeItem('wall_token');
+      localStorage.removeItem('wall_user');
+      token = null;
+      document.getElementById('statusMsg').style.display = 'none';
       showLoginBox();
-      return;
     }
     
-    setStatus("Authentication successful. Modules active.");
-    showModules();
-    loadAnalytics();
-  } catch (e) {
-    setStatus("Network Error.", true);
-    showLoginBox();
-  }
-}
-
-// --- Module 1: Analytics ---
-async function loadAnalytics() {
-  try {
-    const res = await fetch('/api/admin/analytics', { headers: getAuthHeaders() });
-    if (!res.ok) throw new Error("Failed to load analytics");
-    const data = await res.json();
-    
-    document.getElementById('analyticsGrid').innerHTML = DOMPurify.sanitize(`
-      <div class="stat-box"><div class="stat-val">${data.totalUsers || 0}</div><div class="stat-label">Total Users</div></div>
-      <div class="stat-box"><div class="stat-val" style="color:#22c55e;">${data.activeToday || 0}</div><div class="stat-label">Active Today</div></div>
-      <div class="stat-box"><div class="stat-val">${data.totalPosts || 0}</div><div class="stat-label">Total Posts</div></div>
-      <div class="stat-box"><div class="stat-val" style="color:#f59e0b;">${data.postsToday || 0}</div><div class="stat-label">Posts Today</div></div>
-    `);
-
-    let postersHtml = data.topPosters && data.topPosters.length > 0 
-      ? data.topPosters.map(p => `<span class="badge">${escapeHtml(p.username)}: ${p.count}</span>`).join(' ')
-      : "No posts today.";
-    document.getElementById('topPostersList').innerHTML = DOMPurify.sanitize(postersHtml);
-
-    setStatus("Analytics refreshed.");
-  } catch (err) {
-    setStatus(err.message, true);
-  }
-}
-
-// --- Module 2: Users ---
-async function loadUsers() {
-  const q = document.getElementById('userSearch').value;
-  const role = document.getElementById('userRoleFilter').value;
-  try {
-    const res = await fetch(`/api/admin/users?q=${encodeURIComponent(q)}&role=${encodeURIComponent(role)}`, { headers: getAuthHeaders() });
-    if (!res.ok) throw new Error("Failed to load users");
-    const data = await res.json();
-    
-    let html = data.users.length === 0 ? '<div style="color:#a1a1aa; font-size:12px;">No users found.</div>' : '';
-    data.users.forEach(u => {
-      const badgeCls = u.role === 'ADMIN' ? 'admin' : (u.role === 'VIP' ? 'vip' : '');
-      const roleDisplay = u.role === 'ADMIN' ? '  ULTRA VIP + ADMIN' : escapeHtml(u.role || 'USER');
-      const bannedTag = u.isBanned ? '<span class="badge admin">BANNED</span>' : '';
+    async function handleAdminLogin() {
+      const u = document.getElementById('adminUser').value.trim();
+      const p = document.getElementById('adminPass').value;
+      const errEl = document.getElementById('loginError');
+      errEl.textContent = "";
       
-      html += `
-        <div class="list-item">
-          <div>
-            <b>${escapeHtml(u.username)}</b> 
-            <span class="badge ${badgeCls}">${roleDisplay}</span>
-            ${bannedTag}
-          </div>
-          <div style="font-size:11px; color:#8b8fa3;">IP: ${escapeHtml(u.ip)}</div>
-          <div class="action-row">
-            <button class="btn-role" data-uname="${escapeHtml(u.username)}">Change Role</button>
-            <button class="btn-ban danger" data-uname="${escapeHtml(u.username)}">Ban</button>
-          </div>
-        </div>
-      `;
-    });
-    document.getElementById('usersList').innerHTML = DOMPurify.sanitize(html);
-    setStatus("Users loaded.");
-  } catch (err) {
-    setStatus(err.message, true);
-  }
-}
-
-document.getElementById('usersList').addEventListener('click', async (e) => {
-  if (e.target.classList.contains('btn-role')) {
-    const uname = e.target.getAttribute('data-uname');
-    const newRole = prompt(`Enter new role for ${uname} (ADMIN, VIP, MOD, USER):`, "USER");
-    if (!newRole) return;
-    try {
-      const res = await fetch('/api/admin/users', {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ action: 'update_role', targetUsername: uname, role: newRole })
-      });
-      if (res.ok) { setStatus("Role updated."); loadUsers(); }
-      else { const d = await res.json(); setStatus(d.error, true); }
-    } catch (err) { setStatus('Request failed. Check your connection and try again.', true); }
-  }
-  if (e.target.classList.contains('btn-ban')) {
-    const uname = e.target.getAttribute('data-uname');
-    const reason = prompt(`Reason for banning ${uname}:`, "Violation of rules");
-    if (reason === null) return;
-    const hours = prompt("Ban duration in hours (0 for permanent):", "0");
-    if (hours === null) return;
-    try {
-      const res = await fetch('/api/admin/users', {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ action: 'ban', targetUsername: uname, reason, hours: Number(hours) })
-      });
-      if (res.ok) { setStatus("User banned."); loadUsers(); }
-      else { const d = await res.json(); setStatus(d.error, true); }
-    } catch (err) { setStatus('Request failed. Check your connection and try again.', true); }
-  }
-});
-
-// --- Module 3: Sessions ---
-async function loadSessions() {
-  const q = document.getElementById('sessionSearch').value;
-  try {
-    const res = await fetch(`/api/admin/sessions${q ? '?username=' + encodeURIComponent(q) : ''}`, { headers: getAuthHeaders() });
-    if (!res.ok) throw new Error("Failed to load sessions");
-    const data = await res.json();
-    
-    let html = data.sessions.length === 0 ? '<div style="color:#a1a1aa; font-size:12px;">No sessions found.</div>' : '';
-    data.sessions.forEach(s => {
-      html += `
-        <div class="list-item">
-          <div><b>${escapeHtml(s.username)}</b> <span class="badge" style="background:#2563eb;">${escapeHtml(s.id)}</span></div>
-          <div style="font-size:11px; color:#8b8fa3;">Created: ${new Date(s.createdAt).toLocaleString()}</div>
-          <div class="action-row"><button class="btn-revoke danger" data-sid="${escapeHtml(s.id)}">Revoke Session</button></div>
-        </div>
-      `;
-    });
-    document.getElementById('sessionsList').innerHTML = DOMPurify.sanitize(html);
-    setStatus("Sessions loaded.");
-  } catch (err) {
-    setStatus(err.message, true);
-  }
-}
-
-document.getElementById('sessionsList').addEventListener('click', async (e) => {
-  if (e.target.classList.contains('btn-revoke')) {
-    const sid = e.target.getAttribute('data-sid');
-    if (!confirm("Revoke this active session?")) return;
-    try {
-      const res = await fetch('/api/admin/sessions', {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ action: 'revoke', sessionId: sid })
-      });
-      if (res.ok) { setStatus("Session revoked."); loadSessions(); }
-      else { const d = await res.json(); setStatus(d.error, true); }
-    } catch (err) { setStatus('Request failed. Check your connection and try again.', true); }
-  }
-});
-
-// --- Module 4: Flags ---
-async function loadFlags() {
-  try {
-    const res = await fetch('/api/admin/flags', { headers: getAuthHeaders() });
-    if (!res.ok) throw new Error("Failed to load flags");
-    const data = await res.json();
-    
-    let html = data.flags.length === 0 ? '<div style="color:#a1a1aa; font-size:12px;">No flags found.</div>' : '';
-    data.flags.forEach(f => {
-      const statusBadge = f.enabled ? '<span class="badge active">ENABLED</span>' : '<span class="badge admin">DISABLED</span>';
-      html += `
-        <div class="list-item">
-          <div><b>${escapeHtml(f.key)}</b> ${statusBadge}</div>
-          <div style="font-size:11px; color:#8b8fa3;">${escapeHtml(f.description)}</div>
-          <div class="action-row"><button class="btn-del-flag danger" data-key="${escapeHtml(f.key)}">Delete Flag</button></div>
-        </div>
-      `;
-    });
-    document.getElementById('flagsList').innerHTML = DOMPurify.sanitize(html);
-  } catch (err) {
-    setStatus(err.message, true);
-  }
-}
-
-async function saveFlag() {
-  const key = document.getElementById('flagKey').value.trim();
-  const enabled = document.getElementById('flagEnabled').value === "true";
-  const desc = document.getElementById('flagDesc').value.trim();
-  if (!key) return setStatus("Flag key is required.", true);
-  try {
-    const res = await fetch('/api/admin/flags', {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      body: JSON.stringify({ action: 'set', key, enabled, description: desc })
-    });
-    if (res.ok) { setStatus("Flag saved."); document.getElementById('flagKey').value = ''; loadFlags(); }
-    else { const d = await res.json(); setStatus(d.error, true); }
-  } catch (err) {}
-}
-
-document.getElementById('flagsList').addEventListener('click', async (e) => {
-  if (e.target.classList.contains('btn-del-flag')) {
-    const key = e.target.getAttribute('data-key');
-    if (!confirm(`Delete feature flag '${key}'?`)) return;
-    try {
-      const res = await fetch('/api/admin/flags', {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ action: 'delete', key })
-      });
-      if (res.ok) { setStatus("Flag deleted."); loadFlags(); }
-    } catch (err) { setStatus('Request failed. Check your connection and try again.', true); }
-  }
-});
-
-// --- Module 5: Announcements ---
-function presetAnnouncement(type) {
-  const nameEl = document.getElementById('announceName');
-  const textEl = document.getElementById('announceText');
-  nameEl.value = "Administration Team";
-  if (type === 'drag') textEl.value = "  Drag meet starting in Room 4! Bring your sub-6s AWD builds. Clean runs only.";
-  if (type === 'maint') textEl.value = "  Lobby server maintenance in 10 minutes. Chats will briefly pause.";
-  if (type === 'vip') textEl.value = "  VIP Lounge ($1 / 300 PKR) & 24h Pinned slots open! Message WhatsApp to buy.";
-}
-
-async function publishAnnouncement(active) {
-  const text = document.getElementById('announceText').value.trim();
-  const name = document.getElementById('announceName').value.trim() || 'ADMIN';
-  if (active && !text) return setStatus("Enter message content.", true);
-  try {
-    const res = await fetch('/api/post', {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      body: JSON.stringify({ action: 'pin', text, name, active, isAnnouncement: active })
-    });
-    if (res.ok) setStatus(active ? "Announcement pinned successfully." : "Pin cleared.");
-    else { const d = await res.json(); setStatus(d.error, true); }
-  } catch (err) {}
-}
-
-// --- Module 6: Audit Logs ---
-async function loadAudit() {
-  const action = document.getElementById('auditAction').value.trim();
-  const user = document.getElementById('auditUser').value.trim();
-  let url = '/api/admin/audit?limit=50';
-  if (action) url += `&action=${encodeURIComponent(action)}`;
-  if (user) url += `&userId=${encodeURIComponent(user)}`;
-  
-  try {
-    const res = await fetch(url, { headers: getAuthHeaders() });
-    if (!res.ok) throw new Error("Failed to load audit logs");
-    const data = await res.json();
-    
-    let html = data.logs.length === 0 ? '<div style="color:#a1a1aa; font-size:12px;">No logs found.</div>' : '';
-    data.logs.forEach(l => {
-      const time = l.timestamp ? new Date(l.timestamp).toLocaleString() : 'Unknown Time';
-      const meta = l.metadata ? JSON.stringify(l.metadata) : '{}';
-      html += `
-        <div class="list-item" style="border-left: 2px solid #38bdf8; padding-left: 8px;">
-          <div><b>${escapeHtml(l.action)}</b> by <b>${escapeHtml(l.adminUsername)}</b></div>
-          <div style="font-size:11px; color:#a1a1aa;">Target/IP: ${escapeHtml(l.targetUser || l.ip)}</div>
-          <div style="font-size:10px; color:#64748b;">${escapeHtml(time)} | Meta: ${escapeHtml(meta)}</div>
-        </div>
-      `;
-    });
-    document.getElementById('auditList').innerHTML = DOMPurify.sanitize(html);
-    setStatus("Audit logs loaded.");
-  } catch (err) {
-    setStatus(err.message, true);
-  }
-}
-
-// --- Module 7: VIP Keys ---
-async function loadVipKeys() {
-  try {
-    const res = await fetch('/api/admin/vip-keys', { headers: getAuthHeaders() });
-    if (!res.ok) throw new Error("Failed to load VIP keys");
-    const data = await res.json();
-    
-    let html = data.keys.length === 0 ? '<div style="color:#a1a1aa; font-size:12px;">No keys found.</div>' : '';
-    data.keys.forEach(k => {
-      const statusBadge = k.active 
-        ? (k.usedBy ? '<span class="badge" style="background:#64748b;">USED</span>' : '<span class="badge active">ACTIVE</span>') 
-        : '<span class="badge admin">INACTIVE</span>';
+      if (!u || !p) {
+        errEl.textContent = "Username and password required.";
+        return;
+      }
+      
+      document.getElementById('btnLoginSubmit').textContent = "Authenticating...";
+      
+      try {
+        const res = await fetch('/api/auth?action=login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: u, password: p })
+        });
         
-      const typeBadge = k.type === 'ULTRA' ? '<span class="badge ultra">ULTRA</span>' : '<span class="badge vip">VIP</span>';
-      
-      html += `
-        <div class="list-item">
-          <div>
-            <b>${escapeHtml(k.key)}</b> ${typeBadge} ${statusBadge}
-          </div>
-          <div style="font-size:11px; color:#a1a1aa;">
-            Duration: ${escapeHtml(k.durationDays)}d | Used by: ${escapeHtml(k.usedBy || 'None')}
-          </div>
-          <div class="action-row" style="margin-top:4px;">
-            <button class="btn-toggle-key ${k.active ? 'gold' : 'green'}" data-key="${escapeHtml(k.key)}">Toggle Status</button>
-            <button class="btn-revoke-key danger" data-key="${escapeHtml(k.key)}">Revoke/Delete</button>
-          </div>
-        </div>
-      `;
-    });
-    document.getElementById('vipKeysList').innerHTML = DOMPurify.sanitize(html);
-    setStatus("VIP Keys loaded.");
-  } catch (err) {
-    setStatus(err.message, true);
-  }
-}
-
-async function generateVipKeys() {
-  const type = document.getElementById('vipKeyType').value;
-  const count = Number(document.getElementById('vipKeyCount').value) || 1;
-  const durationDays = Number(document.getElementById('vipKeyDuration').value) || 30;
-  
-  try {
-    const res = await fetch('/api/admin/vip-keys', {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      body: JSON.stringify({ action: 'create', type, count, durationDays })
-    });
-    if (res.ok) { 
-      setStatus(`Successfully generated ${count} ${type} keys.`); 
-      loadVipKeys(); 
+        const data = await res.json();
+        
+        if (!res.ok) {
+          errEl.textContent = data.error || "Login failed.";
+          document.getElementById('btnLoginSubmit').textContent = "Secure Login";
+          return;
+        }
+        
+        // Temporarily hold token to verify admin authorization
+        token = data.token;
+        
+        const verifyRes = await fetch('/api/admin/analytics', { headers: getAuthHeaders() });
+        if (!verifyRes.ok) {
+            token = localStorage.getItem('wall_token'); 
+            errEl.textContent = "Access Denied: ADMIN only.";
+            document.getElementById('btnLoginSubmit').textContent = "Secure Login";
+            return;
+        }
+        
+        // Role verified. Safely store session.
+        localStorage.setItem('wall_token', data.token);
+        localStorage.setItem('wall_user', data.username);
+        document.getElementById('adminUser').value = '';
+        document.getElementById('adminPass').value = '';
+        document.getElementById('btnLoginSubmit').textContent = "Secure Login";
+        
+        setStatus("Authentication successful. Modules active.");
+        showModules();
+        loadAnalytics();
+      } catch (err) {
+        errEl.textContent = "Network error during login.";
+        document.getElementById('btnLoginSubmit').textContent = "Secure Login";
+      }
     }
-    else { const d = await res.json(); setStatus(d.error, true); }
-  } catch (err) {
-    setStatus("Generation error.", true);
-  }
-}
-
-document.getElementById('vipKeysList').addEventListener('click', async (e) => {
-  if (e.target.classList.contains('btn-toggle-key')) {
-    const keyId = e.target.getAttribute('data-key');
-    try {
-      const res = await fetch('/api/admin/vip-keys', {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ action: 'toggle', key: keyId })
-      });
-      if (res.ok) { loadVipKeys(); }
-    } catch (err) { setStatus('Request failed. Check your connection and try again.', true); }
-  }
-  if (e.target.classList.contains('btn-revoke-key')) {
-    const keyId = e.target.getAttribute('data-key');
-    if (!confirm(`Revoke and delete key ${keyId}?`)) return;
-    try {
-      const res = await fetch('/api/admin/vip-keys', {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ action: 'revoke', key: keyId })
-      });
-      if (res.ok) { setStatus("Key revoked."); loadVipKeys(); }
-    } catch (err) { setStatus('Request failed. Check your connection and try again.', true); }
-  }
-});
-
-// Event Listeners (Zero Inline OnClick)
-document.getElementById('btnLogout').addEventListener('click', logout);
-document.getElementById('btnRefreshAnalytics').addEventListener('click', loadAnalytics);
-document.getElementById('btnSearchUsers').addEventListener('click', loadUsers);
-document.getElementById('btnLoadSessions').addEventListener('click', loadSessions);
-document.getElementById('btnSaveFlag').addEventListener('click', saveFlag);
-document.getElementById('btnRefreshFlags').addEventListener('click', loadFlags);
-document.getElementById('btnPresetDrag').addEventListener('click', () => presetAnnouncement('drag'));
-document.getElementById('btnPresetMaint').addEventListener('click', () => presetAnnouncement('maint'));
-document.getElementById('btnPresetVip').addEventListener('click', () => presetAnnouncement('vip'));
-document.getElementById('btnPublishPin').addEventListener('click', () => publishAnnouncement(true));
-document.getElementById('btnClearPin').addEventListener('click', () => publishAnnouncement(false));
-document.getElementById('btnLoadAudit').addEventListener('click', loadAudit);
-document.getElementById('btnLoadVipKeys').addEventListener('click', loadVipKeys);
-document.getElementById('btnGenerateVipKeys').addEventListener('click', generateVipKeys);
-
-// Boot
-checkAuth();
-</script>
+    
+    async function checkAuth() {
+      if (!token) {
+        showLoginBox();
+        return;
+      }
+      setStatus("Authenticating securely...");
+      try {
+        const res = await fetch('/api/admin/analytics', { headers: getAuthHeaders() });
+        if (!res.ok) {
+          const errEl = document.getElementById('loginError');
+          errEl.textContent = "Access Denied: Account is not an administrator.";
+          showLoginBox();
+          return;
+        }
+        setStatus("Authentication successful. Modules active.");
+        showModules();
+        loadAnalytics();
+      } catch (e) {
+        setStatus("Network Error.", true);
+        showLoginBox();
+      }
+    }
+    
+    // --- Module 1: Analytics ---
+    async function loadAnalytics() {
+      try {
+        const res = await fetch('/api/admin/analytics', { headers: getAuthHeaders() });
+        if (!res.ok) throw new Error("Failed to load analytics");
+        const data = await res.json();
+        
+        document.getElementById('analyticsGrid').innerHTML = DOMPurify.sanitize(`
+          <div class="stat-box"><div class="stat-val">${data.totalUsers || 0}</div><div class="stat-label">Total Users</div></div>
+          <div class="stat-box"><div class="stat-val" style="color:#6ee7b7;">${data.activeToday || 0}</div><div class="stat-label">Active Today</div></div>
+          <div class="stat-box"><div class="stat-val">${data.totalPosts || 0}</div><div class="stat-label">Total Posts</div></div>
+          <div class="stat-box"><div class="stat-val" style="color:#fcd34d;">${data.postsToday || 0}</div><div class="stat-label">Posts Today</div></div>
+        `);
+        
+        let postersHtml = data.topPosters && data.topPosters.length > 0 
+          ? data.topPosters.map(p => `<span class="badge">${escapeHtml(p.username)}: ${p.count}</span>`).join('') 
+          : "<span style='color:var(--text-secondary);'>No posts today.</span>";
+        
+        document.getElementById('topPostersList').innerHTML = DOMPurify.sanitize(postersHtml);
+        setStatus("Analytics refreshed.");
+      } catch (err) {
+        setStatus(err.message, true);
+      }
+    }
+    
+    // --- Module 2: Users ---
+    async function loadUsers() {
+      const q = document.getElementById('userSearch').value;
+      const role = document.getElementById('userRoleFilter').value;
+      try {
+        const res = await fetch(`/api/admin/users?q=${encodeURIComponent(q)}&role=${encodeURIComponent(role)}`, { headers: getAuthHeaders() });
+        if (!res.ok) throw new Error("Failed to load users");
+        const data = await res.json();
+        
+        let html = data.users.length === 0 ? '<div style="color:var(--text-secondary); font-size:13px;">No users found.</div>' : '';
+        data.users.forEach(u => {
+          const badgeCls = u.role === 'ADMIN' ? 'admin' : (u.role === 'VIP' ? 'vip' : '');
+          const roleDisplay = u.role === 'ADMIN' ? 'ULTRA VIP + ADMIN' : escapeHtml(u.role || 'USER');
+          const bannedTag = u.isBanned ? '<span class="badge admin">BANNED</span>' : '';
+          
+          html += `
+            <div class="list-item">
+              <div>
+                <b>${escapeHtml(u.username)}</b> 
+                <span class="badge ${badgeCls}">${roleDisplay}</span>
+                ${bannedTag}
+              </div>
+              <div style="font-size:12px; color:var(--text-secondary);">IP: ${escapeHtml(u.ip)}</div>
+              <div class="action-row">
+                <button class="btn-role interactive-active" data-uname="${escapeHtml(u.username)}">Change Role</button>
+                <button class="btn-ban danger interactive-active" data-uname="${escapeHtml(u.username)}">Ban</button>
+              </div>
+            </div>
+          `;
+        });
+        document.getElementById('usersList').innerHTML = DOMPurify.sanitize(html);
+        setStatus("Users loaded.");
+      } catch (err) {
+        setStatus(err.message, true);
+      }
+    }
+    
+    document.getElementById('usersList').addEventListener('click', async (e) => {
+      if (e.target.classList.contains('btn-role')) {
+        const uname = e.target.getAttribute('data-uname');
+        const newRole = prompt(`Enter new role for ${uname} (ADMIN, VIP, MOD, USER):`, "USER");
+        if (!newRole) return;
+        try {
+          const res = await fetch('/api/admin/users', {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ action: 'update_role', targetUsername: uname, role: newRole })
+          });
+          if (res.ok) { setStatus("Role updated."); loadUsers(); }
+          else { const d = await res.json(); setStatus(d.error, true); }
+        } catch (err) { setStatus('Request failed.', true); }
+      }
+      if (e.target.classList.contains('btn-ban')) {
+        const uname = e.target.getAttribute('data-uname');
+        const reason = prompt(`Reason for banning ${uname}:`, "Violation of rules");
+        if (reason === null) return;
+        const hours = prompt("Ban duration in hours (0 for permanent):", "0");
+        if (hours === null) return;
+        try {
+          const res = await fetch('/api/admin/users', {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ action: 'ban', targetUsername: uname, reason, hours: Number(hours) })
+          });
+          if (res.ok) { setStatus("User banned."); loadUsers(); }
+          else { const d = await res.json(); setStatus(d.error, true); }
+        } catch (err) { setStatus('Request failed.', true); }
+      }
+    });
+    
+    // --- Module 3: Sessions ---
+    async function loadSessions() {
+      const q = document.getElementById('sessionSearch').value;
+      try {
+        const res = await fetch(`/api/admin/sessions${q ? '?username=' + encodeURIComponent(q) : ''}`, { headers: getAuthHeaders() });
+        if (!res.ok) throw new Error("Failed to load sessions");
+        const data = await res.json();
+        
+        let html = data.sessions.length === 0 ? '<div style="color:var(--text-secondary); font-size:13px;">No sessions found.</div>' : '';
+        data.sessions.forEach(s => {
+          html += `
+            <div class="list-item">
+              <div><b>${escapeHtml(s.username)}</b> <span class="badge" style="background:rgba(6, 182, 212, 0.15); color:var(--cyan); border-color:var(--cyan);">${escapeHtml(s.id)}</span></div>
+              <div style="font-size:12px; color:var(--text-secondary);">Created: ${new Date(s.createdAt).toLocaleString()}</div>
+              <div class="action-row"><button class="btn-revoke danger interactive-active" data-sid="${escapeHtml(s.id)}">Revoke Session</button></div>
+            </div>
+          `;
+        });
+        document.getElementById('sessionsList').innerHTML = DOMPurify.sanitize(html);
+        setStatus("Sessions loaded.");
+      } catch (err) {
+        setStatus(err.message, true);
+      }
+    }
+    
+    document.getElementById('sessionsList').addEventListener('click', async (e) => {
+      if (e.target.classList.contains('btn-revoke')) {
+        const sid = e.target.getAttribute('data-sid');
+        if (!confirm("Revoke this active session?")) return;
+        try {
+          const res = await fetch('/api/admin/sessions', {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ action: 'revoke', sessionId: sid })
+          });
+          if (res.ok) { setStatus("Session revoked."); loadSessions(); }
+          else { const d = await res.json(); setStatus(d.error, true); }
+        } catch (err) { setStatus('Request failed.', true); }
+      }
+    });
+    
+    // --- Module 4: Flags ---
+    async function loadFlags() {
+      try {
+        const res = await fetch('/api/admin/flags', { headers: getAuthHeaders() });
+        if (!res.ok) throw new Error("Failed to load flags");
+        const data = await res.json();
+        
+        let html = data.flags.length === 0 ? '<div style="color:var(--text-secondary); font-size:13px;">No flags found.</div>' : '';
+        data.flags.forEach(f => {
+          const statusBadge = f.enabled ? '<span class="badge active">ENABLED</span>' : '<span class="badge admin">DISABLED</span>';
+          html += `
+            <div class="list-item">
+              <div><b>${escapeHtml(f.key)}</b> ${statusBadge}</div>
+              <div style="font-size:12px; color:var(--text-secondary);">${escapeHtml(f.description)}</div>
+              <div class="action-row"><button class="btn-del-flag danger interactive-active" data-key="${escapeHtml(f.key)}">Delete Flag</button></div>
+            </div>
+          `;
+        });
+        document.getElementById('flagsList').innerHTML = DOMPurify.sanitize(html);
+      } catch (err) {
+        setStatus(err.message, true);
+      }
+    }
+    
+    async function saveFlag() {
+      const key = document.getElementById('flagKey').value.trim();
+      const enabled = document.getElementById('flagEnabled').value === "true";
+      const desc = document.getElementById('flagDesc').value.trim();
+      if (!key) return setStatus("Flag key is required.", true);
+      try {
+        const res = await fetch('/api/admin/flags', {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          body: JSON.stringify({ action: 'set', key, enabled, description: desc })
+        });
+        if (res.ok) { setStatus("Flag saved."); document.getElementById('flagKey').value = ''; loadFlags(); }
+        else { const d = await res.json(); setStatus(d.error, true); }
+      } catch (err) {}
+    }
+    
+    document.getElementById('flagsList').addEventListener('click', async (e) => {
+      if (e.target.classList.contains('btn-del-flag')) {
+        const key = e.target.getAttribute('data-key');
+        if (!confirm(`Delete feature flag '${key}'?`)) return;
+        try {
+          const res = await fetch('/api/admin/flags', {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ action: 'delete', key })
+          });
+          if (res.ok) { setStatus("Flag deleted."); loadFlags(); }
+        } catch (err) { setStatus('Request failed.', true); }
+      }
+    });
+    
+    // --- Module 5: Announcements ---
+    function presetAnnouncement(type) {
+      const nameEl = document.getElementById('announceName');
+      const textEl = document.getElementById('announceText');
+      nameEl.value = "Administration Team";
+      if (type === 'drag') textEl.value = "Drag meet starting in Room 4! Bring your sub-6s AWD builds. Clean runs only.";
+      if (type === 'maint') textEl.value = "Lobby server maintenance in 10 minutes. Chats will briefly pause.";
+      if (type === 'vip') textEl.value = "VIP Lounge ($1 / 300 PKR) & 24h Pinned slots open! Message WhatsApp to buy.";
+    }
+    
+    async function publishAnnouncement(active) {
+      const text = document.getElementById('announceText').value.trim();
+      const name = document.getElementById('announceName').value.trim() || 'ADMIN';
+      if (active && !text) return setStatus("Enter message content.", true);
+      try {
+        const res = await fetch('/api/post', {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          body: JSON.stringify({ action: 'pin', text, name, active, isAnnouncement: active })
+        });
+        if (res.ok) setStatus(active ? "Announcement pinned successfully." : "Pin cleared.");
+        else { const d = await res.json(); setStatus(d.error, true); }
+      } catch (err) {}
+    }
+    
+    // --- Module 6: Audit Logs ---
+    async function loadAudit() {
+      const action = document.getElementById('auditAction').value.trim();
+      const user = document.getElementById('auditUser').value.trim();
+      let url = '/api/admin/audit?limit=50';
+      if (action) url += `&action=${encodeURIComponent(action)}`;
+      if (user) url += `&userId=${encodeURIComponent(user)}`;
+      try {
+        const res = await fetch(url, { headers: getAuthHeaders() });
+        if (!res.ok) throw new Error("Failed to load audit logs");
+        const data = await res.json();
+        
+        let html = data.logs.length === 0 ? '<div style="color:var(--text-secondary); font-size:13px;">No logs found.</div>' : '';
+        data.logs.forEach(l => {
+          const time = l.timestamp ? new Date(l.timestamp).toLocaleString() : 'Unknown Time';
+          const meta = l.metadata ? JSON.stringify(l.metadata) : '{}';
+          html += `
+            <div class="list-item" style="border-left: 3px solid var(--violet);">
+              <div><b style="color:var(--violet);">${escapeHtml(l.action)}</b> by <b>${escapeHtml(l.adminUsername)}</b></div>
+              <div style="font-size:12px; color:var(--text-secondary);">Target/IP: ${escapeHtml(l.targetUser || l.ip)}</div>
+              <div style="font-size:11px; color:var(--text-muted);">${escapeHtml(time)} | Meta: ${escapeHtml(meta)}</div>
+            </div>
+          `;
+        });
+        document.getElementById('auditList').innerHTML = DOMPurify.sanitize(html);
+        setStatus("Audit logs loaded.");
+      } catch (err) {
+        setStatus(err.message, true);
+      }
+    }
+    
+    // --- Module 7: VIP Keys ---
+    async function loadVipKeys() {
+      try {
+        const res = await fetch('/api/admin/vip-keys', { headers: getAuthHeaders() });
+        if (!res.ok) throw new Error("Failed to load VIP keys");
+        const data = await res.json();
+        
+        let html = data.keys.length === 0 ? '<div style="color:var(--text-secondary); font-size:13px;">No keys found.</div>' : '';
+        data.keys.forEach(k => {
+          const statusBadge = k.active 
+            ? (k.usedBy ? '<span class="badge" style="background:rgba(255,255,255,0.1); border-color:var(--border-strong);">USED</span>' : '<span class="badge active">ACTIVE</span>') 
+            : '<span class="badge admin">INACTIVE</span>';
+            
+          const typeBadge = k.type === 'ULTRA' ? '<span class="badge ultra">ULTRA</span>' : '<span class="badge vip">VIP</span>';
+          
+          html += `
+            <div class="list-item">
+              <div>
+                <b>${escapeHtml(k.key)}</b> ${typeBadge} ${statusBadge}
+              </div>
+              <div style="font-size:12px; color:var(--text-secondary);">
+                Duration: ${escapeHtml(k.durationDays)}d | Used by: ${escapeHtml(k.usedBy || 'None')}
+              </div>
+              <div class="action-row">
+                <button class="btn-toggle-key interactive-active ${k.active ? 'gold' : 'green'}" data-key="${escapeHtml(k.key)}">Toggle Status</button>
+                <button class="btn-revoke-key danger interactive-active" data-key="${escapeHtml(k.key)}">Revoke/Delete</button>
+              </div>
+            </div>
+          `;
+        });
+        document.getElementById('vipKeysList').innerHTML = DOMPurify.sanitize(html);
+        setStatus("VIP Keys loaded.");
+      } catch (err) {
+        setStatus(err.message, true);
+      }
+    }
+    
+    async function generateVipKeys() {
+      const type = document.getElementById('vipKeyType').value;
+      const count = Number(document.getElementById('vipKeyCount').value) || 1;
+      const durationDays = Number(document.getElementById('vipKeyDuration').value) || 30;
+      try {
+        const res = await fetch('/api/admin/vip-keys', {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          body: JSON.stringify({ action: 'create', type, count, durationDays })
+        });
+        if (res.ok) { 
+           setStatus(`Successfully generated ${count} ${type} keys.`);
+           loadVipKeys(); 
+         }
+        else { const d = await res.json(); setStatus(d.error, true); }
+      } catch (err) {
+        setStatus("Generation error.", true);
+      }
+    }
+    
+    document.getElementById('vipKeysList').addEventListener('click', async (e) => {
+      if (e.target.classList.contains('btn-toggle-key')) {
+        const keyId = e.target.getAttribute('data-key');
+        try {
+          const res = await fetch('/api/admin/vip-keys', {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ action: 'toggle', key: keyId })
+          });
+          if (res.ok) { loadVipKeys(); }
+        } catch (err) { setStatus('Request failed.', true); }
+      }
+      if (e.target.classList.contains('btn-revoke-key')) {
+        const keyId = e.target.getAttribute('data-key');
+        if (!confirm(`Revoke and delete key ${keyId}?`)) return;
+        try {
+          const res = await fetch('/api/admin/vip-keys', {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ action: 'revoke', key: keyId })
+          });
+          if (res.ok) { setStatus("Key revoked."); loadVipKeys(); }
+        } catch (err) { setStatus('Request failed.', true); }
+      }
+    });
+    
+    // Event Listeners (Zero Inline OnClick)
+    document.getElementById('btnLogout').addEventListener('click', logout);
+    document.getElementById('btnRefreshAnalytics').addEventListener('click', loadAnalytics);
+    document.getElementById('btnSearchUsers').addEventListener('click', loadUsers);
+    document.getElementById('btnLoadSessions').addEventListener('click', loadSessions);
+    document.getElementById('btnSaveFlag').addEventListener('click', saveFlag);
+    document.getElementById('btnRefreshFlags').addEventListener('click', loadFlags);
+    document.getElementById('btnPresetDrag').addEventListener('click', () => presetAnnouncement('drag'));
+    document.getElementById('btnPresetMaint').addEventListener('click', () => presetAnnouncement('maint'));
+    document.getElementById('btnPresetVip').addEventListener('click', () => presetAnnouncement('vip'));
+    document.getElementById('btnPublishPin').addEventListener('click', () => publishAnnouncement(true));
+    document.getElementById('btnClearPin').addEventListener('click', () => publishAnnouncement(false));
+    document.getElementById('btnLoadAudit').addEventListener('click', loadAudit);
+    document.getElementById('btnLoadVipKeys').addEventListener('click', loadVipKeys);
+    document.getElementById('btnGenerateVipKeys').addEventListener('click', generateVipKeys);
+    
+    // Boot
+    checkAuth();
+  </script>
 </body>
 </html>

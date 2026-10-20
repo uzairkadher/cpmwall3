@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,interactive-widget=resizes-content">
-<title>CPM Community Wall</title>
+<title>CPM Community Wall - Empire Studio</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
 <script>
   if (!localStorage.getItem('wall_token')) {
@@ -11,70 +11,53 @@
   }
 </script>
 <link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#080a12">
+<link rel="stylesheet" href="/design-tokens.css">
+<meta name="theme-color" content="#0a0a0f">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta property="og:title" content="Car Parking Multiplayer Wall">
-<meta property="og:description" content="Live room codes, drag setups, and real-time lobby chat.">
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://cpmwall3.vercel.app/">
-<meta property="og:image" content="https://cdn-icons-png.flaticon.com/512/3202/3202926.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Syne:wght@700&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg: #080a12;
-  --card: #151825;
-  --border: #24273f;
-  --accent: #00f0ff;
-  --bot: #ff3b9a;
-  --gold: #f59e0b;
-  --text: #ffffff;
-  --muted: #8b8fa3;
-}
+/* Empire Studio Global Resets & Application Shell */
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: 'Inter', sans-serif;
   -webkit-tap-highlight-color: transparent;
 }
 html, body {
   height: 100%;
   width: 100%;
   overflow: hidden;
+  font-family: var(--font-sans);
 }
 body {
-  background: radial-gradient(600px at top, #1a1f3d, var(--bg));
-  color: var(--text);
+  background-color: var(--bg-obsidian);
+  color: var(--text-primary);
   display: flex;
   justify-content: center;
   position: fixed;
   inset: 0;
   height: 100dvh;
-  padding: 6px 8px;
-  box-sizing: border-box;
+  padding: 0;
 }
 .container {
   width: 100%;
-  max-width: 580px;
+  max-width: 640px;
   height: 100%;
-  max-height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 6px;
   position: relative;
   overflow: hidden;
+  background: radial-gradient(circle at top, rgba(124, 58, 237, 0.05), transparent 60%);
 }
+
+/* Header & Top Nav */
 .header {
-  background: rgba(21, 24, 37, 0.85);
-  backdrop-filter: blur(15px);
-  border: 1px solid var(--border);
-  border-bottom: 2px solid #f59e0b;
-  border-radius: 12px;
-  padding: 8px 12px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-strong);
+  padding: var(--space-2);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -86,590 +69,523 @@ body {
 .header-left-pill {
   display: flex;
   align-items: center;
-  gap: 6px;
-  background: rgba(34, 197, 94, 0.15);
-  border: 1px solid rgba(34, 197, 94, 0.35);
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 0.72rem;
+  gap: 8px;
+  background: rgba(6, 182, 212, 0.1);
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  font-size: var(--text-14);
   font-weight: 600;
-  color: #4ade80;
+  color: var(--cyan);
 }
 .header-center-chip {
   display: flex;
   align-items: center;
-  gap: 6px;
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.1));
-  border: 1px solid #f59e0b;
-  padding: 3px 10px 3px 4px;
-  border-radius: 20px;
+  gap: 8px;
+  background: rgba(124, 58, 237, 0.1);
+  border: 1px solid var(--violet);
+  padding: 4px 12px 4px 6px;
+  border-radius: var(--radius-pill);
   cursor: pointer;
-  box-shadow: 0 0 6px rgba(245, 158, 11, 0.4);
 }
 .header-avatar {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  background: radial-gradient(180deg, #FFD95A, #FF9A00);
+  background: var(--violet);
   display: grid;
   place-items: center;
-  font-family: Syne, sans-serif;
   font-weight: 800;
-  font-size: 12px;
-  color: #000;
+  font-size: var(--text-14);
+  color: #fff;
   overflow: hidden;
 }
 .header-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .header-username {
-  font-size: 0.75rem;
-  font-weight: 800;
-  color: #fef08a;
+  font-size: var(--text-14);
+  font-weight: 700;
+  color: #fff;
 }
 .header-right-actions {
   display: flex;
-  gap: 6px;
-  align-items: center;
+  gap: var(--space-1);
 }
 .icon-btn {
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  background: #111424;
-  border: 1px solid rgba(0, 240, 255, 0.3);
-  color: var(--accent);
+  background: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
   display: grid;
   place-items: center;
-  font-size: 13px;
+  font-size: 16px;
   cursor: pointer;
-  transition: 0.2s;
 }
-.icon-btn.active { background: rgba(0, 240, 255, 0.15); box-shadow: 0 0 6px rgba(0, 240, 255, 0.4); }
-.announcement-banner {
-  background: linear-gradient(90deg, #991b1b, #7f1d1d);
-  border: 1px solid #ef4444;
-  border-radius: 8px;
-  padding: 6px 10px;
-  font-size: 0.75rem;
-  color: #fca5a5;
-  display: none;
-  flex-shrink: 0;
-  font-weight: 700;
+.icon-btn.active {
+  background: rgba(6, 182, 212, 0.15);
+  border-color: var(--cyan);
+  color: var(--cyan);
 }
+
+/* Room Navigation */
 .room-bar {
   display: flex;
-  gap: 6px;
+  gap: var(--space-1);
+  padding: var(--space-2);
   flex-shrink: 0;
 }
 .room-tab {
   flex: 1;
-  background: #111424;
-  border: 1px solid var(--border);
-  color: var(--muted);
-  padding: 6px;
-  border-radius: 8px;
-  font-size: 0.75rem;
-  font-weight: 700;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  padding: 12px 8px;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-14);
+  font-weight: 600;
   cursor: pointer;
   text-align: center;
-  user-select: none;
-  transition: all 0.15s ease;
+  transition: all var(--transition-fast);
+  min-height: 44px;
 }
 .room-tab.active {
-  background: linear-gradient(135deg, #1e295a, #1e1b4b);
-  border-color: var(--accent);
+  background: rgba(124, 58, 237, 0.15);
+  border-color: var(--violet);
   color: #fff;
 }
 .room-tab.vip.active {
-  background: linear-gradient(135deg, #713f12, #451a03);
-  border-color: var(--gold);
+  background: rgba(245, 158, 11, 0.15);
+  border-color: #f59e0b;
   color: #fef08a;
 }
 .room-tab.market.active {
-  background: linear-gradient(135deg, #064e3b, #022c22);
+  background: rgba(16, 185, 129, 0.15);
   border-color: #10b981;
   color: #a7f3d0;
 }
-.pinned {
-  background: linear-gradient(90deg, rgba(0, 240, 255, 0.1), rgba(255, 59, 154, 0.1));
-  border: 1px solid rgba(0, 240, 255, 0.25);
-  border-radius: 10px;
-  padding: 6px 10px;
-  font-size: 0.74rem;
-  color: #ff8ac6;
+
+/* Banners & Pinned */
+.announcement-banner, .pinned {
+  background: var(--surface-elevated);
+  border-left: 4px solid var(--violet);
+  margin: 0 var(--space-2) var(--space-1);
+  padding: 10px 14px;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  font-size: var(--text-14);
+  color: var(--text-primary);
   display: none;
   flex-shrink: 0;
-  max-height: 52px;
-  overflow-y: auto;
 }
-.pinned b { color: #fff; margin-right: 4px; }
-.social { display: flex; gap: 5px; flex-shrink: 0; }
-.sbtn {
-  flex: 1;
-  padding: 5px 3px;
-  border-radius: 8px;
-  text-align: center;
-  text-decoration: none;
-  color: #fff;
-  font-size: 0.7rem;
-  font-weight: 600;
-  border: none;
-  cursor: pointer;
-  white-space: nowrap;
-}
+.announcement-banner { border-left-color: #ef4444; }
+
+/* Filter & Search */
 .filter-row {
   display: flex;
-  gap: 6px;
+  margin: 0 var(--space-2) var(--space-1);
+  background: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 4px 12px;
   align-items: center;
-  background: #111424;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 4px 8px;
-  flex-shrink: 0;
 }
 .filter-row input {
   background: transparent;
   border: none;
   outline: none;
   color: #fff;
-  font-size: 0.78rem;
+  font-size: var(--text-14);
   flex: 1;
+  height: 36px;
 }
 .clear-filter {
-  color: var(--muted);
-  font-size: 11px;
+  color: var(--text-muted);
+  font-size: 12px;
   cursor: pointer;
   display: none;
+  padding: 8px;
 }
+
+/* Skeletons & Empty States */
+.skeletons-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-2);
+}
+.skeleton-card {
+  height: 72px;
+  border-radius: var(--radius-lg) var(--radius-lg) var(--radius-lg) 4px;
+  width: 85%;
+}
+.skeleton-card.me {
+  align-self: flex-end;
+  border-radius: var(--radius-lg) var(--radius-lg) 4px var(--radius-lg);
+}
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  color: var(--text-secondary);
+}
+.btn-primary {
+  background: var(--violet);
+  color: #fff;
+  border: none;
+  padding: 12px 24px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: var(--text-14);
+  margin-top: 16px;
+  cursor: pointer;
+  min-height: 44px;
+}
+
+/* Feed */
 .feed {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 10px;
   flex: 1 1 0;
   min-height: 0;
   overflow-y: auto;
-  padding: 2px;
+  padding: var(--space-2);
+  padding-bottom: calc(100px + var(--safe-area-bottom));
 }
 .bubble {
   max-width: 85%;
-  padding: 8px 12px;
-  border-radius: 14px 14px 14px 4px;
-  background: var(--card);
-  border: 1px solid var(--border);
+  padding: 12px;
+  border-radius: var(--radius-lg) var(--radius-lg) var(--radius-lg) 4px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
   align-self: flex-start;
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  box-sizing: border-box;
+  gap: 6px;
 }
 .bubble.me {
   align-self: flex-end;
-  border-radius: 14px 14px 4px 14px;
-  background: linear-gradient(135deg, #1e2a5a, #1a254f);
-  border-color: var(--accent);
+  border-radius: var(--radius-lg) var(--radius-lg) 4px var(--radius-lg);
+  background: var(--glass-bg);
+  border-color: rgba(124, 58, 237, 0.4);
 }
 .bubble.bot {
-  border-color: var(--bot);
-  box-shadow: 0 0 6px rgba(255, 59, 154, 0.3);
-  background: #1e1628;
+  border-color: var(--cyan);
+  background: rgba(6, 182, 212, 0.05);
 }
 .bubble.vip-bubble {
-  background: linear-gradient(135deg, #2b1f0c, #1f1505) !important;
-  border: 1.5px solid #f59e0b !important;
-  box-shadow: 0 0 6px rgba(245, 158, 11, 0.4) !important;
+  background: linear-gradient(135deg, rgba(245,158,11,0.1), rgba(217,119,6,0.05)) !important;
+  border: 1px solid rgba(245,158,11,0.4) !important;
 }
 .quoted-preview {
   background: rgba(0, 0, 0, 0.3);
-  border-left: 2px solid var(--accent);
-  padding: 4px 8px;
+  border-left: 2px solid var(--violet);
+  padding: 6px 10px;
   border-radius: 4px;
-  font-size: 11px;
-  color: #94a3b8;
-  margin-bottom: 2px;
+  font-size: 12px;
+  color: var(--text-secondary);
 }
 .author-line {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
   width: 100%;
 }
 .author {
   font-weight: 700;
-  font-size: 0.75rem;
+  font-size: var(--text-14);
+  color: var(--violet);
   display: flex;
-  gap: 5px;
+  gap: 6px;
   align-items: center;
-  color: var(--accent);
-  cursor: pointer;
 }
-.bubble.bot .author { color: var(--bot); }
-.author.vip-glow {
-  font-weight: 800;
-  letter-spacing: 0.2px;
-  color: #FFD700;
-}
-.meta { font-size: 10px; color: var(--muted); }
-.admin-badge {
-  background: #dc2626 !important;
-  color: #ffffff !important;
-  font-size: 8px;
-  padding: 1px 5px;
-  border-radius: 4px;
-  font-weight: 700;
-  box-shadow: none !important;
-}
-.vip-badge {
-  background: #FFD700 !important;
-  color: #000000 !important;
-  font-size: 8px;
-  padding: 1px 5px;
-  border-radius: 4px;
-  font-weight: 700;
-  box-shadow: none !important;
-}
+.bubble.me .author { color: #a78bfa; }
+.bubble.bot .author { color: var(--cyan); }
+.author.vip-glow { color: #f59e0b; }
+.meta { font-size: 11px; color: var(--text-muted); }
+
+.admin-badge { background: #ef4444; color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 700; }
+.vip-badge { background: #f59e0b; color: #000; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 700; }
+
 .body {
-  font-size: 0.85rem;
-  line-height: 1.4;
+  font-size: 15px;
+  line-height: var(--line-height-base);
   word-break: break-word;
-  color: #ffffff !important;
-  width: 100%;
-  display: block;
+  color: var(--text-primary);
 }
 .bubble-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   margin-top: 4px;
-  font-size: 11px;
-  width: 100%;
 }
-.reaction-btn {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 2px 7px;
-  color: var(--muted);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 11px;
-}
-.reaction-btn.liked { color: #f97316; border-color: #f97316; }
-.action-icon-btn {
+.reaction-btn, .action-icon-btn {
   background: transparent;
   border: none;
-  color: #94a3b8;
+  color: var(--text-secondary);
+  font-size: 12px;
   cursor: pointer;
-  font-size: 11px;
-  padding: 2px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  min-width: 44px;
+  min-height: 44px;
 }
+.reaction-btn { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 4px 10px; border: 1px solid var(--border-subtle); }
 .action-icon-btn.delete { color: #ef4444; font-weight: bold; }
 .action-icon-btn.pin { color: #f59e0b; font-weight: bold; }
-.room-code {
-  background: rgba(0, 240, 255, 0.15);
-  color: var(--accent);
-  border: 1px solid rgba(0, 240, 255, 0.3);
-  padding: 1px 5px;
-  border-radius: 5px;
-  font-weight: 600;
-  cursor: pointer;
-  display: inline-block;
-  margin: 0 2px;
-}
-.room-code.vip-code {
-  background: rgba(245, 158, 11, 0.2);
-  color: #fef08a;
-  border: 1px solid var(--gold);
-  box-shadow: 0 0 6px rgba(245, 158, 11, 0.4);
-}
-.jump-btn {
+
+/* Composer / Input Panel */
+.input-panel {
   position: absolute;
-  bottom: 130px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--accent);
-  color: #000;
-  font-weight: 700;
-  font-size: 11px;
-  padding: 5px 12px;
-  border-radius: 20px;
-  border: none;
-  cursor: pointer;
-  box-shadow: 0 0 6px rgba(0, 240, 255, 0.4);
-  display: none;
-  z-index: 10;
-}
-.chips-bar {
+  bottom: calc(60px + var(--safe-area-bottom));
+  left: 0;
+  right: 0;
+  background: var(--surface-elevated);
+  border-top: 1px solid var(--border-strong);
+  padding: var(--space-2);
   display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  white-space: nowrap;
-  padding-bottom: 2px;
-  scrollbar-width: none;
-  flex-shrink: 0;
-}
-.chips-bar::-webkit-scrollbar { display: none; }
-.chip {
-  background: #111424;
-  border: 1px solid var(--border);
-  color: var(--muted);
-  font-size: 11px;
-  padding: 3px 8px;
-  border-radius: 6px;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-.emoji-row {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-  overflow-x: auto;
-  scrollbar-width: none;
-  flex-shrink: 0;
-}
-.emoji-row::-webkit-scrollbar { display: none; }
-.emoji-btn {
-  background: #111424;
-  border: 1px solid var(--border);
-  font-size: 13px;
-  padding: 2px 7px;
-  border-radius: 6px;
-  cursor: pointer;
-  flex-shrink: 0;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 100;
 }
 .replying-bar {
   display: none;
-  background: #1a2238;
-  border: 1px solid var(--accent);
-  border-radius: 6px;
-  padding: 4px 8px;
-  font-size: 11px;
-  color: #cbd5e1;
+  background: var(--surface-raised);
+  border-left: 2px solid var(--violet);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  color: var(--text-secondary);
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 4px;
 }
-.input-panel {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 6px 8px;
+.chips-bar {
   display: flex;
-  flex-direction: column;
-  gap: 5px;
-  flex-shrink: 0;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
-.typing-progress-wrap {
-  width: 100%;
-  height: 3px;
-  background: #181d30;
-  border-radius: 2px;
-  overflow: hidden;
+.chip, .emoji-btn {
+  background: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  white-space: nowrap;
+  min-height: 36px;
 }
-.typing-progress-bar {
-  height: 100%;
-  width: 0%;
-  background: #22c55e;
-  transition: width 0.1s linear, background-color 0.2s ease;
-}
-.cooldown-wrap {
-  width: 100%;
-  height: 3px;
-  background: #1e243b;
-  border-radius: 2px;
-  overflow: hidden;
-  display: none;
-}
-.cooldown-bar {
-  height: 100%;
-  width: 100%;
-  background: linear-gradient(90deg, var(--accent), var(--bot));
-  transition: width 0.2s linear;
-}
-.input-row { display: flex; gap: 6px; }
+.input-row { display: flex; gap: 8px; }
 .input-panel input {
-  background: #0d101d;
-  border: 1px solid var(--border);
+  background: var(--bg-obsidian);
+  border: 1px solid var(--border-strong);
   color: #fff;
-  padding: 7px 9px;
-  border-radius: 8px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
   outline: none;
-  font-size: 0.82rem;
-  width: 100%;
+  font-size: var(--text-14);
+  flex: 1;
 }
-.input-panel input:focus { border-color: var(--accent); }
-.input-bottom { display: flex; justify-content: space-between; align-items: center; }
-.char-num { font-size: 10px; color: var(--muted); }
+.input-panel input:focus { border-color: var(--violet); outline: var(--focus-ring); }
 .send-btn {
-  background: linear-gradient(135deg, var(--accent), var(--bot));
+  background: var(--violet);
   border: none;
-  color: #05070e;
+  color: #fff;
   font-weight: 700;
-  padding: 6px 14px;
-  border-radius: 8px;
+  padding: 0 20px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  font-size: 0.8rem;
+  min-height: 44px;
 }
-.modal-back {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.8);
-  z-index: 60;
-  justify-content: center;
-  align-items: center;
-  padding: 16px;
+.input-bottom { display: flex; justify-content: space-between; align-items: center; }
+.char-num { font-size: 11px; color: var(--text-muted); }
+
+/* Responsive Nav */
+.responsive-nav {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid var(--border-strong);
+  display: flex;
+  justify-content: space-around;
+  padding-bottom: var(--safe-area-bottom);
+  z-index: 200;
 }
-.modal-window {
-  background: #131726;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  max-width: 360px;
-  width: 100%;
-  padding: 16px;
+.nav-item {
+  flex: 1;
+  text-align: center;
+  padding: 16px 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-}
-.modal-window h3 { font-size: 1rem; color: #fff; }
-.tip-card {
-  background: #1a2035;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 10px;
-  display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 4px;
+  min-height: 44px;
 }
-.copy-pill {
-  background: #2563eb;
+.nav-item.active { color: var(--cyan); }
+
+@media (min-width: 768px) {
+  .responsive-nav { display: none; }
+  .input-panel { bottom: 0; border-bottom: 1px solid var(--border-strong); }
+  .feed { padding-bottom: 140px; }
+}
+
+/* Toast System */
+.toast-container {
+  position: fixed;
+  bottom: calc(80px + var(--safe-area-bottom));
+  right: 16px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  pointer-events: none;
+}
+.toast {
+  background: var(--surface-raised);
+  border-left: 4px solid var(--cyan);
+  color: var(--text-primary);
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-14);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  pointer-events: auto;
+  transition: opacity var(--transition-normal);
+}
+.toast.error { border-left-color: #ef4444; }
+
+/* Tool utilities */
+.jump-btn {
+  position: absolute;
+  bottom: calc(160px + var(--safe-area-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--violet);
   color: #fff;
+  font-weight: 700;
+  font-size: 12px;
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
   border: none;
-  border-radius: 6px;
-  padding: 6px 10px;
-  font-size: 11px;
-  font-weight: 700;
   cursor: pointer;
-}
-.close-modal-btn {
-  background: #27272a;
-  border: 1px solid #3f3f46;
-  color: #fff;
-  padding: 8px;
-  border-radius: 8px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  cursor: pointer;
+  display: none;
+  z-index: 10;
+  min-height: 44px;
 }
 </style>
 </head>
 <body>
+<div id="toastContainer" class="toast-container"></div>
+
 <div class="container">
   <div class="header">
     <div class="header-left-pill">
-      <span class="dot"> </span>
-      <span>Lobby Chat | <span id="onlineCount">1 Online</span></span>
+      <span class="dot">●</span>
+      <span id="onlineCount">1 Online</span>
     </div>
     <div class="header-center-chip" onclick="window.location.href='/settings'">
       <div class="header-avatar" id="headerAvatarJ">J</div>
       <div class="header-username" id="topUsername">@user</div>
-      <span style="font-size:10px; color:#fef08a;"> </span>
     </div>
     <div class="header-right-actions">
-      <button id="alertBtn" type="button" class="icon-btn" onclick="toggleAlerts()" title="Alerts"> </button>
-      <button id="soundToggle" type="button" class="icon-btn active" onclick="cycleSoundFX()" title="Sound"> </button>
+      <button id="alertBtn" type="button" class="icon-btn interactive-active" onclick="toggleAlerts()" title="Alerts" aria-label="Toggle Alerts">🔔</button>
+      <button id="soundToggle" type="button" class="icon-btn active interactive-active" onclick="cycleSoundFX()" title="Sound" aria-label="Toggle Sound">🔊</button>
     </div>
   </div>
 
   <div id="announcementBanner" class="announcement-banner"></div>
 
   <div class="room-bar">
-    <button id="tabPublic" type="button" class="room-tab active" onclick="switchRoom('public')">  Public Wall</button>
-    <button id="tabMarket" type="button" class="room-tab market" onclick="switchRoom('market')">  Marketplace</button>
-    <button id="tabVip" type="button" class="room-tab vip" onclick="switchRoom('vip')" style="display:none;">  VIP Lounge</button>
-    <button id="tabAdmin" type="button" class="room-tab" onclick="window.location.href='/admin'" style="display:none; background:linear-gradient(135deg, #7f1d1d, #450a0a); border-color:#ef4444; color:#fca5a5;">  Admin Panel</button>
+    <button id="tabPublic" type="button" class="room-tab active interactive-active" onclick="switchRoom('public')">Public</button>
+    <button id="tabMarket" type="button" class="room-tab market interactive-active" onclick="switchRoom('market')">Market</button>
+    <button id="tabVip" type="button" class="room-tab vip interactive-active" onclick="switchRoom('vip')" style="display:none;">VIP</button>
   </div>
 
   <div id="pinnedBox" class="pinned"></div>
 
-  <div class="social">
-    <button type="button" class="sbtn" style="background:#059669;" onclick="openTipModal()">  Tip Jar</button>
-    <button type="button" class="sbtn" style="background:#1d9bf0;" onclick="shareSite()">  Share</button>
-    <a class="sbtn" style="background:linear-gradient(45deg,#f09433,#dc2743)" href="https://www.instagram.com/4t_jagga" target="_blank" rel="noopener noreferrer">IG Profile</a>
-    <a class="sbtn" style="background:#e1306c" href="https://www.instagram.com/channel/FMW8_rf52qWxlGoC/" target="_blank" rel="noopener noreferrer">IG Channel</a>
-    <a class="sbtn" style="background:#25d366" href="https://wa.me/923558182875?text=Salam%20Jagga%20Bhai%2C%20I%20want%20to%20buy%20VIP" target="_blank" rel="noopener noreferrer">WhatsApp</a>
-  </div>
-
   <div class="filter-row">
-    <input id="wallSearch" placeholder="  Search wall messages, drivers, or #tags..." oninput="handleWallSearch(this.value)">
-    <span id="clearSearch" class="clear-filter" onclick="clearSearchFilter()">  Clear</span>
+    <input id="wallSearch" placeholder="Search wall messages..." oninput="handleWallSearch(this.value)" aria-label="Search posts">
+    <span id="clearSearch" class="clear-filter" onclick="clearSearchFilter()" role="button" tabindex="0">Clear</span>
   </div>
 
-  <div id="feed" class="feed">Connecting to wall...</div>
+  <!-- Zero-Jank Skeletons -->
+  <div id="feedSkeletons" class="skeletons-wrapper">
+    <div class="skeleton-card skeleton-shimmer"></div>
+    <div class="skeleton-card skeleton-shimmer me"></div>
+    <div class="skeleton-card skeleton-shimmer"></div>
+  </div>
 
-  <button id="jumpBtn" class="jump-btn" type="button" onclick="scrollToTop()">  New messages</button>
-  <div id="typing" class="typing-box"></div>
+  <!-- Empty State -->
+  <div id="emptyFeedState" class="empty-state animate-fade-in" style="display:none;">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-bottom:12px; opacity:0.5;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+    <h3>No posts yet</h3>
+    <button class="btn-primary interactive-active" onclick="document.getElementById('msgInput').focus()">Be first to post</button>
+  </div>
+
+  <!-- Error State -->
+  <div id="errorFeedState" class="empty-state animate-fade-in" style="display:none;">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-bottom:12px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+    <h3 style="color:#ef4444;">Connection lost</h3>
+    <button class="btn-primary interactive-active" style="background:var(--surface-raised); border:1px solid var(--border-strong);" onclick="window.location.reload()">Retry connection</button>
+  </div>
+
+  <div id="feed" class="feed"></div>
+
+  <button id="jumpBtn" class="jump-btn interactive-active" type="button" onclick="scrollToTop()">New messages</button>
 
   <div class="input-panel">
     <div id="replyingBar" class="replying-bar">
-      <span id="replyingText">Replying to @user</span>
-      <span onclick="cancelReply()" style="cursor:pointer; font-weight:bold;"> </span>
+      <span id="replyingText">Replying...</span>
+      <span onclick="cancelReply()" style="cursor:pointer; font-weight:bold; padding:4px;">✕</span>
     </div>
     
     <div class="chips-bar">
-      <button type="button" class="chip" onclick="tagBot()">+ Tag @Apex_Racer</button>
-      <button type="button" class="chip" onclick="addTag('#Gearbox')">#Gearbox</button>
-      <button type="button" class="chip" onclick="addTag('#Drag')">#Drag</button>
-      <button type="button" class="chip" onclick="addTag('#RoomCode')">#RoomCode</button>
-      <button type="button" class="chip" onclick="addTag('#Trade')">#Trade</button>
-    </div>
-
-    <div class="emoji-row">
-      <button type="button" class="emoji-btn" onclick="addEmoji(' ')"> </button>
-      <button type="button" class="emoji-btn" onclick="addEmoji(' ')"> </button>
-      <button type="button" class="emoji-btn" onclick="addEmoji(' ')"> </button>
-      <button type="button" class="emoji-btn" onclick="addEmoji(' ')"> </button>
-      <button type="button" class="emoji-btn" onclick="addEmoji(' ')"> </button>
+      <button type="button" class="chip interactive-active" onclick="tagBot()">+ Tag @Apex_Racer</button>
+      <button type="button" class="chip interactive-active" onclick="addTag('#Drag')">#Drag</button>
+      <button type="button" class="chip interactive-active" onclick="addTag('#Trade')">#Trade</button>
+      <button type="button" class="chip interactive-active" onclick="addEmoji('👍')">👍</button>
+      <button type="button" class="chip interactive-active" onclick="addEmoji('🔥')">🔥</button>
     </div>
 
     <div class="input-row">
-      <input id="msgInput" placeholder="Type message, room code, or ID..." maxlength="150" autocomplete="off">
+      <input id="msgInput" placeholder="Type message, room code, or ID..." maxlength="150" autocomplete="off" aria-label="Message input">
+      <button id="sendBtn" class="send-btn interactive-active" onclick="sendPost()" aria-label="Send message">Post</button>
     </div>
     
-    <div class="typing-progress-wrap">
-      <div id="typingProgressBar" class="typing-progress-bar"></div>
-    </div>
-
-    <div id="cooldownWrap" class="cooldown-wrap">
-      <div id="cooldownBar" class="cooldown-bar"></div>
-    </div>
-
     <div class="input-bottom">
       <span id="charCount" class="char-num">0/150</span>
-      <button id="sendBtn" class="send-btn" onclick="sendPost()">Post to Wall</button>
     </div>
   </div>
 
-</div>
-
-<div id="tipModal" class="modal-back">
-  <div class="modal-window">
-    <h3>  Support CPM Community</h3>
-    <p style="font-size: 0.75rem; color: var(--muted); line-height: 1.35;">
-      Tips keep our servers online and ad-free. Send a screenshot on WhatsApp after tipping to receive a permanent Verified Driver Badge.
-    </p>
-    <div class="tip-card">
-      <div>
-        <b style="color:#f59e0b;">JazzCash (Pakistan)</b>
-        <div style="font-size: 0.85rem; font-weight: 600; margin-top: 2px;">03206872177</div>
-      </div>
-      <button type="button" class="copy-pill" onclick="copyTip('03206872177', this)">Copy</button>
-    </div>
-    <a href="https://wa.me/923558182875?text=Salam%20Jagga%20Bhai%2C%20I%20sent%20a%20tip%20for%20the%20CPM%20wall" target="_blank" class="sbtn" style="background:#25d366; text-align:center; padding:8px;">Send Screenshot on WhatsApp</a>
-    <button type="button" class="close-modal-btn" onclick="closeTipModal()">Close</button>
-  </div>
+  <!-- Mobile Bottom Nav -->
+  <nav class="responsive-nav">
+    <a href="/" class="nav-item active interactive-active">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+      Wall
+    </a>
+    <a href="/settings" class="nav-item interactive-active">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+      Settings
+    </a>
+    <a href="/admin" class="nav-item interactive-active" id="navAdminMobile" style="display:none;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+      Admin
+    </a>
+  </nav>
 </div>
 
 <script type="module">
@@ -688,60 +604,75 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-
 const token = localStorage.getItem('wall_token');
 let currentUser = localStorage.getItem('wall_user') || 'user';
 let isUserVip = false;
 let isUserAdmin = false;
+
+window.showToast = (msg, isError = false) => {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast animate-slide-up ${isError ? 'error' : ''}`;
+  toast.textContent = msg;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    setTimeout(() => toast.remove(), 250);
+  }, 3000);
+};
+
+window.addEventListener('offline', () => window.showToast('Offline', true));
+window.addEventListener('online', () => window.showToast('Back online'));
 
 async function verifyAuthAndProfile() {
   if (!token) {
     window.location.href = '/login';
     return;
   }
-
   try {
     const res = await fetch('/api/user/me', {
       headers: { 'Authorization': `Bearer ${token}` }
     });
-    
+         
     if (res.ok) {
       const data = await res.json();
       currentUser = String(data.username).toUpperCase();
       localStorage.setItem('wall_user', currentUser);
       isUserVip = Boolean(data.isVip);
       isUserAdmin = data.isAdmin === true;
-      
+             
       document.getElementById('topUsername').textContent = '@' + currentUser;
-      
+             
       const cachedPhoto = data.photoURL || localStorage.getItem('wall_photo') || '';
       const avatarDiv = document.getElementById('headerAvatarJ');
       if (cachedPhoto) {
-        // Enforce DOMPurify when assigning raw HTML strings via innerHTML
         avatarDiv.innerHTML = DOMPurify.sanitize(`<img src="${cachedPhoto}" style="width:100%;height:100%;object-fit:cover;">`);
       } else {
         avatarDiv.textContent = currentUser.charAt(0).toUpperCase();
       }
-      
+             
       if (isUserVip || isUserAdmin) {
         document.getElementById('tabVip').style.display = 'block';
       }
       if (isUserAdmin) {
-        const adminBtn = document.getElementById('tabAdmin');
-        if (adminBtn) adminBtn.style.display = 'block';
+        const navAdmin = document.getElementById('navAdminMobile');
+        if (navAdmin) navAdmin.style.display = 'flex';
       }
     } else {
+      if (res.status === 401) {
+        window.showToast('Session expired', true);
+      }
       localStorage.removeItem('wall_token');
       localStorage.removeItem('wall_user');
-      window.location.href = '/login';
+      setTimeout(() => { window.location.href = '/login'; }, res.status === 401 ? 1500 : 0);
     }
   } catch {}
 }
+
 verifyAuthAndProfile();
 
 const feedEl = document.getElementById('feed');
 const jumpBtn = document.getElementById('jumpBtn');
-const typingEl = document.getElementById('typing');
 const pinnedBox = document.getElementById('pinnedBox');
 const announcementBanner = document.getElementById('announcementBanner');
 const msgInput = document.getElementById('msgInput');
@@ -751,15 +682,15 @@ const wallSearchInput = document.getElementById('wallSearch');
 const clearSearchBtn = document.getElementById('clearSearch');
 const onlineCountEl = document.getElementById('onlineCount');
 const alertBtn = document.getElementById('alertBtn');
-const cooldownWrap = document.getElementById('cooldownWrap');
-const cooldownBar = document.getElementById('cooldownBar');
-const typingProgressBar = document.getElementById('typingProgressBar');
 const replyingBar = document.getElementById('replyingBar');
 const replyingText = document.getElementById('replyingText');
 const tabPublic = document.getElementById('tabPublic');
 const tabMarket = document.getElementById('tabMarket');
 const tabVip = document.getElementById('tabVip');
-const tipModal = document.getElementById('tipModal');
+
+const feedSkeletons = document.getElementById('feedSkeletons');
+const emptyFeedState = document.getElementById('emptyFeedState');
+const errorFeedState = document.getElementById('errorFeedState');
 
 let currentRoom = 'public';
 let soundMode = localStorage.getItem('cpm_sound_mode') || 'bov';
@@ -767,11 +698,6 @@ let alertsEnabled = localStorage.getItem('cpm_alerts') === 'true';
 let audioCtx = null;
 let isInitialLoad = true;
 let hasLoadedPosts = false;
-let isChatPaused = false;
-let isCooldownActive = false;
-let lastPostedMsg = '';
-let lastPostTimestamp = 0;
-let lastPinnedText = '';
 let activeSearchQuery = '';
 let replyingToData = null;
 
@@ -779,46 +705,25 @@ function updateCharCounterDisplay() {
   const max = isUserVip ? 250 : 150;
   const len = msgInput.value.length;
   charCount.textContent = `${len}/${max}`;
-  const pct = Math.min(100, (len / max) * 100);
-  
-  if (typingProgressBar) {
-    typingProgressBar.style.width = `${pct}%`;
-    if (pct > 90) {
-      typingProgressBar.style.backgroundColor = '#ef4444';
-      charCount.style.color = '#ef4444';
-    } else if (pct > 70) {
-      typingProgressBar.style.backgroundColor = '#f97316';
-      charCount.style.color = '#f97316';
-    } else {
-      typingProgressBar.style.backgroundColor = '#22c55e';
-      charCount.style.color = 'var(--muted)';
-    }
+  if (len > max * 0.9) {
+    charCount.style.color = '#ef4444';
+  } else {
+    charCount.style.color = 'var(--text-muted)';
   }
 }
 
-window.openTipModal = () => { tipModal.style.display = 'flex'; };
-window.closeTipModal = () => { tipModal.style.display = 'none'; };
-window.copyTip = (num, btn) => {
-  navigator.clipboard.writeText(num);
-  const orig = btn.textContent;
-  btn.textContent = 'Copied!';
-  setTimeout(() => { btn.textContent = orig; }, 1200);
-};
-
 window.switchRoom = (room) => {
   if (room === 'vip' && !isUserVip && !isUserAdmin) {
-    alert('VIP Lounge is restricted to VIP members.');
+    window.showToast('VIP Lounge is restricted to VIP members.', true);
     return;
   }
   currentRoom = room;
   tabPublic.classList.remove('active');
   tabMarket.classList.remove('active');
   tabVip.classList.remove('active');
-  
   if (room === 'vip') tabVip.classList.add('active');
   else if (room === 'market') tabMarket.classList.add('active');
   else tabPublic.classList.add('active');
-  
   filterFeedByRoom();
 };
 
@@ -829,10 +734,10 @@ function filterFeedByRoom() {
     const bubbleRoom = b.getAttribute('data-room') || 'public';
     const text = b.getAttribute('data-text') || '';
     const name = b.getAttribute('data-name') || '';
-    
+         
     const matchesRoom = (bubbleRoom === currentRoom);
     const matchesSearch = !activeSearchQuery || text.includes(activeSearchQuery) || name.includes(activeSearchQuery);
-    
+         
     if (matchesRoom && matchesSearch) {
       b.style.display = 'flex';
       visibleCount++;
@@ -841,17 +746,10 @@ function filterFeedByRoom() {
     }
   });
 
-  const emptyNotice = document.getElementById('emptyRoomNotice');
-  if (visibleCount === 0) {
-    if (!emptyNotice) {
-      const p = document.createElement('p');
-      p.id = 'emptyRoomNotice';
-      p.style.cssText = 'text-align:center;color:var(--muted);font-size:0.85rem;margin-top:20px;';
-      p.textContent = 'No messages in this room yet.';
-      feedEl.appendChild(p);
-    }
-  } else if (emptyNotice) {
-    emptyNotice.remove();
+  if (visibleCount === 0 && hasLoadedPosts) {
+    if (emptyFeedState) emptyFeedState.style.display = 'flex';
+  } else {
+    if (emptyFeedState) emptyFeedState.style.display = 'none';
   }
 }
 
@@ -865,9 +763,7 @@ function playTurboBlowOff() {
   const bufferSize = audioCtx.sampleRate * 0.35;
   const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
   const data = buffer.getChannelData(0);
-  for (let i = 0; i < bufferSize; i++) {
-    data[i] = Math.random() * 2 - 1;
-  }
+  for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
   const noise = audioCtx.createBufferSource();
   noise.buffer = buffer;
   const filter = audioCtx.createBiquadFilter();
@@ -897,15 +793,15 @@ window.cycleSoundFX = () => {
   soundMode = soundMode === 'bov' ? 'mute' : 'bov';
   localStorage.setItem('cpm_sound_mode', soundMode);
   const btn = document.getElementById('soundToggle');
-  btn.className = soundMode === 'bov' ? 'icon-btn active' : 'icon-btn';
+  btn.className = soundMode === 'bov' ? 'icon-btn active interactive-active' : 'icon-btn interactive-active';
 };
 
 window.toggleAlerts = async () => {
-  if (!('Notification' in window)) return alert('Notifications not supported.');
+  if (!('Notification' in window)) return window.showToast('Notifications not supported.', true);
   const res = await window.Notification.requestPermission();
   if (res === 'granted') {
     alertsEnabled = true;
-    alertBtn.className = 'icon-btn active';
+    alertBtn.className = 'icon-btn active interactive-active';
   }
 };
 
@@ -945,7 +841,7 @@ function buildBubble(id, data, isTemporary) {
   const isVipPost = isAdminPost || Boolean(data.isVip);
 
   const bubble = document.createElement('div');
-  bubble.className = `bubble ${isBot ? 'bot' : isMe ? 'me' : ''} ${isVipPost ? 'vip-bubble' : ''}`;
+  bubble.className = `bubble ${isBot ? 'bot' : isMe ? 'me' : ''} ${isVipPost ? 'vip-bubble' : ''} animate-slide-up`;
   if (id) bubble.id = `post-${id}`;
   if (isTemporary) bubble.setAttribute('data-pending', `${data.name}-${data.message}`);
   bubble.setAttribute('data-room', data.room || 'public');
@@ -965,6 +861,7 @@ function buildBubble(id, data, isTemporary) {
   const author = document.createElement('div');
   author.className = `author ${isVipPost ? 'vip-glow' : ''}`;
   author.textContent = data.name;
+
   if (isAdminPost) {
     const adminTag = document.createElement('span');
     adminTag.className = 'admin-badge';
@@ -976,6 +873,7 @@ function buildBubble(id, data, isTemporary) {
     vipTag.textContent = 'VIP';
     author.appendChild(vipTag);
   }
+
   authorLine.appendChild(author);
 
   const meta = document.createElement('div');
@@ -985,7 +883,6 @@ function buildBubble(id, data, isTemporary) {
 
   const bodyEl = document.createElement('div');
   bodyEl.className = 'body';
-  // User messages natively protected via textContent
   bodyEl.textContent = data.message || '';
 
   bubble.appendChild(authorLine);
@@ -996,8 +893,8 @@ function buildBubble(id, data, isTemporary) {
 
   const likeBtn = document.createElement('button');
   likeBtn.type = 'button';
-  likeBtn.className = `reaction-btn`;
-  likeBtn.innerHTML = DOMPurify.sanitize(`  <span id="like-${id}">${data.likes || 0}</span>`);
+  likeBtn.className = `reaction-btn interactive-active`;
+  likeBtn.innerHTML = DOMPurify.sanitize(`<span id="like-${id}">👍 ${data.likes || 0}</span>`);
   likeBtn.onclick = async () => {
     await fetch('/api/post', {
       method: 'POST',
@@ -1009,16 +906,16 @@ function buildBubble(id, data, isTemporary) {
 
   const replyBtn = document.createElement('button');
   replyBtn.type = 'button';
-  replyBtn.className = 'action-icon-btn';
-  replyBtn.textContent = '  Reply';
+  replyBtn.className = 'action-icon-btn interactive-active';
+  replyBtn.textContent = '↩ Reply';
   replyBtn.onclick = () => setReplyTo(data.name, data.message);
   actionsEl.appendChild(replyBtn);
 
   if (isUserAdmin) {
     const delBtn = document.createElement('button');
     delBtn.type = 'button';
-    delBtn.className = 'action-icon-btn delete';
-    delBtn.textContent = '  Delete';
+    delBtn.className = 'action-icon-btn delete interactive-active';
+    delBtn.textContent = '✕ Delete';
     delBtn.onclick = async () => {
       if (!confirm('Delete this message?')) return;
       try {
@@ -1029,16 +926,16 @@ function buildBubble(id, data, isTemporary) {
         });
         if (!res.ok) {
           const d = await res.json();
-          alert(d.error || 'Failed to delete post.');
+          window.showToast(d.error || 'Failed to delete post.', true);
         }
       } catch {}
     };
     actionsEl.appendChild(delBtn);
-    
+         
     const pinBtn = document.createElement('button');
     pinBtn.type = 'button';
-    pinBtn.className = 'action-icon-btn pin';
-    pinBtn.textContent = '  Announce';
+    pinBtn.className = 'action-icon-btn pin interactive-active';
+    pinBtn.textContent = '📌 Announce';
     pinBtn.onclick = async () => {
       try {
         const res = await fetch('/api/post', {
@@ -1048,7 +945,7 @@ function buildBubble(id, data, isTemporary) {
         });
         if (!res.ok) {
           const d = await res.json();
-          alert(d.error || 'Failed to pin post.');
+          window.showToast(d.error || 'Failed to pin post.', true);
         }
       } catch {}
     };
@@ -1084,10 +981,10 @@ onSnapshot(doc(db, "pinned", "current"), (snap) => {
     const d = snap.data();
     if (d.active && d.text) {
       if (d.isAnnouncement) {
-        announcementBanner.innerHTML = DOMPurify.sanitize(`  <b>Announcement from ${d.name}:</b> ${d.text}`);
+        announcementBanner.innerHTML = DOMPurify.sanitize(`<b>Announcement from ${d.name}:</b> ${d.text}`);
         announcementBanner.style.display = 'block';
       } else {
-        pinnedBox.innerHTML = DOMPurify.sanitize(`  <b>${d.name}:</b> ${d.text}`);
+        pinnedBox.innerHTML = DOMPurify.sanitize(`<b>${d.name}:</b> ${d.text}`);
         pinnedBox.style.display = 'block';
       }
       return;
@@ -1099,15 +996,18 @@ onSnapshot(doc(db, "pinned", "current"), (snap) => {
 
 const q = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(100));
 onSnapshot(q, (snap) => {
+  if (feedSkeletons) feedSkeletons.style.display = 'none';
+  if (errorFeedState) errorFeedState.style.display = 'none';
+
   if (snap.empty) {
     if (!hasLoadedPosts) {
-      feedEl.innerHTML = DOMPurify.sanitize('<p id="emptyRoomNotice" style="text-align:center;color:var(--muted);font-size:0.85rem;margin-top:20px;">No messages yet.</p>');
+      feedEl.innerHTML = '';
     }
     isInitialLoad = false;
+    hasLoadedPosts = true;
+    filterFeedByRoom();
     return;
   }
-  const placeholder = document.getElementById('emptyRoomNotice');
-  if (placeholder) placeholder.remove();
 
   if (isInitialLoad || !hasLoadedPosts) {
     feedEl.innerHTML = '';
@@ -1130,15 +1030,20 @@ onSnapshot(q, (snap) => {
       const id = change.doc.id;
       const data = change.doc.data();
       const countEl = document.getElementById(`like-${id}`);
-      if (countEl) countEl.textContent = data.likes || 0;
+      if (countEl) countEl.innerHTML = DOMPurify.sanitize(`👍 ${data.likes || 0}`);
     }
     if (change.type === 'removed') {
       const el = document.getElementById(`post-${change.doc.id}`);
       if (el) el.remove();
     }
   });
+
   filterFeedByRoom();
-}, () => {});
+}, (error) => {
+  if (feedSkeletons) feedSkeletons.style.display = 'none';
+  if (errorFeedState) errorFeedState.style.display = 'flex';
+  if (emptyFeedState) emptyFeedState.style.display = 'none';
+});
 
 msgInput.addEventListener('input', () => updateCharCounterDisplay());
 
@@ -1167,31 +1072,23 @@ window.sendPost = async () => {
   }
   const message = msgInput.value.trim();
   if (!message) return;
-
   const res = await fetch('/api/post', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
     body: JSON.stringify({ message, room: currentRoom, replyTo: replyingToData })
   });
-
   if (res.ok) {
     msgInput.value = '';
     cancelReply();
     updateCharCounterDisplay();
   } else {
     const d = await res.json();
-    alert(d.error || 'Failed to post');
+    window.showToast(d.error || 'Failed to post', true);
   }
 };
 
 msgInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendPost(); });
 
-window.shareSite = async () => {
-  try {
-    await navigator.clipboard.writeText(window.location.href);
-    alert('Link copied to clipboard!');
-  } catch {}
-};
 </script>
 </body>
 </html>
