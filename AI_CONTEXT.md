@@ -26,7 +26,7 @@
 
 # Change Log (newest first)
 
-## [2026-10-20] PR #__PR__ R-03 firestore.rules in repo - DONE (commit 2a77d7178f5e29bc630a036093a92f8605b78aec)
+## [2026-10-20] PR #5 R-03 firestore.rules in repo - DONE (commit 2a77d7178f5e29bc630a036093a92f8605b78aec)
 - What: Added `firestore.rules` with public read-only access to posts, pinned, and presence; all writes and all other browser reads are denied.
 - Decision: Keep the exact §4 rules, including public post reads; shadowban filtering remains R-04. `firestore.rules` is the source of truth and must be deployed by the project owner.
 - Files: `firestore.rules`, `firebase.json`, `evidence/r03_rules.log`, `AI_CONTEXT.md`, `blueprint.md`, `PROGRESS.md`, `TEST_RESULTS.md`.
