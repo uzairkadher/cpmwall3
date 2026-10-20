@@ -12,7 +12,7 @@ Source of truth: `CPM_Community_Wall_Singularity_Edition_Roadmap.pdf` (20 Oct 20
 
 ## Security findings (RISKS.md)
 - [x] R-02 Admin ban enforcement — dd283d079df26c61d6c71383531a5498524093d1 (PR #4)
-- [ ] R-03 `firestore.rules` not in repo (rules exist only as text in blueprint.md §4)
+- [x] R-03 Add `firestore.rules` — 2a77d7178f5e29bc630a036093a92f8605b78aec (PR #5); production deploy pending the user
 - [ ] R-04 Shadowbanned posts visible via client Firestore reads
 - [ ] R-05 Session revoke ineffective (no session docs written; JWT verify ignores `sessions`)
 

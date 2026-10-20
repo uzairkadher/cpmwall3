@@ -1,0 +1,406 @@
+R-03 FIRESTORE SECURITY RULES — FIRESTORE EMULATOR EVIDENCE
+Date: 2026-10-20
+Repository: /home/ubuntu/repos/cpmwall3
+Project: demo-cpm (Firestore Emulator at 127.0.0.1:8080)
+This evidence is emulator-only; it is not proof of production rules deployment.
+
+The emulator was restarted from the repository root with the checked-in
+firebase.json and firestore.rules. REST seed requests use
+Authorization: Bearer owner (the emulator owner token bypasses rules).
+Subsequent access tests omit Authorization.
+
+$ npx -y firebase-tools@13 emulators:start --only firestore --project demo-cpm
+⚠  emulators: You are not currently authenticated so some features may not work correctly. Please run firebase login to authenticate the CLI.
+i  emulators: Starting emulators: firestore
+i  emulators: Detected demo project ID "demo-cpm", emulated services will use a demo configuration and attempts to access non-emulated services for this project will fail.
+i  firestore: Firestore Emulator logging to firestore-debug.log
+✔  firestore: Firestore Emulator UI websocket is running on 9150.
+i  ui: downloading ui-v1.14.0.zip...
+
+
+[90m┌─────────────────────────────────────────────────────────────┐[39m
+[90m│[39m ✔  All emulators ready! It is now safe to connect your app. [90m│[39m
+[90m│[39m i  View Emulator UI at http://127.0.0.1:4000/               [90m│[39m
+[90m└─────────────────────────────────────────────────────────────┘[39m
+
+[90m┌───────────[39m[90m┬────────────────[39m[90m┬─────────────────────────────────┐[39m
+[90m│[39m[33m Emulator  [39m[90m│[39m[33m Host:Port      [39m[90m│[39m[33m View in Emulator UI             [39m[90m│[39m
+[90m├───────────[39m[90m┼────────────────[39m[90m┼─────────────────────────────────┤[39m
+[90m│[39m Firestore [90m│[39m 127.0.0.1:8080 [90m│[39m http://127.0.0.1:4000/firestore [90m│[39m
+[90m└───────────[39m[90m┴────────────────[39m[90m┴─────────────────────────────────┘[39m
+  Emulator Hub host: 127.0.0.1 port: 4400
+  Other reserved ports: 4500, 9150
+
+Issues? Report them at https://github.com/firebase/firebase-tools/issues and attach the *-debug.log files.
+
+
+===== RULE FILE LOADING =====
+
+$ 'rg' '-n' 'Starting Firestore Emulator' 'firebase-debug.log'
+27:[debug] [2026-10-20T14:55:15.777Z] Starting Firestore Emulator with command {"binary":"java","args":["-Dgoogle.cloud_firestore.debug_log_level=FINE","-Duser.language=en","-jar","/home/ubuntu/.cache/firebase/emulators/cloud-firestore-emulator-v1.19.8.jar","--host","127.0.0.1","--port",8080,"--websocket_port",9150,"--project_id","demo-cpm","--rules","/home/ubuntu/repos/cpmwall3/firestore.rules","--single_project_mode",true],"optionalArgs":["port","webchannel_port","host","rules","websocket_port","functions_emulator","seed_from_export","project_id","single_project_mode"],"joinArgs":false,"shell":false,"port":8080} {"metadata":{"emulator":{"name":"firestore"},"message":"Starting Firestore Emulator with command {\"binary\":\"java\",\"args\":[\"-Dgoogle.cloud_firestore.debug_log_level=FINE\",\"-Duser.language=en\",\"-jar\",\"/home/ubuntu/.cache/firebase/emulators/cloud-firestore-emulator-v1.19.8.jar\",\"--host\",\"127.0.0.1\",\"--port\",8080,\"--websocket_port\",9150,\"--project_id\",\"demo-cpm\",\"--rules\",\"/home/ubuntu/repos/cpmwall3/firestore.rules\",\"--single_project_mode\",true],\"optionalArgs\":[\"port\",\"webchannel_port\",\"host\",\"rules\",\"websocket_port\",\"functions_emulator\",\"seed_from_export\",\"project_id\",\"single_project_mode\"],\"joinArgs\":false,\"shell\":false,\"port\":8080}"}}
+
+
+===== SEED THROUGH REST AS EMULATOR OWNER =====
+
+===== Seed posts/p1 with createdAt =====
+$ curl -si '-X' 'POST' 'http://127.0.0.1:8080/v1/projects/demo-cpm/databases/(default)/documents/posts?documentId=p1' '-H' 'Authorization: Bearer owner' '-H' 'Content-Type: application/json' '--data-raw' '{"fields":{"message":{"stringValue":"Public test post"},"createdAt":{"timestampValue":"2026-10-20T15:00:00Z"}}}'
+HTTP/1.1 200 OK
+content-type: application/json
+content-length: 322
+
+{
+  "name": "projects/demo-cpm/databases/(default)/documents/posts/p1",
+  "fields": {
+    "message": {
+      "stringValue": "Public test post"
+    },
+    "createdAt": {
+      "timestampValue": "2026-10-20T15:00:00Z"
+    }
+  },
+  "createTime": "2026-10-20T14:56:21.787477Z",
+  "updateTime": "2026-10-20T14:56:21.787477Z"
+}
+
+
+===== Seed pinned/current =====
+$ curl -si '-X' 'POST' 'http://127.0.0.1:8080/v1/projects/demo-cpm/databases/(default)/documents/pinned?documentId=current' '-H' 'Authorization: Bearer owner' '-H' 'Content-Type: application/json' '--data-raw' '{"fields":{"text":{"stringValue":"Public pinned content"},"active":{"booleanValue":true}}}'
+HTTP/1.1 200 OK
+content-type: application/json
+content-length: 307
+
+{
+  "name": "projects/demo-cpm/databases/(default)/documents/pinned/current",
+  "fields": {
+    "text": {
+      "stringValue": "Public pinned content"
+    },
+    "active": {
+      "booleanValue": true
+    }
+  },
+  "createTime": "2026-10-20T14:56:21.904318Z",
+  "updateTime": "2026-10-20T14:56:21.904318Z"
+}
+
+
+===== Seed presence/x =====
+$ curl -si '-X' 'POST' 'http://127.0.0.1:8080/v1/projects/demo-cpm/databases/(default)/documents/presence?documentId=x' '-H' 'Authorization: Bearer owner' '-H' 'Content-Type: application/json' '--data-raw' '{"fields":{"username":{"stringValue":"BOB"},"lastSeen":{"timestampValue":"2026-10-20T15:00:00Z"}}}'
+HTTP/1.1 200 OK
+content-type: application/json
+content-length: 311
+
+{
+  "name": "projects/demo-cpm/databases/(default)/documents/presence/x",
+  "fields": {
+    "username": {
+      "stringValue": "BOB"
+    },
+    "lastSeen": {
+      "timestampValue": "2026-10-20T15:00:00Z"
+    }
+  },
+  "createTime": "2026-10-20T14:56:21.934754Z",
+  "updateTime": "2026-10-20T14:56:21.934754Z"
+}
+
+
+===== Seed users/BOB =====
+$ curl -si '-X' 'POST' 'http://127.0.0.1:8080/v1/projects/demo-cpm/databases/(default)/documents/users?documentId=BOB' '-H' 'Authorization: Bearer owner' '-H' 'Content-Type: application/json' '--data-raw' '{"fields":{"username":{"stringValue":"BOB"},"role":{"stringValue":"USER"}}}'
+HTTP/1.1 200 OK
+content-type: application/json
+content-length: 287
+
+{
+  "name": "projects/demo-cpm/databases/(default)/documents/users/BOB",
+  "fields": {
+    "username": {
+      "stringValue": "BOB"
+    },
+    "role": {
+      "stringValue": "USER"
+    }
+  },
+  "createTime": "2026-10-20T14:56:21.959821Z",
+  "updateTime": "2026-10-20T14:56:21.959821Z"
+}
+
+
+===== Seed banned/x =====
+$ curl -si '-X' 'POST' 'http://127.0.0.1:8080/v1/projects/demo-cpm/databases/(default)/documents/banned?documentId=x' '-H' 'Authorization: Bearer owner' '-H' 'Content-Type: application/json' '--data-raw' '{"fields":{"reason":{"stringValue":"seed only"}}}'
+HTTP/1.1 200 OK
+content-type: application/json
+content-length: 241
+
+{
+  "name": "projects/demo-cpm/databases/(default)/documents/banned/x",
+  "fields": {
+    "reason": {
+      "stringValue": "seed only"
+    }
+  },
+  "createTime": "2026-10-20T14:56:21.986150Z",
+  "updateTime": "2026-10-20T14:56:21.986150Z"
+}
+
+
+===== Seed sessions/x =====
+$ curl -si '-X' 'POST' 'http://127.0.0.1:8080/v1/projects/demo-cpm/databases/(default)/documents/sessions?documentId=x' '-H' 'Authorization: Bearer owner' '-H' 'Content-Type: application/json' '--data-raw' '{"fields":{"sessionId":{"stringValue":"seed only"}}}'
+HTTP/1.1 200 OK
+content-type: application/json
+content-length: 246
+
+{
+  "name": "projects/demo-cpm/databases/(default)/documents/sessions/x",
+  "fields": {
+    "sessionId": {
+      "stringValue": "seed only"
+    }
+  },
+  "createTime": "2026-10-20T14:56:22.010826Z",
+  "updateTime": "2026-10-20T14:56:22.010826Z"
+}
+
+
+===== Seed rate_limits/x =====
+$ curl -si '-X' 'POST' 'http://127.0.0.1:8080/v1/projects/demo-cpm/databases/(default)/documents/rate_limits?documentId=x' '-H' 'Authorization: Bearer owner' '-H' 'Content-Type: application/json' '--data-raw' '{"fields":{"count":{"integerValue":"1"}}}'
+HTTP/1.1 200 OK
+content-type: application/json
+content-length: 238
+
+{
+  "name": "projects/demo-cpm/databases/(default)/documents/rate_limits/x",
+  "fields": {
+    "count": {
+      "integerValue": "1"
+    }
+  },
+  "createTime": "2026-10-20T14:56:22.036573Z",
+  "updateTime": "2026-10-20T14:56:22.036573Z"
+}
+
+
+===== Seed ip_logs/x =====
+$ curl -si '-X' 'POST' 'http://127.0.0.1:8080/v1/projects/demo-cpm/databases/(default)/documents/ip_logs?documentId=x' '-H' 'Authorization: Bearer owner' '-H' 'Content-Type: application/json' '--data-raw' '{"fields":{"ip":{"stringValue":"192.0.2.2"}}}'
+HTTP/1.1 200 OK
+content-type: application/json
+content-length: 238
+
+{
+  "name": "projects/demo-cpm/databases/(default)/documents/ip_logs/x",
+  "fields": {
+    "ip": {
+      "stringValue": "192.0.2.2"
+    }
+  },
+  "createTime": "2026-10-20T14:56:22.066314Z",
+  "updateTime": "2026-10-20T14:56:22.066314Z"
+}
+
+
+===== UNAUTHENTICATED REST READS =====
+
+===== GET posts/p1 =====
+$ curl -si 'http://127.0.0.1:8080/v1/projects/demo-cpm/databases/(default)/documents/posts/p1'
+HTTP/1.1 200 OK
+content-type: application/json
+content-length: 322
+
+{
+  "name": "projects/demo-cpm/databases/(default)/documents/posts/p1",
+  "fields": {
+    "message": {
+      "stringValue": "Public test post"
+    },
+    "createdAt": {
+      "timestampValue": "2026-10-20T15:00:00Z"
+    }
+  },
+  "createTime": "2026-10-20T14:56:21.787477Z",
+  "updateTime": "2026-10-20T14:56:21.787477Z"
+}
+
+
+===== GET pinned/current =====
+$ curl -si 'http://127.0.0.1:8080/v1/projects/demo-cpm/databases/(default)/documents/pinned/current'
+HTTP/1.1 200 OK
+content-type: application/json
+content-length: 307
+
+{
+  "name": "projects/demo-cpm/databases/(default)/documents/pinned/current",
+  "fields": {
+    "text": {
+      "stringValue": "Public pinned content"
+    },
+    "active": {
+      "booleanValue": true
+    }
+  },
+  "createTime": "2026-10-20T14:56:21.904318Z",
+  "updateTime": "2026-10-20T14:56:21.904318Z"
+}
+
+
+===== GET presence/x =====
+$ curl -si 'http://127.0.0.1:8080/v1/projects/demo-cpm/databases/(default)/documents/presence/x'
+HTTP/1.1 200 OK
+content-type: application/json
+content-length: 311
+
+{
+  "name": "projects/demo-cpm/databases/(default)/documents/presence/x",
+  "fields": {
+    "username": {
+      "stringValue": "BOB"
+    },
+    "lastSeen": {
+      "timestampValue": "2026-10-20T15:00:00Z"
+    }
+  },
+  "createTime": "2026-10-20T14:56:21.934754Z",
+  "updateTime": "2026-10-20T14:56:21.934754Z"
+}
+
+
+===== Query posts ordered by createdAt DESC, limit 100 =====
+$ curl -si '-X' 'POST' 'http://127.0.0.1:8080/v1/projects/demo-cpm/databases/(default)/documents:runQuery' '-H' 'Content-Type: application/json' '--data-raw' '{"structuredQuery":{"from":[{"collectionId":"posts"}],"orderBy":[{"field":{"fieldPath":"createdAt"},"direction":"DESCENDING"}],"limit":100}}'
+HTTP/1.1 200 OK
+content-type: application/json
+content-length: 429
+
+[
+{
+  "document": {
+    "name": "projects/demo-cpm/databases/(default)/documents/posts/p1",
+    "fields": {
+      "message": {
+        "stringValue": "Public test post"
+      },
+      "createdAt": {
+        "timestampValue": "2026-10-20T15:00:00Z"
+      }
+    },
+    "createTime": "2026-10-20T14:56:21.787477Z",
+    "updateTime": "2026-10-20T14:56:21.787477Z"
+  },
+  "readTime": "2026-10-20T14:56:22.260002Z",
+  "done": true
+}
+]
+
+
+===== GET users/BOB =====
+$ curl -si 'http://127.0.0.1:8080/v1/projects/demo-cpm/databases/(default)/documents/users/BOB'
+HTTP/1.1 403 Forbidden
+content-type: application/json
+content-length: 110
+
+{"error":{"code":403,"message":"\nfalse for 'get' @ L21, false for 'get' @ L25","status":"PERMISSION_DENIED"}}
+
+===== GET banned/x =====
+$ curl -si 'http://127.0.0.1:8080/v1/projects/demo-cpm/databases/(default)/documents/banned/x'
+HTTP/1.1 403 Forbidden
+content-type: application/json
+content-length: 87
+
+{"error":{"code":403,"message":"\nfalse for 'get' @ L25","status":"PERMISSION_DENIED"}}
+
+===== GET sessions/x =====
+$ curl -si 'http://127.0.0.1:8080/v1/projects/demo-cpm/databases/(default)/documents/sessions/x'
+HTTP/1.1 403 Forbidden
+content-type: application/json
+content-length: 87
+
+{"error":{"code":403,"message":"\nfalse for 'get' @ L25","status":"PERMISSION_DENIED"}}
+
+===== GET rate_limits/x =====
+$ curl -si 'http://127.0.0.1:8080/v1/projects/demo-cpm/databases/(default)/documents/rate_limits/x'
+HTTP/1.1 403 Forbidden
+content-type: application/json
+content-length: 87
+
+{"error":{"code":403,"message":"\nfalse for 'get' @ L25","status":"PERMISSION_DENIED"}}
+
+===== GET ip_logs/x =====
+$ curl -si 'http://127.0.0.1:8080/v1/projects/demo-cpm/databases/(default)/documents/ip_logs/x'
+HTTP/1.1 403 Forbidden
+content-type: application/json
+content-length: 87
+
+{"error":{"code":403,"message":"\nfalse for 'get' @ L25","status":"PERMISSION_DENIED"}}
+
+===== UNAUTHENTICATED REST WRITES =====
+
+===== PATCH posts/p2 =====
+$ curl -si '-X' 'PATCH' 'http://127.0.0.1:8080/v1/projects/demo-cpm/databases/(default)/documents/posts/p2' '-H' 'Content-Type: application/json' '--data-raw' '{"fields":{"message":{"stringValue":"should be denied"},"createdAt":{"timestampValue":"2026-10-20T15:01:00Z"}}}'
+HTTP/1.1 403 Forbidden
+content-type: application/json
+content-length: 166
+
+{"error":{"code":403,"message":"\nfalse for 'create' @ L7, false for 'create' @ L25, false for 'update' @ L7, false for 'update' @ L25","status":"PERMISSION_DENIED"}}
+
+===== PATCH pinned/current =====
+$ curl -si '-X' 'PATCH' 'http://127.0.0.1:8080/v1/projects/demo-cpm/databases/(default)/documents/pinned/current' '-H' 'Content-Type: application/json' '--data-raw' '{"fields":{"text":{"stringValue":"should be denied"}}}'
+HTTP/1.1 403 Forbidden
+content-type: application/json
+content-length: 168
+
+{"error":{"code":403,"message":"\nfalse for 'create' @ L12, false for 'create' @ L25, false for 'update' @ L12, false for 'update' @ L25","status":"PERMISSION_DENIED"}}
+
+===== PATCH presence/y =====
+$ curl -si '-X' 'PATCH' 'http://127.0.0.1:8080/v1/projects/demo-cpm/databases/(default)/documents/presence/y' '-H' 'Content-Type: application/json' '--data-raw' '{"fields":{"username":{"stringValue":"EVE"}}}'
+HTTP/1.1 403 Forbidden
+content-type: application/json
+content-length: 168
+
+{"error":{"code":403,"message":"\nfalse for 'create' @ L17, false for 'create' @ L25, false for 'update' @ L17, false for 'update' @ L25","status":"PERMISSION_DENIED"}}
+
+===== PATCH users/EVE =====
+$ curl -si '-X' 'PATCH' 'http://127.0.0.1:8080/v1/projects/demo-cpm/databases/(default)/documents/users/EVE' '-H' 'Content-Type: application/json' '--data-raw' '{"fields":{"username":{"stringValue":"EVE"}}}'
+HTTP/1.1 403 Forbidden
+content-type: application/json
+content-length: 168
+
+{"error":{"code":403,"message":"\nfalse for 'create' @ L21, false for 'create' @ L25, false for 'update' @ L21, false for 'update' @ L25","status":"PERMISSION_DENIED"}}
+
+===== DELETE posts/p1 =====
+$ curl -si '-X' 'DELETE' 'http://127.0.0.1:8080/v1/projects/demo-cpm/databases/(default)/documents/posts/p1'
+HTTP/1.1 403 Forbidden
+content-type: application/json
+content-length: 115
+
+{"error":{"code":403,"message":"\nfalse for 'delete' @ L7, false for 'delete' @ L25","status":"PERMISSION_DENIED"}}
+
+===== ADMIN SDK SERVER-WRITE SANITY TEST =====
+JWT_SECRET=test-secret-long-random-value-for-route-proof (local-only dummy secret); token uses HS256 and api/auth.js username/iat/exp claims.
+
+$ 'node' 'evidence/r02_seed.mjs' 'seed'
+{
+  "projectId": "demo-cpm",
+  "emulatorHost": "127.0.0.1:8080",
+  "seeded": [
+    "users/ADMINU",
+    "users/BOB",
+    "users/CAROL",
+    "posts/test-post",
+    "settings/filters",
+    "pinned/current"
+  ]
+}
+
+
+$ curl -si -X POST http://127.0.0.1:4175/api/post -H "Authorization: Bearer <HS256 token for BOB>" -H "Content-Type: application/json" -H "x-forwarded-for: 198.51.100.77" -H "x-vercel-forwarded-for: 198.51.100.77" --data-raw '{"action":"post","message":"R03 Admin SDK rule bypass smoke test"}'
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Vary: Origin
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+Cache-Control: no-store
+Content-Type: application/json; charset=utf-8
+Date: Tue, 20 Oct 2026 14:56:31 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Content-Length: 39
+
+{"success":true,"isShadowbanned":false}
