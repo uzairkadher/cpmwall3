@@ -105,6 +105,7 @@ service cloud.firestore {
 
 ## 5. API route status (2026-10-20)
 All 12 frontend `fetch()` targets resolve to a handler (see INVENTORY.md). The only mismatch, `/api/admin/users`, was fixed in PR #1 by renaming the handler file. Evidence: `evidence/phase0_curl.log`. Real Firestore-backed behaviour is still unverified (no credentials in the test environment).
+R-02: admin IP bans and non-admin account bans are enforced using matching SHA-256 IP keys and `isBanned`/`bannedUntil` checks; emulator evidence only, not production Firestore or Vercel (`evidence/r02_ban.log`).
 
 ## 6. Empire Singularity design system progress
 | Item | Status | Commit |

@@ -1,0 +1,351 @@
+R-02 ADMIN BAN ENFORCEMENT — FIRESTORE EMULATOR EVIDENCE
+Date: 2026-10-20
+Repository: /home/ubuntu/repos/cpmwall3
+Baseline: PR #3 source at c67f23bb0819e1cc061b40a7b589ffcfa2a98266
+Project: demo-cpm (Firestore Emulator at 127.0.0.1:8080)
+This is emulator-only evidence; it is not production Firestore or Vercel proof.
+
+Emulator command:
+$ npx -y firebase-tools@13 emulators:start --only firestore --project demo-cpm --config /home/ubuntu/harness/firebase-r02.json
+Observed ready endpoint: Firestore 127.0.0.1:8080.
+
+Harnesses:
+- Fixed branch: http://127.0.0.1:4175 (project root /home/ubuntu/repos/cpmwall3)
+- Baseline: http://127.0.0.1:4176 (separate worktree at c67f23b)
+- Both use FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 and the dummy JWT secret
+  test-secret-long-random-value-for-route-proof.
+- Each harness received FIREBASE_SERVICE_KEY as throwaway demo-cpm service-account
+  JSON with a freshly generated RSA private key. No real credentials were used.
+- Seed/helper script: evidence/r02_seed.mjs; it generates a fresh throwaway RSA key.
+
+Seeded documents: users/ADMINU (role ADMIN), users/BOB (ip 203.0.113.7),
+users/CAROL (no ip), posts/test-post, settings/filters, and pinned/current.
+No fingerprint_bans documents are seeded. Every post request includes both
+x-forwarded-for and x-vercel-forwarded-for because post.js trusts the latter,
+not the arbitrary x-forwarded-for header alone.
+
+The same-IP rate_limits document is explicitly deleted before the CAROL test.
+Per-request curl commands, response headers, status lines, and bodies follow.
+
+===== FIXED BRANCH SCENARIOS =====
+JWT_SECRET=test-secret-long-random-value-for-route-proof (dummy local-only secret)
+JWT algorithm HS256; username, iat, exp claims as in api/auth.js
+
+===== a) BOB post from 203.0.113.7 before ban =====
+$ curl -si '-X' 'POST' 'http://127.0.0.1:4175/api/post' '-H' 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkJPQiIsImlhdCI6MTc5MjUwNzM0OCwiZXhwIjoxNzk1MDk5MzQ4fQ.QsKfCiieRfZh3AZkBQPbznaJSOgRHJ0_L7N06ezz-UI' '-H' 'Content-Type: application/json' '-H' 'x-forwarded-for: 203.0.113.7' '-H' 'x-vercel-forwarded-for: 203.0.113.7' '--data-raw' '{"action":"post","message":"R02 fixed test a"}'
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Vary: Origin
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+Cache-Control: no-store
+Content-Type: application/json; charset=utf-8
+Date: Tue, 20 Oct 2026 14:42:29 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Content-Length: 39
+
+{"success":true,"isShadowbanned":false}
+
+===== b) ADMINU bans BOB for one hour =====
+$ curl -si '-X' 'POST' 'http://127.0.0.1:4175/api/admin/users' '-H' 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkFETUlOVSIsImlhdCI6MTc5MjUwNzM0OCwiZXhwIjoxNzk1MDk5MzQ4fQ.NzI7Iu3VQkQAUvKYDOQOaQNFPbQROAvbUOvDY4iLFDU' '-H' 'Content-Type: application/json' '-H' 'x-forwarded-for: 192.0.2.10' '-H' 'x-vercel-forwarded-for: 192.0.2.10' '--data-raw' '{"action":"ban","targetUsername":"BOB","reason":"R02 emulator test","hours":1}'
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Vary: Origin
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+Cache-Control: no-store
+Content-Type: application/json; charset=utf-8
+Date: Tue, 20 Oct 2026 14:42:29 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Content-Length: 47
+
+{"success":true,"target":"BOB","isBanned":true}
+
+$ 'node' 'evidence/r02_seed.mjs' 'dump-banned'
+[
+  {
+    "id": "fec52565aa0cf18f57d7cf5b3ac728503b8992d2d6f7d46da1d1201090902b02",
+    "ip": "203.0.113.7",
+    "username": "BOB"
+  }
+]
+
+
+$ 'bash' '-c' 'printf %s 203.0.113.7 | sha256sum'
+fec52565aa0cf18f57d7cf5b3ac728503b8992d2d6f7d46da1d1201090902b02  -
+
+
+===== c1) BOB post from different IP while account ban active =====
+$ curl -si '-X' 'POST' 'http://127.0.0.1:4175/api/post' '-H' 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkJPQiIsImlhdCI6MTc5MjUwNzM0OCwiZXhwIjoxNzk1MDk5MzQ4fQ.QsKfCiieRfZh3AZkBQPbznaJSOgRHJ0_L7N06ezz-UI' '-H' 'Content-Type: application/json' '-H' 'x-forwarded-for: 198.51.100.9' '-H' 'x-vercel-forwarded-for: 198.51.100.9' '--data-raw' '{"action":"post","message":"R02 fixed test c1"}'
+HTTP/1.1 403 Forbidden
+Access-Control-Allow-Origin: *
+Vary: Origin
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+Cache-Control: no-store
+Content-Type: application/json; charset=utf-8
+Date: Tue, 20 Oct 2026 14:42:30 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Content-Length: 48
+
+{"error":"Your account is banned from posting."}
+
+===== c2) BOB likes seeded post while account ban active =====
+$ curl -si '-X' 'POST' 'http://127.0.0.1:4175/api/post' '-H' 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkJPQiIsImlhdCI6MTc5MjUwNzM0OCwiZXhwIjoxNzk1MDk5MzQ4fQ.QsKfCiieRfZh3AZkBQPbznaJSOgRHJ0_L7N06ezz-UI' '-H' 'Content-Type: application/json' '-H' 'x-forwarded-for: 198.51.100.9' '-H' 'x-vercel-forwarded-for: 198.51.100.9' '--data-raw' '{"action":"like","postId":"test-post"}'
+HTTP/1.1 403 Forbidden
+Access-Control-Allow-Origin: *
+Vary: Origin
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+Cache-Control: no-store
+Content-Type: application/json; charset=utf-8
+Date: Tue, 20 Oct 2026 14:42:30 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Content-Length: 48
+
+{"error":"Your account is banned from posting."}
+
+$ 'node' 'evidence/r02_seed.mjs' 'reset-rate' '203.0.113.7'
+{"deletedRateLimitForIp":"203.0.113.7","key":"fec52565aa0cf18f57d7cf5b3ac728503b8992d2d6f7d46da1d1201090902b02"}
+
+
+===== d) CAROL post from BOB banned IP =====
+$ curl -si '-X' 'POST' 'http://127.0.0.1:4175/api/post' '-H' 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkFETUlOVSIsImlhdCI6MTc5MjUwNzM0OCwiZXhwIjoxNzk1MDk5MzQ4fQ.NzI7Iu3VQkQAUvKYDOQOaQNFPbQROAvbUOvDY4iLFDU' '-H' 'Content-Type: application/json' '-H' 'x-forwarded-for: 203.0.113.7' '-H' 'x-vercel-forwarded-for: 203.0.113.7' '--data-raw' '{"action":"post","message":"R02 fixed test d"}'
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Vary: Origin
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+Cache-Control: no-store
+Content-Type: application/json; charset=utf-8
+Date: Tue, 20 Oct 2026 14:42:31 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Content-Length: 39
+
+{"success":true,"isShadowbanned":false}
+
+$ 'node' 'evidence/r02_seed.mjs' 'dump-fingerprints'
+{
+  "count": 0,
+  "ids": []
+}
+
+
+$ 'node' 'evidence/r02_seed.mjs' 'expire-bob'
+{
+  "user": "BOB",
+  "isBanned": true,
+  "bannedUntil": "one hour in the past",
+  "deletedBanDocumentId": "fec52565aa0cf18f57d7cf5b3ac728503b8992d2d6f7d46da1d1201090902b02"
+}
+
+
+===== e) BOB post after account ban expires and network ban is deleted =====
+$ curl -si '-X' 'POST' 'http://127.0.0.1:4175/api/post' '-H' 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkJPQiIsImlhdCI6MTc5MjUwNzM0OCwiZXhwIjoxNzk1MDk5MzQ4fQ.QsKfCiieRfZh3AZkBQPbznaJSOgRHJ0_L7N06ezz-UI' '-H' 'Content-Type: application/json' '-H' 'x-forwarded-for: 198.51.100.10' '-H' 'x-vercel-forwarded-for: 198.51.100.10' '--data-raw' '{"action":"post","message":"R02 fixed test e"}'
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Vary: Origin
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+Cache-Control: no-store
+Content-Type: application/json; charset=utf-8
+Date: Tue, 20 Oct 2026 14:42:32 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Content-Length: 39
+
+{"success":true,"isShadowbanned":false}
+
+$ 'node' 'evidence/r02_seed.mjs' 'dump-bob'
+{
+  "exists": true,
+  "isBanned": true,
+  "bannedUntil": "2026-10-20T13:42:31.965Z"
+}
+
+
+$ 'node' 'evidence/r02_seed.mjs' 'dump-banned'
+[]
+
+
+NOTE: The first d request above mistakenly used the ADMINU token, so it bypassed network enforcement and returned 200. Re-running d with CAROL credentials after restoring the one-hour ban; the first response is retained verbatim, not counted as CAROL evidence.
+
+===== Restore one-hour BOB ban for corrected d test =====
+$ curl -si '-X' 'POST' 'http://127.0.0.1:4175/api/admin/users' '-H' 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkFETUlOVSIsImlhdCI6MTc5MjUwNzM2NywiZXhwIjoxNzk1MDk5MzY3fQ.7cqt-ZHI0TeCF6Xjgeg77Ex5CW9bUtgRYGNGV9oi9uw' '-H' 'Content-Type: application/json' '-H' 'x-forwarded-for: 192.0.2.10' '-H' 'x-vercel-forwarded-for: 192.0.2.10' '--data-raw' '{"action":"ban","targetUsername":"BOB","reason":"R02 emulator test","hours":1}'
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Vary: Origin
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+Cache-Control: no-store
+Content-Type: application/json; charset=utf-8
+Date: Tue, 20 Oct 2026 14:42:47 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Content-Length: 47
+
+{"success":true,"target":"BOB","isBanned":true}
+
+$ 'node' 'evidence/r02_seed.mjs' 'reset-rate' '203.0.113.7'
+{"deletedRateLimitForIp":"203.0.113.7","key":"fec52565aa0cf18f57d7cf5b3ac728503b8992d2d6f7d46da1d1201090902b02"}
+
+
+===== d corrected) CAROL post from BOB banned IP using CAROL token =====
+$ curl -si '-X' 'POST' 'http://127.0.0.1:4175/api/post' '-H' 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkNBUk9MIiwiaWF0IjoxNzkyNTA3MzY3LCJleHAiOjE3OTUwOTkzNjd9.s4sGJlIwXamj3tCxykTUssOHa-K5fbzr0MFVkVhdpU0' '-H' 'Content-Type: application/json' '-H' 'x-forwarded-for: 203.0.113.7' '-H' 'x-vercel-forwarded-for: 203.0.113.7' '--data-raw' '{"action":"post","message":"R02 fixed test d with CAROL"}'
+HTTP/1.1 403 Forbidden
+Access-Control-Allow-Origin: *
+Vary: Origin
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+Cache-Control: no-store
+Content-Type: application/json; charset=utf-8
+Date: Tue, 20 Oct 2026 14:42:48 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Content-Length: 51
+
+{"error":"Posting is restricted for this network."}
+
+$ 'node' 'evidence/r02_seed.mjs' 'dump-fingerprints'
+{
+  "count": 0,
+  "ids": []
+}
+
+
+===== BASELINE COMPARISON: PR #3 BEFORE FIX (c67f23b) =====
+
+===== Fresh emulator wipe before baseline suite =====
+$ curl -si '-X' 'DELETE' 'http://127.0.0.1:8080/emulator/v1/projects/demo-cpm/databases/(default)/documents'
+HTTP/1.1 200 OK
+content-type: application/json
+content-length: 4
+
+{
+}
+
+
+$ 'node' 'evidence/r02_seed.mjs' 'seed'
+{
+  "projectId": "demo-cpm",
+  "emulatorHost": "127.0.0.1:8080",
+  "seeded": [
+    "users/ADMINU",
+    "users/BOB",
+    "users/CAROL",
+    "posts/test-post",
+    "settings/filters",
+    "pinned/current"
+  ]
+}
+
+
+===== f-a) Baseline BOB post from 203.0.113.7 before ban =====
+$ curl -si '-X' 'POST' 'http://127.0.0.1:4176/api/post' '-H' 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkJPQiIsImlhdCI6MTc5MjUwNzM3OSwiZXhwIjoxNzk1MDk5Mzc5fQ.gOLDtciNzEs4wZpCzuehl7FLb8S0rkmDnWrA84ULMjs' '-H' 'Content-Type: application/json' '-H' 'x-forwarded-for: 203.0.113.7' '-H' 'x-vercel-forwarded-for: 203.0.113.7' '--data-raw' '{"action":"post","message":"R02 baseline test a"}'
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Vary: Origin
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+Cache-Control: no-store
+Content-Type: application/json; charset=utf-8
+Date: Tue, 20 Oct 2026 14:43:00 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Content-Length: 39
+
+{"success":true,"isShadowbanned":false}
+
+===== f-b) Baseline ADMINU bans BOB for one hour =====
+$ curl -si '-X' 'POST' 'http://127.0.0.1:4176/api/admin/users' '-H' 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkFETUlOVSIsImlhdCI6MTc5MjUwNzM3OSwiZXhwIjoxNzk1MDk5Mzc5fQ.OdEATe1PcC2j8M3LfC1YUYH55WOBuqwhsw0j4KcBCMA' '-H' 'Content-Type: application/json' '-H' 'x-forwarded-for: 192.0.2.10' '-H' 'x-vercel-forwarded-for: 192.0.2.10' '--data-raw' '{"action":"ban","targetUsername":"BOB","reason":"R02 baseline test","hours":1}'
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Vary: Origin
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+Cache-Control: no-store
+Content-Type: application/json; charset=utf-8
+Date: Tue, 20 Oct 2026 14:43:00 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Content-Length: 47
+
+{"success":true,"target":"BOB","isBanned":true}
+
+$ 'node' 'evidence/r02_seed.mjs' 'dump-banned'
+[
+  {
+    "id": "203.0.113.7",
+    "ip": "203.0.113.7",
+    "username": "BOB"
+  }
+]
+
+
+$ 'bash' '-c' 'printf %s 203.0.113.7 | sha256sum'
+fec52565aa0cf18f57d7cf5b3ac728503b8992d2d6f7d46da1d1201090902b02  -
+
+
+===== f-c1) Baseline BOB post from different IP after account ban =====
+$ curl -si '-X' 'POST' 'http://127.0.0.1:4176/api/post' '-H' 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkJPQiIsImlhdCI6MTc5MjUwNzM3OSwiZXhwIjoxNzk1MDk5Mzc5fQ.gOLDtciNzEs4wZpCzuehl7FLb8S0rkmDnWrA84ULMjs' '-H' 'Content-Type: application/json' '-H' 'x-forwarded-for: 198.51.100.9' '-H' 'x-vercel-forwarded-for: 198.51.100.9' '--data-raw' '{"action":"post","message":"R02 baseline test c1"}'
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Vary: Origin
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+Cache-Control: no-store
+Content-Type: application/json; charset=utf-8
+Date: Tue, 20 Oct 2026 14:43:01 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Content-Length: 39
+
+{"success":true,"isShadowbanned":false}
+
+===== f-c2) Baseline BOB likes seeded post after account ban =====
+$ curl -si '-X' 'POST' 'http://127.0.0.1:4176/api/post' '-H' 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkJPQiIsImlhdCI6MTc5MjUwNzM3OSwiZXhwIjoxNzk1MDk5Mzc5fQ.gOLDtciNzEs4wZpCzuehl7FLb8S0rkmDnWrA84ULMjs' '-H' 'Content-Type: application/json' '-H' 'x-forwarded-for: 198.51.100.9' '-H' 'x-vercel-forwarded-for: 198.51.100.9' '--data-raw' '{"action":"like","postId":"test-post"}'
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Vary: Origin
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+Cache-Control: no-store
+Content-Type: application/json; charset=utf-8
+Date: Tue, 20 Oct 2026 14:43:01 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Content-Length: 16
+
+{"success":true}
+
+$ 'node' 'evidence/r02_seed.mjs' 'reset-rate' '203.0.113.7'
+{"deletedRateLimitForIp":"203.0.113.7","key":"fec52565aa0cf18f57d7cf5b3ac728503b8992d2d6f7d46da1d1201090902b02"}
+
+
+===== f-d) Baseline CAROL post from BOB banned IP =====
+$ curl -si '-X' 'POST' 'http://127.0.0.1:4176/api/post' '-H' 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkNBUk9MIiwiaWF0IjoxNzkyNTA3Mzc5LCJleHAiOjE3OTUwOTkzNzl9.SC4NZr04cGzObxyvSuuBlja_VkTCf4oGfwili3ICLOg' '-H' 'Content-Type: application/json' '-H' 'x-forwarded-for: 203.0.113.7' '-H' 'x-vercel-forwarded-for: 203.0.113.7' '--data-raw' '{"action":"post","message":"R02 baseline test d"}'
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Vary: Origin
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+Cache-Control: no-store
+Content-Type: application/json; charset=utf-8
+Date: Tue, 20 Oct 2026 14:43:01 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Content-Length: 39
+
+{"success":true,"isShadowbanned":false}
+
+$ 'node' 'evidence/r02_seed.mjs' 'dump-fingerprints'
+{
+  "count": 0,
+  "ids": []
+}
+
