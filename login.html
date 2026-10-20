@@ -6,18 +6,16 @@
   <meta name="robots" content="noindex, nofollow">
   <title>Login - EMPIRE STUDIO</title>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/design-tokens.css">
   <style>
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body {
       margin: 0;
       padding: 14px;
       min-height: 100vh;
-      background:
-        radial-gradient(900px at 50% -20%, rgba(255,184,0,.3), transparent),
-        radial-gradient(700px at 100% 100%, rgba(255,217,90,.15), transparent),
-        #07070A;
+      background: var(--bg-singularity);
       color: #fff;
-      font-family: Inter, sans-serif;
+      font-family: var(--font-sans);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -26,10 +24,10 @@
       width: 100%;
       max-width: 380px;
       background: linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.03));
-      border: 1px solid rgba(255,217,90,.35);
+      border: 1px solid rgba(6,182,212,.35);
       border-radius: 28px;
       padding: 28px 24px 22px;
-      box-shadow: 0 0 0 1px rgba(255,217,90,.08), 0 0 80px rgba(255,184,0,.25), inset 0 1px 0 rgba(255,255,255,.2);
+      box-shadow: 0 0 0 1px rgba(6,182,212,.08), 0 0 80px rgba(124,58,237,.25), inset 0 1px 0 rgba(255,255,255,.2);
       backdrop-filter: blur(20px);
       text-align: center;
     }
@@ -38,14 +36,14 @@
       width: 84px;
       height: 84px;
       border-radius: 50%;
-      background: radial-gradient(circle, #FFD95A, #FF9A00);
+      background: var(--gradient-singularity);
       display: grid;
       place-items: center;
       font-family: Syne, sans-serif;
       font-weight: 800;
       font-size: 28px;
-      color: black;
-      box-shadow: 0 0 40px rgba(255,184,0,.8), inset 0 2px 0 rgba(255,255,255,.6);
+      color: var(--text-on-accent);
+      box-shadow: 0 0 40px rgba(124,58,237,.8), inset 0 2px 0 rgba(255,255,255,.6);
     }
     .card-luxury h1 {
       font-family: Syne, sans-serif;
@@ -54,7 +52,7 @@
       letter-spacing: 1px;
       margin: 0;
     }
-    .sub-luxury { margin-top: 6px; color: #d6c79f; font-size: 12px; }
+    .sub-luxury { margin-top: 6px; color: var(--text-secondary); font-size: 12px; }
     .tabs {
       display: flex;
       gap: 8px;
@@ -62,13 +60,13 @@
       background: rgba(0,0,0,.4);
       padding: 4px;
       border-radius: 14px;
-      border: 1px solid rgba(255,217,90,.2);
+      border: 1px solid rgba(6,182,212,.2);
     }
     .tab {
       flex: 1;
       background: transparent;
       border: none;
-      color: #a1a1aa;
+      color: var(--text-secondary);
       padding: 10px;
       font-weight: 700;
       font-size: 12px;
@@ -76,13 +74,13 @@
       cursor: pointer;
     }
     .tab.active {
-      background: linear-gradient(180deg, #FFE68A, #FFB800);
-      color: #000;
+      background: var(--gradient-singularity);
+      color: var(--text-on-accent);
     }
     .input-wrap { margin-top: 16px; text-align: left; }
     .input-wrap label {
       font-size: 11px;
-      color: #d6c79f;
+      color: var(--text-secondary);
       margin-left: 4px;
       font-weight: 600;
       display: block;
@@ -90,7 +88,7 @@
     .input-wrap input {
       width: 100%;
       background: rgba(0,0,0,.5);
-      border: 1px solid rgba(255,217,90,.35);
+      border: 1px solid rgba(6,182,212,.35);
       border-radius: 14px;
       padding: 12px 14px;
       color: white;
@@ -99,44 +97,44 @@
       margin-top: 4px;
     }
     .input-wrap input:focus {
-      border-color: #FFD95A;
-      box-shadow: 0 0 0 3px rgba(255,217,90,.15);
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 3px rgba(6,182,212,.15);
     }
     .login-btn-luxury {
       margin-top: 20px;
       width: 100%;
-      background: linear-gradient(180deg, #FFE68A, #FFB800);
+      background: var(--gradient-singularity);
       border: none;
       padding: 14px;
       border-radius: 14px;
       font-weight: 800;
       font-size: 16px;
       cursor: pointer;
-      box-shadow: 0 10px 30px rgba(255,184,0,.4);
-      color: #000;
+      box-shadow: 0 10px 30px rgba(124,58,237,.4);
+      color: var(--text-on-accent);
     }
     .login-btn-luxury:disabled { opacity: .6; cursor: not-allowed; }
     .login-btn-luxury:active:not(:disabled) { transform: scale(.98); }
-    .switch-mode { margin-top: 16px; font-size: 12px; color: #a1a1aa; }
+    .switch-mode { margin-top: 16px; font-size: 12px; color: var(--text-secondary); }
     .switch-mode button {
       background: none;
       border: none;
       padding: 0;
-      color: #FFD95A;
+      color: var(--cyan);
       font: inherit;
       font-weight: 700;
       text-decoration: underline;
       cursor: pointer;
     }
     #authError {
-      color: #ef4444;
+      color: var(--danger);
       font-size: 11px;
       margin-top: 8px;
       font-weight: 600;
       min-height: 14px;
       overflow-wrap: anywhere;
     }
-    .foot { margin-top: 16px; color: #b49c6a; font-size: 10px; }
+    .foot { margin-top: 16px; color: var(--text-muted); font-size: 10px; }
   </style>
 </head>
 <body>

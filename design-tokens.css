@@ -55,6 +55,32 @@
 
   /* Skeleton Surfaces */
   --skeleton-bg: linear-gradient(90deg, #12121a 0%, #1a1a24 50%, #12121a 100%);
+
+  /* Phase 1 Singularity Accents */
+  --cyan-bright: #22d3ee;
+  --violet-bright: #a78bfa;
+  --violet-soft: #c4b5fd;
+  --gradient-singularity: linear-gradient(135deg, var(--violet) 0%, var(--cyan) 100%);
+  --glow-cyan: 0 0 24px rgba(6, 182, 212, 0.35);
+  --glow-violet: 0 0 24px rgba(124, 58, 237, 0.35);
+  --bg-singularity:
+    radial-gradient(900px at 50% -20%, rgba(124, 58, 237, 0.28), transparent),
+    radial-gradient(700px at 100% 100%, rgba(6, 182, 212, 0.14), transparent),
+    var(--bg-obsidian);
+
+  /* Semantic Status Colors */
+  --danger: #ef4444;
+  --danger-soft: #fca5a5;
+  --success: #10b981;
+  --success-bright: #22c55e;
+  --success-soft: #6ee7b7;
+  --success-mint: #34d399;
+  --warning: #f59e0b;
+  --warning-soft: #fcd34d;
+  --warning-pale: #fef08a;
+  --success-pale: #a7f3d0;
+  --text-on-accent: #ffffff;
+  --muted-status: #8b8fa3;
 }
 
 /* 

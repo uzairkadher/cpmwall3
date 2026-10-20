@@ -81,7 +81,7 @@
       place-items: center;
       font-weight: 800;
       font-size: var(--text-24);
-      color: #fff;
+      color: var(--text-on-accent);
       cursor: pointer;
       overflow: hidden;
       border: 2px solid var(--cyan);
@@ -130,7 +130,7 @@
       border-radius: var(--radius-sm);
       font-weight: 700;
       font-size: var(--text-14);
-      color: #fff;
+      color: var(--text-on-accent);
       cursor: pointer;
       min-height: 44px;
     }
@@ -152,7 +152,7 @@
     .btn-whatsapp {
       background: rgba(16, 185, 129, 0.1);
       border: 1px solid rgba(16, 185, 129, 0.3);
-      color: #34d399;
+      color: var(--success-mint);
       text-decoration: none;
       display: block;
       text-align: center;
@@ -164,7 +164,7 @@
     }
     .logout-btn {
       background: rgba(239, 68, 68, 0.1);
-      color: #fca5a5;
+      color: var(--danger-soft);
       border: 1px solid rgba(239, 68, 68, 0.3);
       width: 100%;
       padding: 14px;
@@ -318,7 +318,7 @@
     function setStatus(id, message, color) {
       const element = document.getElementById(id);
       element.textContent = message;
-      element.style.color = color || "#8b8fa3";
+      element.style.color = color || "var(--muted-status)";
     }
 
     function triggerPhotoUpload() {
@@ -352,12 +352,12 @@
       if (!file) return;
 
       if (!ALLOWED_PHOTO_TYPES.has(file.type)) {
-        setStatus("photoStatus", "Choose a JPEG, PNG, WebP, or GIF image.", "#ef4444");
+        setStatus("photoStatus", "Choose a JPEG, PNG, WebP, or GIF image.", "var(--danger)");
         return;
       }
 
       if (file.size > MAX_LOCAL_PHOTO_BYTES) {
-        setStatus("photoStatus", "Image must be 1 MB or smaller.", "#ef4444");
+        setStatus("photoStatus", "Image must be 1 MB or smaller.", "var(--danger)");
         return;
       }
 
@@ -365,7 +365,7 @@
       reader.onload = () => {
         if (typeof reader.result !== "string" ||
             !reader.result.startsWith("data:image/")) {
-          setStatus("photoStatus", "Could not read that image.", "#ef4444");
+          setStatus("photoStatus", "Could not read that image.", "var(--danger)");
           return;
         }
 
@@ -375,18 +375,18 @@
           setStatus(
             "photoStatus",
             "Photo saved on this device. It has not been uploaded to the server.",
-            "#22c55e"
+            "var(--success-bright)"
           );
         } catch {
           setStatus(
             "photoStatus",
             "Browser storage is full. Remove the old photo or choose a smaller image.",
-            "#ef4444"
+            "var(--danger)"
           );
         }
       };
       reader.onerror = () => {
-        setStatus("photoStatus", "Could not read that image.", "#ef4444");
+        setStatus("photoStatus", "Could not read that image.", "var(--danger)");
       };
       reader.readAsDataURL(file);
     });
@@ -394,7 +394,7 @@
     function clearLocalPhoto() {
       localStorage.removeItem("wall_photo");
       renderAvatar("", localStorage.getItem("wall_user") || "");
-      setStatus("photoStatus", "Local photo removed.", "#22c55e");
+      setStatus("photoStatus", "Local photo removed.", "var(--success-bright)");
     }
 
     async function fetchProfile() {
@@ -414,14 +414,14 @@
         }
 
         if (!response.ok) {
-          setStatus("profileStatus", "Unable to load profile. Try again.", "#ef4444");
+          setStatus("profileStatus", "Unable to load profile. Try again.", "var(--danger)");
           return;
         }
 
         const data = await response.json();
 
         if (typeof data.username !== "string" || !data.username) {
-          setStatus("profileStatus", "Invalid profile response.", "#ef4444");
+          setStatus("profileStatus", "Invalid profile response.", "var(--danger)");
           return;
         }
 
@@ -442,7 +442,7 @@
             : "block";
 
       } catch {
-        setStatus("profileStatus", "Network error. Check your connection and retry.", "#ef4444");
+        setStatus("profileStatus", "Network error. Check your connection and retry.", "var(--danger)");
       }
     }
 
@@ -455,7 +455,7 @@
         setStatus(
           "usernameStatus",
           "Use 3-20 letters, numbers, underscores, or periods.",
-          "#ef4444"
+          "var(--danger)"
         );
         return;
       }
@@ -476,7 +476,7 @@
         const data = await response.json().catch(() => ({}));
 
         if (!response.ok) {
-          setStatus("usernameStatus", data.error || "Failed to update username.", "#ef4444");
+          setStatus("usernameStatus", data.error || "Failed to update username.", "var(--danger)");
           return;
         }
 
@@ -484,11 +484,11 @@
           localStorage.setItem("wall_user", data.newUsername);
         }
 
-        setStatus("usernameStatus", "Username updated successfully.", "#22c55e");
+        setStatus("usernameStatus", "Username updated successfully.", "var(--success-bright)");
         input.value = "";
         await fetchProfile();
       } catch {
-        setStatus("usernameStatus", "Network error. Please try again.", "#ef4444");
+        setStatus("usernameStatus", "Network error. Please try again.", "var(--danger)");
       } finally {
         button.disabled = false;
       }
@@ -505,7 +505,7 @@
         setStatus(
           "passwordStatus",
           "Enter your current password and a new password of 6-1024 characters.",
-          "#ef4444"
+          "var(--danger)"
         );
         return;
       }
@@ -526,15 +526,15 @@
         const data = await response.json().catch(() => ({}));
 
         if (!response.ok) {
-          setStatus("passwordStatus", data.error || "Failed to update password.", "#ef4444");
+          setStatus("passwordStatus", data.error || "Failed to update password.", "var(--danger)");
           return;
         }
 
-        setStatus("passwordStatus", "Password updated successfully.", "#22c55e");
+        setStatus("passwordStatus", "Password updated successfully.", "var(--success-bright)");
         oldInput.value = "";
         newInput.value = "";
       } catch {
-        setStatus("passwordStatus", "Network error. Please try again.", "#ef4444");
+        setStatus("passwordStatus", "Network error. Please try again.", "var(--danger)");
       } finally {
         button.disabled = false;
       }

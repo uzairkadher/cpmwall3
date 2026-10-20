@@ -1,0 +1,19 @@
+# Phase 1 evidence (Tue Oct 20 13:55:02 UTC 2026)
+## DOM ID preservation (sorted id= lists vs pre-change snapshot)
+index.html: 25 ids, IDENTICAL
+login.html: 11 ids, IDENTICAL
+settings.html: 15 ids, IDENTICAL
+admin.html: 42 ids, IDENTICAL
+## Remaining hardcoded hex (expected: theme-color meta, &#039; entity, #fff/#000 text-on-badge)
+admin.html:304:        .replace(/'/g, "&#039;");
+index.html:15:<meta name="theme-color" content="#0a0a0f">
+index.html:312:.vip-badge { background: var(--warning); color: #000; font-size: 10px; padding: 2px 6px; border-radius: 4
+login.html:17:      color: #fff;
+## Gold palette removed from login.html
+0
+## design-tokens.css linked
+admin.html
+index.html
+login.html
+settings.html
+## Headless render: page errors = [] for /login, /, /settings, /admin (playwright-core CDP, mocked API)

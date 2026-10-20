@@ -97,14 +97,14 @@ body {
   place-items: center;
   font-weight: 800;
   font-size: var(--text-14);
-  color: #fff;
+  color: var(--text-on-accent);
   overflow: hidden;
 }
 .header-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .header-username {
   font-size: var(--text-14);
   font-weight: 700;
-  color: #fff;
+  color: var(--text-on-accent);
 }
 .header-right-actions {
   display: flex;
@@ -152,17 +152,17 @@ body {
 .room-tab.active {
   background: rgba(124, 58, 237, 0.15);
   border-color: var(--violet);
-  color: #fff;
+  color: var(--text-on-accent);
 }
 .room-tab.vip.active {
   background: rgba(245, 158, 11, 0.15);
-  border-color: #f59e0b;
-  color: #fef08a;
+  border-color: var(--warning);
+  color: var(--warning-pale);
 }
 .room-tab.market.active {
   background: rgba(16, 185, 129, 0.15);
-  border-color: #10b981;
-  color: #a7f3d0;
+  border-color: var(--success);
+  color: var(--success-pale);
 }
 
 /* Banners & Pinned */
@@ -177,7 +177,7 @@ body {
   display: none;
   flex-shrink: 0;
 }
-.announcement-banner { border-left-color: #ef4444; }
+.announcement-banner { border-left-color: var(--danger); }
 
 /* Filter & Search */
 .filter-row {
@@ -193,7 +193,7 @@ body {
   background: transparent;
   border: none;
   outline: none;
-  color: #fff;
+  color: var(--text-on-accent);
   font-size: var(--text-14);
   flex: 1;
   height: 36px;
@@ -233,7 +233,7 @@ body {
 }
 .btn-primary {
   background: var(--violet);
-  color: #fff;
+  color: var(--text-on-accent);
   border: none;
   padding: 12px 24px;
   border-radius: var(--radius-sm);
@@ -303,13 +303,13 @@ body {
   gap: 6px;
   align-items: center;
 }
-.bubble.me .author { color: #a78bfa; }
+.bubble.me .author { color: var(--violet-bright); }
 .bubble.bot .author { color: var(--cyan); }
-.author.vip-glow { color: #f59e0b; }
+.author.vip-glow { color: var(--warning); }
 .meta { font-size: 11px; color: var(--text-muted); }
 
-.admin-badge { background: #ef4444; color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 700; }
-.vip-badge { background: #f59e0b; color: #000; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 700; }
+.admin-badge { background: var(--danger); color: var(--text-on-accent); font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 700; }
+.vip-badge { background: var(--warning); color: #000; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 700; }
 
 .body {
   font-size: 15px;
@@ -337,8 +337,8 @@ body {
   min-height: 44px;
 }
 .reaction-btn { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 4px 10px; border: 1px solid var(--border-subtle); }
-.action-icon-btn.delete { color: #ef4444; font-weight: bold; }
-.action-icon-btn.pin { color: #f59e0b; font-weight: bold; }
+.action-icon-btn.delete { color: var(--danger); font-weight: bold; }
+.action-icon-btn.pin { color: var(--warning); font-weight: bold; }
 
 /* Composer / Input Panel */
 .input-panel {
@@ -386,7 +386,7 @@ body {
 .input-panel input {
   background: var(--bg-obsidian);
   border: 1px solid var(--border-strong);
-  color: #fff;
+  color: var(--text-on-accent);
   padding: 12px 14px;
   border-radius: var(--radius-sm);
   outline: none;
@@ -397,7 +397,7 @@ body {
 .send-btn {
   background: var(--violet);
   border: none;
-  color: #fff;
+  color: var(--text-on-accent);
   font-weight: 700;
   padding: 0 20px;
   border-radius: var(--radius-sm);
@@ -466,7 +466,7 @@ body {
   pointer-events: auto;
   transition: opacity var(--transition-normal);
 }
-.toast.error { border-left-color: #ef4444; }
+.toast.error { border-left-color: var(--danger); }
 
 /* Tool utilities */
 .jump-btn {
@@ -475,7 +475,7 @@ body {
   left: 50%;
   transform: translateX(-50%);
   background: var(--violet);
-  color: #fff;
+  color: var(--text-on-accent);
   font-weight: 700;
   font-size: 12px;
   padding: 8px 16px;
@@ -538,8 +538,8 @@ body {
 
   <!-- Error State -->
   <div id="errorFeedState" class="empty-state animate-fade-in" style="display:none;">
-    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-bottom:12px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-    <h3 style="color:#ef4444;">Connection lost</h3>
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="stroke:var(--danger); margin-bottom:12px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+    <h3 style="color:var(--danger);">Connection lost</h3>
     <button class="btn-primary interactive-active" style="background:var(--surface-raised); border:1px solid var(--border-strong);" onclick="window.location.reload()">Retry connection</button>
   </div>
 
@@ -706,7 +706,7 @@ function updateCharCounterDisplay() {
   const len = msgInput.value.length;
   charCount.textContent = `${len}/${max}`;
   if (len > max * 0.9) {
-    charCount.style.color = '#ef4444';
+    charCount.style.color = 'var(--danger)';
   } else {
     charCount.style.color = 'var(--text-muted)';
   }
