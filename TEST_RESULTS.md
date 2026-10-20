@@ -67,3 +67,21 @@ Raw terminal/curl transcript and seed/helper script: [`evidence/r02_ban.log`](ev
 | BOB posts after `bannedUntil` is set in the past and network ban doc is deleted | Not run | 200; `users/BOB.isBanned` remained `true` |
 
 No `fingerprint_bans` documents were seeded; the collection dump showed count `0` in both runs. The raw log preserves an initial fixed-branch CAROL test request mistakenly signed as ADMINU (which bypassed network-ban enforcement); it is explicitly excluded from the result above. The corrected request used CAROL's JWT and returned 403.
+
+# TEST_RESULTS — R-03 Firestore security rules (commit 2a77d7178f5e29bc630a036093a92f8605b78aec)
+
+Raw curl transcript: [`evidence/r03_rules.log`](evidence/r03_rules.log). Emulator startup configuration in the log's Firebase debug entry includes `--rules /home/ubuntu/repos/cpmwall3/firestore.rules`.
+
+**This proof ran against the Firestore emulator only. It does not verify production Firestore rules or a Vercel deployment.** Seed writes used `Authorization: Bearer owner`; access checks below had no authorization header.
+
+| Probe | Actual HTTP status |
+|---|---:|
+| Owner seed: `posts/p1`, `pinned/current`, `presence/x`, `users/BOB`, `banned/x`, `sessions/x`, `rate_limits/x`, `ip_logs/x` | 200 each |
+| Unauthenticated GET `posts/p1`, `pinned/current`, `presence/x` | 200 each |
+| Unauthenticated posts query (`createdAt DESC`, limit 100) | 200 |
+| Unauthenticated GET `users/BOB`, `banned/x`, `sessions/x`, `rate_limits/x`, `ip_logs/x` | 403 each |
+| Unauthenticated PATCH `posts/p2`, `pinned/current`, `presence/y`, `users/EVE` | 403 each |
+| Unauthenticated DELETE `posts/p1` | 403 |
+| BOB post through `/api/post` on harness port 4175 after emulator rules loaded | 200 |
+
+The server-side Admin SDK write succeeded because Admin SDK operations bypass Firestore Security Rules. The production rules deployment is pending the project owner; no production credentials or project ID were added.

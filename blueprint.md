@@ -71,6 +71,7 @@ Paste into **Firebase Console → Firestore Database → Rules**, then
 Publish. These rules allow public reads of posts, pinned posts, and
 presence, while denying browser access to `users` and all other
 collections.
+Source of truth: these rules now live in `firestore.rules`; deploy with `firebase deploy --only firestore:rules` or paste into the Firebase Console. The project owner must deploy them; production deployment is not verified here.
 
 ```javascript
 rules_version = '2';
@@ -106,6 +107,7 @@ service cloud.firestore {
 ## 5. API route status (2026-10-20)
 All 12 frontend `fetch()` targets resolve to a handler (see INVENTORY.md). The only mismatch, `/api/admin/users`, was fixed in PR #1 by renaming the handler file. Evidence: `evidence/phase0_curl.log`. Real Firestore-backed behaviour is still unverified (no credentials in the test environment).
 R-02: admin IP bans and non-admin account bans are enforced using matching SHA-256 IP keys and `isBanned`/`bannedUntil` checks; emulator evidence only, not production Firestore or Vercel (`evidence/r02_ban.log`).
+R-03: `firestore.rules` is configured by `firebase.json`; emulator access checks are recorded in `evidence/r03_rules.log`. Production deployment is pending the project owner.
 
 ## 6. Empire Singularity design system progress
 | Item | Status | Commit |

@@ -26,6 +26,13 @@
 
 # Change Log (newest first)
 
+## [2026-10-20] PR #__PR__ R-03 firestore.rules in repo - DONE (commit 2a77d7178f5e29bc630a036093a92f8605b78aec)
+- What: Added `firestore.rules` with public read-only access to posts, pinned, and presence; all writes and all other browser reads are denied.
+- Decision: Keep the exact §4 rules, including public post reads; shadowban filtering remains R-04. `firestore.rules` is the source of truth and must be deployed by the project owner.
+- Files: `firestore.rules`, `firebase.json`, `evidence/r03_rules.log`, `AI_CONTEXT.md`, `blueprint.md`, `PROGRESS.md`, `TEST_RESULTS.md`.
+- Verified: The Firestore emulator loaded `/home/ubuntu/repos/cpmwall3/firestore.rules`; public reads/query returned 200, protected reads/writes returned 403, and a BOB post through the Admin SDK harness returned 200. Emulator only; production is not verified or deployed.
+- Next: R-04 (shadowbanned posts visible via client Firestore reads).
+
 ## [2026-10-20] PR #4 R-02 Admin ban enforcement - DONE (commit dd283d079df26c61d6c71383531a5498524093d1)
 - What: Admin network bans now use the same SHA-256 IP document key as `api/post.js`; non-admin account bans block post and like actions while permanent or unexpired.
 - Decision: Expired account bans remain read-only and are not cleared. No unban action or auth changes.
