@@ -67,3 +67,16 @@ Raw terminal/curl transcript and seed/helper script: [`evidence/r02_ban.log`](ev
 | BOB posts after `bannedUntil` is set in the past and network ban doc is deleted | Not run | 200; `users/BOB.isBanned` remained `true` |
 
 No `fingerprint_bans` documents were seeded; the collection dump showed count `0` in both runs. The raw log preserves an initial fixed-branch CAROL test request mistakenly signed as ADMINU (which bypassed network-ban enforcement); it is explicitly excluded from the result above. The corrected request used CAROL's JWT and returned 403.
+
+## Phase 1 Wall draft/reply preservation (PR #3 follow-up, commit 85359c3130b54fde59e8c839f67a2ef8bbf8d0f6)
+
+Browser proof, not curl: headless Chrome via Playwright/CDP against the local harness, with mocked Firestore and `/api/post` responses and a 1.5 s POST delay. This is mock-only evidence, not production verification. Raw output: [`evidence/phase1_wall_draft.log`](evidence/phase1_wall_draft.log).
+
+| Check | Result |
+|---|---|
+| Normal send with HTTP 200 | Input cleared |
+| Replace `first` with `second draft` while POST is pending | `second draft` remained after 200 |
+| Change reply target from post A to post B while POST is pending | B remained selected after 200; a normal reply send then cleared the target |
+| Failed POST (500) | Input remained |
+| Four rapid Enter presses | Exactly one POST |
+| Page errors / `index.html` DOM IDs vs `main` | 0 / identical |

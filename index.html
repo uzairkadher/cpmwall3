@@ -1119,8 +1119,10 @@ window.sendPost = async () => {
     window.location.href = '/login';
     return;
   }
-  const message = msgInput.value.trim();
+  const sentText = msgInput.value;
+  const message = sentText.trim();
   if (!message || isPosting) return;
+  const sentReply = replyingToData;
   isPosting = true;
   sendBtn.disabled = true;
   sendBtn.setAttribute('aria-busy', 'true');
@@ -1128,11 +1130,11 @@ window.sendPost = async () => {
     const res = await fetch('/api/post', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify({ message, room: currentRoom, replyTo: replyingToData })
+      body: JSON.stringify({ message, room: currentRoom, replyTo: sentReply })
     });
     if (res.ok) {
-      msgInput.value = '';
-      cancelReply();
+      if (msgInput.value === sentText) msgInput.value = '';
+      if (replyingToData === sentReply) cancelReply();
       updateCharCounterDisplay();
     } else {
       const d = await res.json().catch(() => ({}));
