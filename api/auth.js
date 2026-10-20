@@ -181,6 +181,68 @@ export function verifyJwt(token) {
   }
 }
 
+export async function isSessionActive(db, decoded) {
+  if (!decoded || typeof decoded !== "object" || Array.isArray(decoded)) {
+    return false;
+  }
+  if (!Object.prototype.hasOwnProperty.call(decoded, "sid")) {
+    return true;
+  }
+
+  const sid = decoded.sid;
+  if (
+    typeof sid !== "string" ||
+    sid.length === 0 ||
+    sid.length > 64 ||
+    sid.includes("/")
+  ) {
+    return false;
+  }
+
+  const snap = await db.collection("sessions").doc(sid).get();
+  return snap.exists && snap.data()?.active !== false;
+}
+
+function parseUserAgent(ua = "") {
+  let os = "Unknown OS";
+  if (/windows nt 10/i.test(ua)) os = "Windows 10/11";
+  else if (/android/i.test(ua)) os = "Android";
+  else if (/iphone|ipad/i.test(ua)) os = "iOS";
+
+  let browser = "Browser";
+  if (/instagram/i.test(ua)) browser = "Instagram App";
+  else if (/whatsapp/i.test(ua)) browser = "WhatsApp App";
+  else if (/edg\//i.test(ua)) browser = "Edge";
+  else if (/chrome\//i.test(ua)) browser = "Chrome";
+  else if (/safari\//i.test(ua)) browser = "Safari";
+
+  let device = /mobile|android|iphone|ipad/i.test(ua) ? "Mobile" : "Desktop";
+  if (/iphone/i.test(ua)) device = "iPhone";
+
+  return { os, browser, device };
+}
+
+async function createSession(db, username, req) {
+  const sid = crypto.randomUUID();
+  const userAgent = String(req.headers?.["user-agent"] || "unknown").slice(0, 512);
+  const { device, browser, os } = parseUserAgent(userAgent);
+
+  await db.collection("sessions").doc(sid).set({
+    username,
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    lastSeen: admin.firestore.FieldValue.serverTimestamp(),
+    expiresAt: admin.firestore.Timestamp.fromMillis(
+      Date.now() + JWT_LIFETIME_SECONDS * 1000
+    ),
+    device,
+    browser,
+    os,
+    active: true
+  });
+
+  return sid;
+}
+
 function hashLegacyPassword(password) {
   return crypto
     .createHash("sha256")
@@ -276,12 +338,12 @@ function sendError(res, status, error) {
   return res.status(status).json({ error });
 }
 
-async function registerUser(db, cleanUser, password) {
+async function registerUser(db, cleanUser, password, req) {
   const userRef = db.collection("users").doc(cleanUser);
   const passHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
 
   const rawIp = String(
-    (arguments[3]?.headers?.["x-forwarded-for"] || "")
+    (req?.headers?.["x-forwarded-for"] || "")
       .split(",")[0]
       .trim() || "unknown"
   );
@@ -302,8 +364,10 @@ async function registerUser(db, cleanUser, password) {
     });
   });
 
+  const sid = await createSession(db, cleanUser, req);
+
   return {
-    token: signJwt({ username: cleanUser }),
+    token: signJwt({ username: cleanUser, sid }),
     username: cleanUser
   };
 }
@@ -397,7 +461,17 @@ export default async function handler(req, res) {
       }
 
       const decoded = verifyJwt(token);
-      if (!decoded || !decoded.username) {
+      if (!decoded) {
+        return sendError(res, 401, "Invalid token");
+      }
+
+      const db = Object.prototype.hasOwnProperty.call(decoded, "sid")
+        ? getDb()
+        : null;
+      if (!(await isSessionActive(db, decoded))) {
+        return sendError(res, 401, "Session revoked.");
+      }
+      if (!decoded.username) {
         return sendError(res, 401, "Invalid token");
       }
 
@@ -475,7 +549,8 @@ export default async function handler(req, res) {
         });
       });
 
-      const token = signJwt({ username: cleanUser });
+      const sid = await createSession(db, cleanUser, req);
+      const token = signJwt({ username: cleanUser, sid });
       return res.status(200).json({
         token,
         username: cleanUser
@@ -524,7 +599,8 @@ export default async function handler(req, res) {
       );
     }
 
-    const token = signJwt({ username: cleanUser });
+    const sid = await createSession(db, cleanUser, req);
+    const token = signJwt({ username: cleanUser, sid });
 
     return res.status(200).json({
       token,

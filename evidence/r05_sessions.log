@@ -1,0 +1,385 @@
+R-05 SESSION REVOCATION — FIRESTORE EMULATOR EVIDENCE
+Date: 2026-10-20
+Repository: /home/ubuntu/repos/cpmwall3
+Project: demo-cpm (Firestore Emulator at 127.0.0.1:8080)
+Fixed harness: 127.0.0.1:4177
+Baseline commit: 4157bc2, harness 127.0.0.1:4178
+
+The emulator was reused; Admin SDK test fixtures and server writes bypass
+Firestore Security Rules. Harness credentials and JWT secret are throwaway.
+Throwaway test passwords and bearer JWTs are redacted below; decoded token
+payloads are retained to show session identifiers and compatibility behavior.
+All requests and responses below are from the emulator/local harness only.
+
+===== BASELINE FIXTURE SEED (commit 4157bc2) =====
+$ R05_TEST_PASSWORD='<REDACTED TEST PASSWORD>' FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 node evidence/r05_seed.mjs seed
+{
+  "projectId": "demo-cpm",
+  "emulatorHost": "127.0.0.1:8080",
+  "seeded": [
+    "users/ADMINU",
+    "users/BOB",
+    "settings/filters",
+    "pinned/current",
+    "posts/test-post"
+  ],
+  "passwordFormat": "bcrypt passwordHash",
+  "sessionsCleared": 1,
+  "rateLimitsCleared": 2
+}
+
+===== BASELINE: BOB login =====
+$ curl -si '-X' 'POST' 'http://127.0.0.1:4178/api/auth?action=login' '-H' 'Content-Type: application/json' '-H' 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/124.0' '--data-raw' '{"username":"BOB","password":"[REDACTED TEST PASSWORD]"}'
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Vary: Origin
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+Cache-Control: no-store
+Content-Type: application/json; charset=utf-8
+Date: Tue, 20 Oct 2026 15:11:40 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Content-Length: 180
+
+{"token":"[REDACTED TEST JWT]","username":"BOB"}
+
+
+Baseline BOB token payload:
+{
+  "username": "BOB",
+  "iat": 1792509100,
+  "exp": 1795101100
+}
+
+===== BASELINE: ADMINU login =====
+$ curl -si '-X' 'POST' 'http://127.0.0.1:4178/api/auth?action=login' '-H' 'Content-Type: application/json' '-H' 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/124.0' '--data-raw' '{"username":"ADMINU","password":"[REDACTED TEST PASSWORD]"}'
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Vary: Origin
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+Cache-Control: no-store
+Content-Type: application/json; charset=utf-8
+Date: Tue, 20 Oct 2026 15:11:41 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Content-Length: 187
+
+{"token":"[REDACTED TEST JWT]","username":"ADMINU"}
+
+
+===== BASELINE: ADMINU lists BOB sessions (should reveal no login session) =====
+$ curl -si 'http://127.0.0.1:4178/api/admin/sessions?username=BOB' '-H' 'Authorization: Bearer [REDACTED TEST JWT]'
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Vary: Origin
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+Cache-Control: no-store
+Content-Type: application/json; charset=utf-8
+Date: Tue, 20 Oct 2026 15:11:41 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Content-Length: 45
+
+{"sessions":[],"limit":100,"truncated":false}
+
+
+===== BASELINE MANUAL SESSION SEED =====
+$ FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 node evidence/r05_seed.mjs seed-session x BOB
+{"seededSession":"sessions/x","username":"BOB"}
+
+===== BASELINE: ADMINU revokes manually seeded sessions/x =====
+$ curl -si '-X' 'POST' 'http://127.0.0.1:4178/api/admin/sessions' '-H' 'Authorization: Bearer [REDACTED TEST JWT]' '-H' 'Content-Type: application/json' '--data-raw' '{"action":"revoke","sessionId":"x"}'
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Vary: Origin
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+Cache-Control: no-store
+Content-Type: application/json; charset=utf-8
+Date: Tue, 20 Oct 2026 15:11:42 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Content-Length: 138
+
+{"success":true,"sessionId":"x","revoked":true,"warning":"Session record deleted. JWT invalidation depends on authentication middleware."}
+
+
+===== BASELINE: BOB GET /api/user/me with same token after revoke =====
+$ curl -si 'http://127.0.0.1:4178/api/user/me' '-H' 'Authorization: Bearer [REDACTED TEST JWT]'
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Vary: Origin
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+Cache-Control: no-store
+Content-Type: application/json; charset=utf-8
+Date: Tue, 20 Oct 2026 15:11:42 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Content-Length: 165
+
+{"username":"BOB","isAdmin":false,"isVip":false,"photoURL":"","vipExpiresAt":null,"customColor":"#f59e0b","customFrame":"gold","chatBg":"","lastUsernameChange":null}
+
+
+===== BASELINE: BOB post with same token after revoke =====
+$ curl -si '-X' 'POST' 'http://127.0.0.1:4178/api/post' '-H' 'Authorization: Bearer [REDACTED TEST JWT]' '-H' 'Content-Type: application/json' '-H' 'x-forwarded-for: 198.51.100.90' '-H' 'x-vercel-forwarded-for: 198.51.100.90' '--data-raw' '{"action":"post","message":"R05 baseline post after revoke"}'
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Vary: Origin
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+Cache-Control: no-store
+Content-Type: application/json; charset=utf-8
+Date: Tue, 20 Oct 2026 15:11:42 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Content-Length: 39
+
+{"success":true,"isShadowbanned":false}
+
+
+===== FIXED FIXTURE SEED =====
+$ R05_TEST_PASSWORD='<REDACTED TEST PASSWORD>' FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 node evidence/r05_seed.mjs seed
+{
+  "projectId": "demo-cpm",
+  "emulatorHost": "127.0.0.1:8080",
+  "seeded": [
+    "users/ADMINU",
+    "users/BOB",
+    "settings/filters",
+    "pinned/current",
+    "posts/test-post"
+  ],
+  "passwordFormat": "bcrypt passwordHash",
+  "sessionsCleared": 0,
+  "rateLimitsCleared": 1
+}
+
+===== FIXED: BOB login =====
+$ curl -si '-X' 'POST' 'http://127.0.0.1:4177/api/auth?action=login' '-H' 'Content-Type: application/json' '-H' 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/124.0' '--data-raw' '{"username":"BOB","password":"[REDACTED TEST PASSWORD]"}'
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Vary: Origin
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+Cache-Control: no-store
+Content-Type: application/json; charset=utf-8
+Date: Tue, 20 Oct 2026 15:12:09 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Content-Length: 240
+
+{"token":"[REDACTED TEST JWT]","username":"BOB"}
+
+
+Fixed BOB token payload:
+{
+  "username": "BOB",
+  "sid": "637fb352-cbc7-4a43-8f07-9d43d07eff7d",
+  "iat": 1792509129,
+  "exp": 1795101129
+}
+
+$ FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 node evidence/r05_seed.mjs dump-session 637fb352-cbc7-4a43-8f07-9d43d07eff7d
+{
+  "id": "637fb352-cbc7-4a43-8f07-9d43d07eff7d",
+  "exists": true,
+  "data": {
+    "username": "BOB",
+    "expiresAt": "2026-11-19T15:12:09.398Z",
+    "device": "Desktop",
+    "browser": "Chrome",
+    "os": "Windows 10/11",
+    "active": true,
+    "createdAt": "2026-10-20T15:12:09.401Z",
+    "lastSeen": "2026-10-20T15:12:09.401Z"
+  }
+}
+
+===== FIXED: BOB GET /api/user/me before revoke =====
+$ curl -si 'http://127.0.0.1:4177/api/user/me' '-H' 'Authorization: Bearer [REDACTED TEST JWT]'
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Vary: Origin
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+Cache-Control: no-store
+Content-Type: application/json; charset=utf-8
+Date: Tue, 20 Oct 2026 15:12:10 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Content-Length: 165
+
+{"username":"BOB","isAdmin":false,"isVip":false,"photoURL":"","vipExpiresAt":null,"customColor":"#f59e0b","customFrame":"gold","chatBg":"","lastUsernameChange":null}
+
+
+===== FIXED: BOB post before revoke =====
+$ curl -si '-X' 'POST' 'http://127.0.0.1:4177/api/post' '-H' 'Authorization: Bearer [REDACTED TEST JWT]' '-H' 'Content-Type: application/json' '-H' 'x-forwarded-for: 198.51.100.100' '-H' 'x-vercel-forwarded-for: 198.51.100.100' '--data-raw' '{"action":"post","message":"R05 fixed post before revoke"}'
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Vary: Origin
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+Cache-Control: no-store
+Content-Type: application/json; charset=utf-8
+Date: Tue, 20 Oct 2026 15:12:10 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Content-Length: 39
+
+{"success":true,"isShadowbanned":false}
+
+
+===== FIXED: ADMINU login =====
+$ curl -si '-X' 'POST' 'http://127.0.0.1:4177/api/auth?action=login' '-H' 'Content-Type: application/json' '-H' 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/124.0' '--data-raw' '{"username":"ADMINU","password":"[REDACTED TEST PASSWORD]"}'
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Vary: Origin
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+Cache-Control: no-store
+Content-Type: application/json; charset=utf-8
+Date: Tue, 20 Oct 2026 15:12:11 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Content-Length: 247
+
+{"token":"[REDACTED TEST JWT]","username":"ADMINU"}
+
+
+===== FIXED: ADMINU lists BOB sessions =====
+$ curl -si 'http://127.0.0.1:4177/api/admin/sessions?username=BOB' '-H' 'Authorization: Bearer [REDACTED TEST JWT]'
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Vary: Origin
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+Cache-Control: no-store
+Content-Type: application/json; charset=utf-8
+Date: Tue, 20 Oct 2026 15:12:11 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Content-Length: 362
+
+{"sessions":[{"id":"637fb352-cbc7-4a43-8f07-9d43d07eff7d","username":"BOB","createdAt":{"_seconds":1792509129,"_nanoseconds":401000000},"lastSeen":{"_seconds":1792509129,"_nanoseconds":401000000},"expiresAt":{"_seconds":1795101129,"_nanoseconds":398000000},"device":"Desktop","browser":"Chrome","os":"Windows 10/11","active":true}],"limit":100,"truncated":false}
+
+
+===== FIXED: ADMINU revokes BOB session =====
+$ curl -si '-X' 'POST' 'http://127.0.0.1:4177/api/admin/sessions' '-H' 'Authorization: Bearer [REDACTED TEST JWT]' '-H' 'Content-Type: application/json' '--data-raw' '{"action":"revoke","sessionId":"637fb352-cbc7-4a43-8f07-9d43d07eff7d"}'
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Vary: Origin
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+Cache-Control: no-store
+Content-Type: application/json; charset=utf-8
+Date: Tue, 20 Oct 2026 15:12:11 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Content-Length: 82
+
+{"success":true,"sessionId":"637fb352-cbc7-4a43-8f07-9d43d07eff7d","revoked":true}
+
+
+===== FIXED: BOB GET /api/user/me after revoke (same token) =====
+$ curl -si 'http://127.0.0.1:4177/api/user/me' '-H' 'Authorization: Bearer [REDACTED TEST JWT]'
+HTTP/1.1 401 Unauthorized
+Access-Control-Allow-Origin: *
+Vary: Origin
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+Cache-Control: no-store
+Content-Type: application/json; charset=utf-8
+Date: Tue, 20 Oct 2026 15:12:11 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Content-Length: 28
+
+{"error":"Session revoked."}
+
+
+===== FIXED: BOB post after revoke (same token) =====
+$ curl -si '-X' 'POST' 'http://127.0.0.1:4177/api/post' '-H' 'Authorization: Bearer [REDACTED TEST JWT]' '-H' 'Content-Type: application/json' '-H' 'x-forwarded-for: 198.51.100.101' '-H' 'x-vercel-forwarded-for: 198.51.100.101' '--data-raw' '{"action":"post","message":"R05 fixed post after revoke"}'
+HTTP/1.1 401 Unauthorized
+Access-Control-Allow-Origin: *
+Vary: Origin
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+Cache-Control: no-store
+Content-Type: application/json; charset=utf-8
+Date: Tue, 20 Oct 2026 15:12:11 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Content-Length: 28
+
+{"error":"Session revoked."}
+
+
+===== FIXED: BOB logs in again =====
+$ curl -si '-X' 'POST' 'http://127.0.0.1:4177/api/auth?action=login' '-H' 'Content-Type: application/json' '-H' 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/124.0' '--data-raw' '{"username":"BOB","password":"[REDACTED TEST PASSWORD]"}'
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Vary: Origin
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+Cache-Control: no-store
+Content-Type: application/json; charset=utf-8
+Date: Tue, 20 Oct 2026 15:12:12 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Content-Length: 240
+
+{"token":"[REDACTED TEST JWT]","username":"BOB"}
+
+
+Re-login BOB token payload:
+{
+  "username": "BOB",
+  "sid": "93c81c35-14c7-4f1f-ac47-1d5203140a3e",
+  "iat": 1792509132,
+  "exp": 1795101132
+}
+New login sid differs from revoked sid: 93c81c35-14c7-4f1f-ac47-1d5203140a3e != 637fb352-cbc7-4a43-8f07-9d43d07eff7d
+
+===== FIXED: BOB GET /api/user/me with new session =====
+$ curl -si 'http://127.0.0.1:4177/api/user/me' '-H' 'Authorization: Bearer [REDACTED TEST JWT]'
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Vary: Origin
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+Cache-Control: no-store
+Content-Type: application/json; charset=utf-8
+Date: Tue, 20 Oct 2026 15:12:12 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Content-Length: 165
+
+{"username":"BOB","isAdmin":false,"isVip":false,"photoURL":"","vipExpiresAt":null,"customColor":"#f59e0b","customFrame":"gold","chatBg":"","lastUsernameChange":null}
+
+
+Legacy token payload (no sid; same HS256 test secret):
+{
+  "username": "BOB",
+  "iat": 1792509132,
+  "exp": 1795101132
+}
+
+===== FIXED: legacy BOB token without sid GET /api/user/me =====
+$ curl -si 'http://127.0.0.1:4177/api/user/me' '-H' 'Authorization: Bearer [REDACTED TEST JWT]'
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Vary: Origin
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+Cache-Control: no-store
+Content-Type: application/json; charset=utf-8
+Date: Tue, 20 Oct 2026 15:12:12 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Content-Length: 165
+
+{"username":"BOB","isAdmin":false,"isVip":false,"photoURL":"","vipExpiresAt":null,"customColor":"#f59e0b","customFrame":"gold","chatBg":"","lastUsernameChange":null}

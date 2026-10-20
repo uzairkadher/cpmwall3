@@ -1,5 +1,5 @@
 import admin from "firebase-admin";
-import { verifyJwt } from "../auth.js";
+import { isSessionActive, verifyJwt } from "../auth.js";
 
 const ALLOWED_ORIGINS = [
   "https://cpmwall.tech",
@@ -80,7 +80,13 @@ export default async function handler(req, res) {
     }
 
     const decoded = verifyJwt(token);
-    if (!decoded || typeof decoded.username !== "string") {
+    if (!decoded) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    if (!(await isSessionActive(db, decoded))) {
+      return res.status(401).json({ error: "Session revoked." });
+    }
+    if (typeof decoded.username !== "string") {
       return res.status(401).json({ error: "Unauthorized" });
     }
 

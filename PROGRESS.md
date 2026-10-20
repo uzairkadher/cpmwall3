@@ -5,7 +5,7 @@ Source of truth: `CPM_Community_Wall_Singularity_Edition_Roadmap.pdf` (20 Oct 20
 - [x] Resolve admin users API route mismatch — a48feee (PR #1). Deployed-route check: local harness only.
 - [x] One authoritative inventory (INVENTORY.md) — e17aad8 (PR #1)
 - [x] Audit each API route: auth, role, validation, errors (RISKS.md) — e17aad8 (PR #1)
-- [ ] Login abuse controls / JWT revocation / session invalidation (R-05, R-06)
+- [~] Login abuse controls / JWT revocation / session invalidation — R-05 done (baeb829b3f958c0240d2c81449f7c95fe845c9a6; PR #6); R-06 open
 - [ ] Restrict CORS to approved origins (R-07)
 - [ ] Test rate limiting, moderation, bans, presence, duplicate likes against real Firestore
 - [ ] Automated smoke tests for critical endpoints
@@ -14,7 +14,7 @@ Source of truth: `CPM_Community_Wall_Singularity_Edition_Roadmap.pdf` (20 Oct 20
 - [x] R-02 Admin ban enforcement — dd283d079df26c61d6c71383531a5498524093d1 (PR #4)
 - [x] R-03 Add `firestore.rules` — 2a77d7178f5e29bc630a036093a92f8605b78aec (PR #5); production deploy pending the user
 - [ ] R-04 Shadowbanned posts visible via client Firestore reads
-- [ ] R-05 Session revoke ineffective (no session docs written; JWT verify ignores `sessions`)
+- [x] R-05 Enforce session revocation — baeb829b3f958c0240d2c81449f7c95fe845c9a6 (PR #6)
 
 ## Phase 1 — Empire Visual Singularity
 - [x] design-tokens.css palette/gradients/glows/status tokens — 2118abf (PR #2), 7617f68 (PR #3)

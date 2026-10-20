@@ -85,6 +85,24 @@ Raw curl transcript: [`evidence/r03_rules.log`](evidence/r03_rules.log). Emulato
 
 The server-side Admin SDK write succeeded because Admin SDK operations bypass Firestore Security Rules. The production rules deployment is pending the project owner; no production credentials or project ID were added.
 
+# TEST_RESULTS — R-05 Session revocation (PR #6, commit baeb829b3f958c0240d2c81449f7c95fe845c9a6)
+
+Raw curl transcript and fixture helper: [`evidence/r05_sessions.log`](evidence/r05_sessions.log), [`evidence/r05_seed.mjs`](evidence/r05_seed.mjs).
+
+**This proof ran against the Firestore emulator only, not production Firestore or Vercel.** The baseline used commit `4157bc2` on harness port 4178; the fixed branch used port 4177. The emulator ran on port 8080. Both users were seeded with bcrypt `passwordHash` values using throwaway credentials.
+
+| Scenario | Baseline `4157bc2` | Fixed |
+|---|---:|---:|
+| BOB login via `/api/auth` | 200; token had no `sid` | 200; token included `sid` and a session document was written |
+| ADMINU lists BOB sessions | 200; empty list after login | 200; BOB's session was listed |
+| ADMINU revokes session | 200 after manually seeding `sessions/x` | 200; response reports revoked |
+| BOB `/api/user/me` before revoke | Not run | 200 |
+| BOB post before revoke | Not run | 200 |
+| Same BOB token: `/api/user/me` after revoke | 200 | 401, `{"error":"Session revoked."}` |
+| Same BOB token: post after revoke | 200 | 401, `{"error":"Session revoked."}` |
+| BOB logs in again and calls `/api/user/me` | Not run | 200 with a new `sid` |
+| Legacy BOB token without `sid` calls `/api/user/me` | Not run | 200; compatibility behavior is deliberate |
+
 ## Phase 1 Wall draft/reply preservation (PR #3 follow-up, commit 85359c3130b54fde59e8c839f67a2ef8bbf8d0f6)
 
 Browser proof, not curl: headless Chrome via Playwright/CDP against the local harness, with mocked Firestore and `/api/post` responses and a 1.5 s POST delay. This is mock-only evidence, not production verification. Raw output: [`evidence/phase1_wall_draft.log`](evidence/phase1_wall_draft.log).
