@@ -30,7 +30,7 @@
 - What: Admin network bans now use the same SHA-256 IP document key as `api/post.js`; non-admin account bans block post and like actions while permanent or unexpired.
 - Decision: Expired account bans remain read-only and are not cleared. No unban action or auth changes.
 - Files: `api/admin/users.js`, `api/post.js`, `evidence/r02_seed.mjs`, `evidence/r02_ban.log`, `AI_CONTEXT.md`, `blueprint.md`, `PROGRESS.md`, `TEST_RESULTS.md`.
-- Verified: Before/after curl scenarios ran against the Firestore emulator only; not production Firestore or Vercel. Baseline `c67f23b` returned 200 for the ineffective account/network bans; fixed code returned 403. Evidence: `evidence/r02_ban.log`.
+- Verified: Before/after curl scenarios ran against the Firestore emulator only; not production Firestore or Vercel. Baseline `c67f23b` returned 200 for the ineffective account/network bans; fixed code returned 403. Evidence: `evidence/r02_ban.log`. Vercel: all 3 PR #4 checks passed; cpm_wall_3 preview Ready (https://cpmwall3-git-devin-1792507192-r02-ban-enforcement-kad-dev.vercel.app), cpmwall3 DEPLOYED.
 - Next: R-03 (`firestore.rules` not in repo).
 
 ## [2026-10-20] PR #3 Phase 1 Wall Empire Retheme - DONE (commit 7617f68)
