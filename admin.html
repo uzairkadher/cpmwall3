@@ -35,6 +35,10 @@
       font-size: var(--text-20); 
       font-weight: 700; 
       color: var(--violet); 
+      background: var(--gradient-singularity);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
       letter-spacing: 0.5px;
     }
     
@@ -81,10 +85,10 @@
       cursor: pointer; 
       min-height: 44px;
     }
-    button.danger { background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.4); color: #fca5a5; }
-    button.green { background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.4); color: #6ee7b7; }
-    button.gold { background: rgba(245, 158, 11, 0.1); border-color: rgba(245, 158, 11, 0.4); color: #fcd34d; }
-    button.primary { background: var(--violet); color: #fff; border: none; }
+    button.danger { background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.4); color: var(--danger-soft); }
+    button.green { background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.4); color: var(--success-soft); }
+    button.gold { background: rgba(245, 158, 11, 0.1); border-color: rgba(245, 158, 11, 0.4); color: var(--warning-soft); }
+    button.primary { background: var(--violet); color: var(--text-on-accent); border: none; }
     
     .grid-2 { display: grid; grid-template-columns: 1fr; gap: 8px; }
     .grid-4 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -126,10 +130,10 @@
       font-weight: 700; 
       display: inline-block;
     }
-    .badge.admin { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border-color: #ef4444; }
-    .badge.vip { background: rgba(245, 158, 11, 0.15); color: #fcd34d; border-color: #f59e0b; }
-    .badge.ultra { background: rgba(124, 58, 237, 0.15); color: #c4b5fd; border-color: var(--violet); }
-    .badge.active { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; border-color: #10b981; }
+    .badge.admin { background: rgba(239, 68, 68, 0.15); color: var(--danger-soft); border-color: var(--danger); }
+    .badge.vip { background: rgba(245, 158, 11, 0.15); color: var(--warning-soft); border-color: var(--warning); }
+    .badge.ultra { background: rgba(124, 58, 237, 0.15); color: var(--violet-soft); border-color: var(--violet); }
+    .badge.active { background: rgba(16, 185, 129, 0.15); color: var(--success-soft); border-color: var(--success); }
     
     .action-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
     .action-row button { flex: 1; min-width: max-content; }
@@ -165,7 +169,7 @@
     <input type="text" id="adminUser" placeholder="Admin Username" autocomplete="username">
     <input type="password" id="adminPass" placeholder="Password" autocomplete="current-password">
     <button type="submit" class="primary interactive-active" id="btnLoginSubmit" style="width: 100%; margin-top: 12px;">Secure Login</button>
-    <div id="loginError" style="color: #ef4444; font-size: 13px; margin-top: 12px; min-height: 15px;"></div>
+    <div id="loginError" style="color: var(--danger); font-size: 13px; margin-top: 12px; min-height: 15px;"></div>
   </form>
   
   <!-- Protected Admin Modules -->
@@ -287,7 +291,7 @@
       el.style.display = 'block';
       el.textContent = msg;
       el.style.borderColor = isError ? 'rgba(239, 68, 68, 0.4)' : 'rgba(6, 182, 212, 0.4)';
-      el.style.color = isError ? '#fca5a5' : 'var(--cyan)';
+      el.style.color = isError ? 'var(--danger-soft)' : 'var(--cyan)';
     }
     
     function escapeHtml(unsafe) {
@@ -408,9 +412,9 @@
         
         document.getElementById('analyticsGrid').innerHTML = DOMPurify.sanitize(`
           <div class="stat-box"><div class="stat-val">${data.totalUsers || 0}</div><div class="stat-label">Total Users</div></div>
-          <div class="stat-box"><div class="stat-val" style="color:#6ee7b7;">${data.activeToday || 0}</div><div class="stat-label">Active Today</div></div>
+          <div class="stat-box"><div class="stat-val" style="color:var(--success-soft);">${data.activeToday || 0}</div><div class="stat-label">Active Today</div></div>
           <div class="stat-box"><div class="stat-val">${data.totalPosts || 0}</div><div class="stat-label">Total Posts</div></div>
-          <div class="stat-box"><div class="stat-val" style="color:#fcd34d;">${data.postsToday || 0}</div><div class="stat-label">Posts Today</div></div>
+          <div class="stat-box"><div class="stat-val" style="color:var(--warning-soft);">${data.postsToday || 0}</div><div class="stat-label">Posts Today</div></div>
         `);
         
         let postersHtml = data.topPosters && data.topPosters.length > 0 
