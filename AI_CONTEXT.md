@@ -26,17 +26,26 @@
 
 # Change Log (newest first)
 
+## [2026-10-20] PR #__PR__ R-04 Shadowban hidden from public feed - DONE (commit d980bbb435d03c64621b5ec8cf903d302969d3b4)
+- What: `GET /api/post` filters shadowbanned posts using raw Firestore data, includes a viewer's own posts for active sessions, and omits moderation state. The POST success response no longer reveals shadowban status; browser reads of `posts` are denied.
+- Decision: Option B was chosen because there is no production access; option A (realtime feed with rules plus backfill) remains possible later.
+- Decision: Shadowbanned users continue to see their own posts to preserve the illusion.
+- Decision: The wall feed now uses five-second API polling instead of realtime Firestore updates.
+- Files: `api/post.js`, `index.html`, `firestore.rules`, `blueprint.md`, `evidence/r04_seed.mjs`, `evidence/r04_proof.sh`, `evidence/r04_shadowban.log`, `AI_CONTEXT.md`, `PROGRESS.md`, `TEST_RESULTS.md`.
+- Verified: Emulator curl proof and mocked-browser proof only; not production Firestore or Vercel. Anonymous readers exclude EVE's shadowbanned posts, EVE sees her own, invalid tokens get anonymous results, and POST omits the flag. Browser desktop/mobile rendered four posts without page errors; polling add/update/remove, visibility pause/resume, and single-submit behavior passed. Evidence: `evidence/r04_shadowban.log`.
+- Next: R-06 login rate limiting.
+
 ## [2026-10-20] PR #6 R-05 Session revoke enforced - DONE (commit baeb829b3f958c0240d2c81449f7c95fe845c9a6)
 - What: Login and registration now create Firestore session documents and include `sid` in JWTs; every JWT-protected API route checks the session before protected work. Revoking a session invalidates its session-backed JWT.
 - Decision: Legacy JWTs without `sid` remain valid until expiry to avoid logging everyone out at deploy; usernames are not compared to session records.
 - Decision: Every authenticated request now adds one Firestore read for session validation; legacy no-`sid` tokens bypass that lookup.
 - Files: `api/auth.js`, `api/post.js`, `api/admin/`, `api/user/`, `evidence/r05_seed.mjs`, `evidence/r05_sessions.log`, `AI_CONTEXT.md`, `blueprint.md`, `PROGRESS.md`, `TEST_RESULTS.md`.
 - Verified: Fixed-branch and baseline curl scenarios ran against the Firestore emulator only. The fixed sessions query listed BOB, revocation returned 200, the revoked token returned 401 for `/api/user/me` and post, a new session and legacy token returned 200. Evidence: `evidence/r05_sessions.log`. Vercel: all 3 PR #6 checks passed; previews DEPLOYED/Ready (https://cpmwall3-git-devin-1792508888-r05-session-revoke-kad-dev.vercel.app).
-- Next: R-04.
+- Next: R-06 login rate limiting.
 
 ## [2026-10-20] PR #5 R-03 firestore.rules in repo - DONE (commit 2a77d7178f5e29bc630a036093a92f8605b78aec)
 - What: Added `firestore.rules` with public read-only access to posts, pinned, and presence; all writes and all other browser reads are denied.
-- Decision: Keep the exact §4 rules, including public post reads; shadowban filtering remains R-04. `firestore.rules` is the source of truth and must be deployed by the project owner.
+- Decision: R-03 initially allowed public post reads; R-04 supersedes that with server-API-only post reads. `firestore.rules` is the source of truth and must be deployed by the project owner.
 - Files: `firestore.rules`, `firebase.json`, `evidence/r03_rules.log`, `AI_CONTEXT.md`, `blueprint.md`, `PROGRESS.md`, `TEST_RESULTS.md`.
 - Verified: The Firestore emulator loaded `/home/ubuntu/repos/cpmwall3/firestore.rules`; public reads/query returned 200, protected reads/writes returned 403, and a BOB post through the Admin SDK harness returned 200. Emulator only; production is not verified or deployed. Vercel: all 3 PR #5 checks passed; cpm_wall_3 Ready (https://cpmwall3-git-devin-1792508076-r03-firestore-rules-kad-dev.vercel.app), cpmwall3 DEPLOYED.
 - Next: R-04 (shadowbanned posts visible via client Firestore reads).

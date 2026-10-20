@@ -103,3 +103,22 @@ Raw curl transcript and fixture helper: [`evidence/r05_sessions.log`](evidence/r
 | Same BOB token: post after revoke | 200 | 401, `{"error":"Session revoked."}` |
 | BOB logs in again and calls `/api/user/me` | Not run | 200 with a new `sid` |
 | Legacy BOB token without `sid` calls `/api/user/me` | Not run | 200; compatibility behavior is deliberate |
+
+# TEST_RESULTS — R-04 Shadowban feed (PR #__PR__, commit d980bbb435d03c64621b5ec8cf903d302969d3b4)
+
+Raw curl transcript, fixture helper, and proof runner: [`evidence/r04_shadowban.log`](evidence/r04_shadowban.log), [`evidence/r04_seed.mjs`](evidence/r04_seed.mjs), [`evidence/r04_proof.sh`](evidence/r04_proof.sh).
+
+**This proof used the Firestore emulator and mocked-browser API responses only; it did not use production Firestore or Vercel.** Baseline `b1f0cd5` ran on harness port 4181, the fixed branch on port 4180, and the emulator on port 8080 with the updated rules.
+
+| Scenario | Baseline `b1f0cd5` | Fixed |
+|---|---|---|
+| Anonymous `GET /api/post` | 200; includes shadowbanned `p2` | 200; includes `p1`/`p3`, excludes `p2`; no `isShadowbanned` key; `Cache-Control: no-store` |
+| EVE/BOB/garbage-token `GET /api/post` | Not run | 200; EVE sees own `p2`, BOB and garbage token get anonymous results |
+| EVE posts while shadowbanned | 200; response includes `"isShadowbanned":true` | 200; `{"success":true}` with no shadowban field |
+| Anonymous/EVE GET after EVE posts | Not run | 200; anonymous feed hides the new post, EVE sees it |
+| Browser read of `posts/p1` / posts query; `pinned/current` | Not run | 403 / 403 / 200 |
+| Mocked wall render, desktop and 390px mobile | Not run | Four bubbles and zero page errors at both sizes |
+| Poll add/update/remove; hidden-page behavior | Not run | New post appears in API order, like count updates to 9, removed post disappears; zero polls while hidden and polling resumes when visible |
+| Double-submit guard | Not run | One POST; button disabled while pending and re-enabled after success |
+
+The emulator response confirmed Firestore `createdAt` serializes as `{_seconds, _nanoseconds}`; the browser adapter converts that shape for `buildBubble`. Screenshots (not committed): `/home/ubuntu/shots/r04-desktop-wall-1280.png` and `/home/ubuntu/shots/r04-mobile-wall-390.png`.

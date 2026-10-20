@@ -1,0 +1,270 @@
+## R-04 emulator curl proof
+Fixed harness: http://127.0.0.1:4180
+Baseline harness: http://127.0.0.1:4181
+Firestore emulator: 127.0.0.1:8080
+{
+  "projectId": "demo-cpm",
+  "emulatorHost": "127.0.0.1:8080",
+  "seeded": [
+    "users/BOB",
+    "users/EVE",
+    "posts/p1",
+    "posts/p2",
+    "posts/p3"
+  ],
+  "post3HasShadowbanField": false,
+  "passwordFormat": "bcrypt passwordHash",
+  "cleared": {
+    "posts": 3,
+    "sessions": 0,
+    "rate_limits": 0,
+    "ip_logs": 0,
+    "shadowbanned": 0,
+    "banned": 0,
+    "fingerprint_bans": 0,
+    "subnet_bans": 0,
+    "subnet_whitelist": 0
+  }
+}
+
+### Fixed: anonymous GET /api/post
+HTTP status: 200
+Headers:
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Vary: Origin
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+Cache-Control: no-store
+Content-Type: application/json; charset=utf-8
+Date: Tue, 20 Oct 2026 15:36:19 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Content-Length: 493
+Body:
+[{"id":"p1","name":"BOB","userId":"BOB","message":"Visible post by BOB","createdAt":{"_seconds":1792510518,"_nanoseconds":829000000},"isVerified":false,"isVip":false,"isAdmin":false,"isBot":false,"likes":4,"room":"public","replyTo":null},{"id":"p3","name":"BOB","userId":"BOB","message":"Legacy post without a shadowban field","createdAt":{"_seconds":1792510398,"_nanoseconds":829000000},"isVerified":false,"isVip":false,"isAdmin":false,"isBot":false,"likes":1,"room":"public","replyTo":null}]
+### Fixed: BOB login
+HTTP status: 200
+Headers:
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Vary: Origin
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+Cache-Control: no-store
+Content-Type: application/json; charset=utf-8
+Date: Tue, 20 Oct 2026 15:36:19 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Content-Length: 240
+Body:
+{"token":"[REDACTED JWT]","username":"BOB"}
+### Fixed: EVE login
+HTTP status: 200
+Headers:
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Vary: Origin
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+Cache-Control: no-store
+Content-Type: application/json; charset=utf-8
+Date: Tue, 20 Oct 2026 15:36:20 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Content-Length: 240
+Body:
+{"token":"[REDACTED JWT]","username":"EVE"}
+### Fixed: EVE GET /api/post
+HTTP status: 200
+Headers:
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Vary: Origin
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+Cache-Control: no-store
+Content-Type: application/json; charset=utf-8
+Date: Tue, 20 Oct 2026 15:36:20 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Content-Length: 735
+Body:
+[{"id":"p1","name":"BOB","userId":"BOB","message":"Visible post by BOB","createdAt":{"_seconds":1792510518,"_nanoseconds":829000000},"isVerified":false,"isVip":false,"isAdmin":false,"isBot":false,"likes":4,"room":"public","replyTo":null},{"id":"p2","name":"EVE","userId":"EVE","message":"Shadowbanned post by EVE","createdAt":{"_seconds":1792510458,"_nanoseconds":829000000},"isVerified":false,"isVip":false,"isAdmin":false,"isBot":false,"likes":2,"room":"public","replyTo":null},{"id":"p3","name":"BOB","userId":"BOB","message":"Legacy post without a shadowban field","createdAt":{"_seconds":1792510398,"_nanoseconds":829000000},"isVerified":false,"isVip":false,"isAdmin":false,"isBot":false,"likes":1,"room":"public","replyTo":null}]
+### Fixed: BOB GET /api/post
+HTTP status: 200
+Headers:
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Vary: Origin
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+Cache-Control: no-store
+Content-Type: application/json; charset=utf-8
+Date: Tue, 20 Oct 2026 15:36:20 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Content-Length: 493
+Body:
+[{"id":"p1","name":"BOB","userId":"BOB","message":"Visible post by BOB","createdAt":{"_seconds":1792510518,"_nanoseconds":829000000},"isVerified":false,"isVip":false,"isAdmin":false,"isBot":false,"likes":4,"room":"public","replyTo":null},{"id":"p3","name":"BOB","userId":"BOB","message":"Legacy post without a shadowban field","createdAt":{"_seconds":1792510398,"_nanoseconds":829000000},"isVerified":false,"isVip":false,"isAdmin":false,"isBot":false,"likes":1,"room":"public","replyTo":null}]
+### Fixed: garbage token GET /api/post
+HTTP status: 200
+Headers:
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Vary: Origin
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+Cache-Control: no-store
+Content-Type: application/json; charset=utf-8
+Date: Tue, 20 Oct 2026 15:36:20 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Content-Length: 493
+Body:
+[{"id":"p1","name":"BOB","userId":"BOB","message":"Visible post by BOB","createdAt":{"_seconds":1792510518,"_nanoseconds":829000000},"isVerified":false,"isVip":false,"isAdmin":false,"isBot":false,"likes":4,"room":"public","replyTo":null},{"id":"p3","name":"BOB","userId":"BOB","message":"Legacy post without a shadowban field","createdAt":{"_seconds":1792510398,"_nanoseconds":829000000},"isVerified":false,"isVip":false,"isAdmin":false,"isBot":false,"likes":1,"room":"public","replyTo":null}]{"collection":"shadowbanned","id":"419ea8cca9295010ce4e91d8e9129cdb45626116312deead4640e2baae408a15","ip":"203.0.113.44","username":"EVE"}
+{"clearedRateLimits":0}
+
+### Fixed: EVE POST /api/post with shadowban active
+HTTP status: 200
+Headers:
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Vary: Origin
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+Cache-Control: no-store
+Content-Type: application/json; charset=utf-8
+Date: Tue, 20 Oct 2026 15:36:21 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Content-Length: 16
+Body:
+{"success":true}
+### Fixed: anonymous GET after EVE post
+HTTP status: 200
+Headers:
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Vary: Origin
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+Cache-Control: no-store
+Content-Type: application/json; charset=utf-8
+Date: Tue, 20 Oct 2026 15:36:21 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Content-Length: 493
+Body:
+[{"id":"p1","name":"BOB","userId":"BOB","message":"Visible post by BOB","createdAt":{"_seconds":1792510518,"_nanoseconds":829000000},"isVerified":false,"isVip":false,"isAdmin":false,"isBot":false,"likes":4,"room":"public","replyTo":null},{"id":"p3","name":"BOB","userId":"BOB","message":"Legacy post without a shadowban field","createdAt":{"_seconds":1792510398,"_nanoseconds":829000000},"isVerified":false,"isVip":false,"isAdmin":false,"isBot":false,"likes":1,"room":"public","replyTo":null}]
+### Fixed: EVE GET after EVE post
+HTTP status: 200
+Headers:
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Vary: Origin
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+Cache-Control: no-store
+Content-Type: application/json; charset=utf-8
+Date: Tue, 20 Oct 2026 15:36:21 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Content-Length: 994
+Body:
+[{"id":"sClIl6VNePXmmnRVGqOz","name":"EVE","userId":"EVE","message":"R04 shadowban flow post","createdAt":{"_seconds":1792510581,"_nanoseconds":638000000},"isVerified":false,"isVip":false,"isAdmin":false,"isBot":false,"likes":0,"room":"public","replyTo":null},{"id":"p1","name":"BOB","userId":"BOB","message":"Visible post by BOB","createdAt":{"_seconds":1792510518,"_nanoseconds":829000000},"isVerified":false,"isVip":false,"isAdmin":false,"isBot":false,"likes":4,"room":"public","replyTo":null},{"id":"p2","name":"EVE","userId":"EVE","message":"Shadowbanned post by EVE","createdAt":{"_seconds":1792510458,"_nanoseconds":829000000},"isVerified":false,"isVip":false,"isAdmin":false,"isBot":false,"likes":2,"room":"public","replyTo":null},{"id":"p3","name":"BOB","userId":"BOB","message":"Legacy post without a shadowban field","createdAt":{"_seconds":1792510398,"_nanoseconds":829000000},"isVerified":false,"isVip":false,"isAdmin":false,"isBot":false,"likes":1,"room":"public","replyTo":null}]
+### Baseline: anonymous GET /api/post
+HTTP status: 200
+Headers:
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Vary: Origin
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+Cache-Control: no-store
+Content-Type: application/json; charset=utf-8
+Date: Tue, 20 Oct 2026 15:36:22 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Content-Length: 994
+Body:
+[{"id":"sClIl6VNePXmmnRVGqOz","name":"EVE","userId":"EVE","message":"R04 shadowban flow post","createdAt":{"_seconds":1792510581,"_nanoseconds":638000000},"isVerified":false,"isVip":false,"isAdmin":false,"isBot":false,"likes":0,"room":"public","replyTo":null},{"id":"p1","name":"BOB","userId":"BOB","message":"Visible post by BOB","createdAt":{"_seconds":1792510518,"_nanoseconds":829000000},"isVerified":false,"isVip":false,"isAdmin":false,"isBot":false,"likes":4,"room":"public","replyTo":null},{"id":"p2","name":"EVE","userId":"EVE","message":"Shadowbanned post by EVE","createdAt":{"_seconds":1792510458,"_nanoseconds":829000000},"isVerified":false,"isVip":false,"isAdmin":false,"isBot":false,"likes":2,"room":"public","replyTo":null},{"id":"p3","name":"BOB","userId":"BOB","message":"Legacy post without a shadowban field","createdAt":{"_seconds":1792510398,"_nanoseconds":829000000},"isVerified":false,"isVip":false,"isAdmin":false,"isBot":false,"likes":1,"room":"public","replyTo":null}]
+### Baseline: EVE login
+HTTP status: 200
+Headers:
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Vary: Origin
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+Cache-Control: no-store
+Content-Type: application/json; charset=utf-8
+Date: Tue, 20 Oct 2026 15:36:22 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Content-Length: 240
+Body:
+{"token":"[REDACTED JWT]","username":"EVE"}{"clearedRateLimits":1}
+
+### Baseline: EVE POST /api/post with shadowban active
+HTTP status: 200
+Headers:
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Vary: Origin
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+Cache-Control: no-store
+Content-Type: application/json; charset=utf-8
+Date: Tue, 20 Oct 2026 15:36:23 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Content-Length: 38
+Body:
+{"success":true,"isShadowbanned":true}
+### Rules: unauthenticated GET posts/p1
+HTTP status: 403
+Headers:
+HTTP/1.1 403 Forbidden
+content-type: application/json
+content-length: 109
+Body:
+{"error":{"code":403,"message":"\nfalse for 'get' @ L6, false for 'get' @ L25","status":"PERMISSION_DENIED"}}
+### Rules: unauthenticated posts runQuery
+HTTP status: 403
+Headers:
+HTTP/1.1 403 Forbidden
+content-type: application/json
+content-length: 111
+Body:
+{"error":{"code":403,"message":"\nfalse for 'list' @ L6, false for 'list' @ L25","status":"PERMISSION_DENIED"}}
+### Rules: unauthenticated GET pinned/current
+HTTP status: 200
+Headers:
+HTTP/1.1 200 OK
+content-type: application/json
+content-length: 409
+Body:
+{
+  "name": "projects/demo-cpm/databases/(default)/documents/pinned/current",
+  "fields": {
+    "active": {
+      "booleanValue": false
+    },
+    "chatLocked": {
+      "booleanValue": false
+    },
+    "raidMode": {
+      "booleanValue": false
+    },
+    "slowModeSeconds": {
+      "integerValue": "10"
+    }
+  },
+  "createTime": "2026-10-20T15:34:29.348949Z",
+  "updateTime": "2026-10-20T15:34:29.348949Z"
+}
+
+## Mocked browser proof
+Desktop: `R04_BROWSER_RESULT={"viewport":{"width":1280,"height":860},"initialBubbleCount":4,"pageErrors":[],"screenshot":"/home/ubuntu/shots/r04-desktop-wall-1280.png","feedCalls":1,"newPostAppeared":true,"newPostWasFirst":true,"likeCountUpdated":"👍 9","removedPostDisappeared":true,"feedCallsWhileHidden":0,"visiblePollResumed":true,"whilePosting":{"disabled":true,"ariaBusy":"true"},"postCalls":1,"afterPost":{"disabled":false,"input":"","postedBubble":true}}`
+Mobile: `R04_BROWSER_RESULT={"viewport":{"width":390,"height":844},"initialBubbleCount":4,"pageErrors":[],"screenshot":"/home/ubuntu/shots/r04-mobile-wall-390.png","feedCalls":1}`

@@ -13,7 +13,7 @@ Source of truth: `CPM_Community_Wall_Singularity_Edition_Roadmap.pdf` (20 Oct 20
 ## Security findings (RISKS.md)
 - [x] R-02 Admin ban enforcement — dd283d079df26c61d6c71383531a5498524093d1 (PR #4)
 - [x] R-03 Add `firestore.rules` — 2a77d7178f5e29bc630a036093a92f8605b78aec (PR #5); production deploy pending the user
-- [ ] R-04 Shadowbanned posts visible via client Firestore reads
+- [x] R-04 Hide shadowbanned posts via five-second `GET /api/post` polling; deny browser post reads — d980bbb435d03c64621b5ec8cf903d302969d3b4 (PR #__PR__); emulator/mock evidence only
 - [x] R-05 Enforce session revocation — baeb829b3f958c0240d2c81449f7c95fe845c9a6 (PR #6)
 
 ## Phase 1 — Empire Visual Singularity
