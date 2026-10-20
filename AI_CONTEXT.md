@@ -32,7 +32,7 @@
 - Decision: Shadowbanned users continue to see their own posts to preserve the illusion.
 - Decision: The wall feed now uses five-second API polling instead of realtime Firestore updates.
 - Files: `api/post.js`, `index.html`, `firestore.rules`, `blueprint.md`, `evidence/r04_seed.mjs`, `evidence/r04_proof.sh`, `evidence/r04_shadowban.log`, `AI_CONTEXT.md`, `PROGRESS.md`, `TEST_RESULTS.md`.
-- Verified: Emulator curl proof and mocked-browser proof only; not production Firestore or Vercel. Anonymous readers exclude EVE's shadowbanned posts, EVE sees her own, invalid tokens get anonymous results, and POST omits the flag. Browser desktop/mobile rendered four posts without page errors; polling add/update/remove, visibility pause/resume, and single-submit behavior passed. Evidence: `evidence/r04_shadowban.log`.
+- Verified: Emulator curl proof and mocked-browser proof only; not production Firestore or Vercel. Anonymous readers exclude EVE's shadowbanned posts, EVE sees her own, invalid tokens get anonymous results, and POST omits the flag. Browser desktop/mobile rendered four posts without page errors; polling add/update/remove, visibility pause/resume, and single-submit behavior passed. Evidence: `evidence/r04_shadowban.log`. Vercel: all 3 PR #7 checks passed; previews DEPLOYED/Ready (https://cpmwall3-git-devin-1792510105-r04-shadowban-feed-kad-dev.vercel.app).
 - Next: R-06 login rate limiting.
 
 ## [2026-10-20] PR #6 R-05 Session revoke enforced - DONE (commit baeb829b3f958c0240d2c81449f7c95fe845c9a6)
