@@ -1,0 +1,28 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Public community posts: read-only for browser clients
+    match /posts/{document} {
+      allow read: if true;
+      allow write: if false;
+    }
+    // Public pinned posts: read-only for browser clients
+    match /pinned/{document} {
+      allow read: if true;
+      allow write: if false;
+    }
+    // Public presence: read-only for browser clients
+    match /presence/{document} {
+      allow read: if true;
+      allow write: if false;
+    }
+    // Private accounts, including password hashes and account metadata
+    match /users/{document} {
+      allow read, write: if false;
+    }
+    // Deny browser-client access to every other collection
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
