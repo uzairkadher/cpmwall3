@@ -31,7 +31,7 @@
 - Decision: Legacy JWTs without `sid` remain valid until expiry to avoid logging everyone out at deploy; usernames are not compared to session records.
 - Decision: Every authenticated request now adds one Firestore read for session validation; legacy no-`sid` tokens bypass that lookup.
 - Files: `api/auth.js`, `api/post.js`, `api/admin/`, `api/user/`, `evidence/r05_seed.mjs`, `evidence/r05_sessions.log`, `AI_CONTEXT.md`, `blueprint.md`, `PROGRESS.md`, `TEST_RESULTS.md`.
-- Verified: Fixed-branch and baseline curl scenarios ran against the Firestore emulator only. The fixed sessions query listed BOB, revocation returned 200, the revoked token returned 401 for `/api/user/me` and post, a new session and legacy token returned 200. Evidence: `evidence/r05_sessions.log`.
+- Verified: Fixed-branch and baseline curl scenarios ran against the Firestore emulator only. The fixed sessions query listed BOB, revocation returned 200, the revoked token returned 401 for `/api/user/me` and post, a new session and legacy token returned 200. Evidence: `evidence/r05_sessions.log`. Vercel: all 3 PR #6 checks passed; previews DEPLOYED/Ready (https://cpmwall3-git-devin-1792508888-r05-session-revoke-kad-dev.vercel.app).
 - Next: R-04.
 
 ## [2026-10-20] PR #5 R-03 firestore.rules in repo - DONE (commit 2a77d7178f5e29bc630a036093a92f8605b78aec)
