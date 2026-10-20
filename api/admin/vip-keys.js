@@ -2,20 +2,31 @@ import admin from "firebase-admin";
 import crypto from "crypto";
 import { verifyJwt } from "../auth.js";
 
+const ALLOWED_ORIGINS = [
+  "https://cpmwall.tech",
+  "https://www.cpmwall.tech",
+  "https://cpmwall3.vercel.app",
+  "http://localhost:3000"
+];
+
+function isOriginAllowed(origin) {
+  if (!origin || origin === "null" || origin === "file://") return true;
+  if (ALLOWED_ORIGINS.includes(origin)) return true;
+  if (/^https:\/\/.*\.vercel\.app$/.test(origin)) return true;
+  return false;
+}
+
 if (!admin.apps.length) {
   const serviceKey = process.env.FIREBASE_SERVICE_KEY;
-
   if (!serviceKey) {
     throw new Error("Server configuration error");
   }
-
   admin.initializeApp({
     credential: admin.credential.cert(JSON.parse(serviceKey)),
   });
 }
 
 const db = admin.firestore();
-const ALLOWED_ORIGIN = "https://cpmwall3.vercel.app";
 const MAX_KEYS_PER_REQUEST = 20;
 const MAX_DURATION_DAYS = 3650;
 const KEY_PATTERN = /^ES-(VIP|ULTRA)-[A-F0-9]{4}-[A-F0-9]{4}$/;
@@ -28,11 +39,9 @@ function generateKeyString(type) {
 
 function getClientIp(req) {
   const forwarded = req.headers["x-forwarded-for"];
-
   if (typeof forwarded === "string" && forwarded.trim()) {
     return forwarded.split(",")[0].trim().slice(0, 100);
   }
-
   return String(req.socket?.remoteAddress || "unknown").slice(0, 100);
 }
 
@@ -40,14 +49,29 @@ function validKeyId(value) {
   return typeof value === "string" && KEY_PATTERN.test(value);
 }
 
-export default async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+function setCorsHeaders(req, res) {
+  const origin = req.headers.origin;
+  if (isOriginAllowed(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin || "*");
+    res.setHeader("Vary", "Origin");
+  }
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
   res.setHeader("Cache-Control", "private, no-store");
+}
+
+export default async function handler(req, res) {
+  setCorsHeaders(req, res);
 
   if (req.method === "OPTIONS") {
-    return res.status(204).end();
+    if (req.headers.origin && !isOriginAllowed(req.headers.origin)) {
+      return res.status(403).end();
+    }
+    return res.status(200).end();
+  }
+
+  if (req.headers.origin && !isOriginAllowed(req.headers.origin)) {
+    return res.status(403).json({ error: "Origin not allowed." });
   }
 
   if (req.method !== "GET" && req.method !== "POST") {
@@ -66,20 +90,17 @@ export default async function handler(req, res) {
     }
 
     const decoded = verifyJwt(token);
-
     if (!decoded || typeof decoded.username !== "string") {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
     const adminUsername = decoded.username.trim().toUpperCase();
-
     if (!adminUsername) {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
     // Check the current Firestore role, not a role claim from the JWT.
     const adminDoc = await db.collection("users").doc(adminUsername).get();
-
     if (!adminDoc.exists || adminDoc.data()?.role !== "ADMIN") {
       return res.status(403).json({ error: "Forbidden" });
     }
@@ -105,7 +126,6 @@ export default async function handler(req, res) {
 
     if (action === "create") {
       const type = body.type === "ULTRA" ? "ULTRA" : "VIP";
-
       const countValue = body.count === undefined ? 1 : Number(body.count);
       const durationValue =
         body.durationDays === undefined ? 30 : Number(body.durationDays);
@@ -136,7 +156,6 @@ export default async function handler(req, res) {
       for (let i = 0; i < countValue; i++) {
         const newKey = generateKeyString(type);
         const keyRef = db.collection("vip_keys").doc(newKey);
-
         batch.create(keyRef, {
           key: newKey,
           type,
@@ -147,7 +166,6 @@ export default async function handler(req, res) {
           durationDays: durationValue,
           createdAt: admin.firestore.FieldValue.serverTimestamp(),
         });
-
         generated.push(newKey);
       }
 
@@ -175,7 +193,6 @@ export default async function handler(req, res) {
 
     if (action === "revoke") {
       const keyId = body.key;
-
       if (!validKeyId(keyId)) {
         return res.status(400).json({ error: "Invalid VIP key" });
       }
@@ -207,7 +224,6 @@ export default async function handler(req, res) {
 
     if (action === "toggle") {
       const keyId = body.key;
-
       if (!validKeyId(keyId)) {
         return res.status(400).json({ error: "Invalid VIP key" });
       }
@@ -216,13 +232,11 @@ export default async function handler(req, res) {
 
       const result = await db.runTransaction(async (transaction) => {
         const keyDoc = await transaction.get(keyRef);
-
         if (!keyDoc.exists) {
           return { notFound: true };
         }
 
         const newActiveState = keyDoc.data().active !== true;
-
         transaction.update(keyRef, {
           active: newActiveState,
         });
@@ -254,9 +268,9 @@ export default async function handler(req, res) {
     }
 
     return res.status(400).json({ error: "Invalid action" });
+
   } catch (err) {
     console.error("Admin VIP key request failed:", err);
-
     return res.status(500).json({
       error: "Internal server error",
     });

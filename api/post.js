@@ -1,17 +1,27 @@
-
 import crypto from "crypto";
 import admin from "firebase-admin";
 import { verifyJwt } from "./auth.js";
 
-const ALLOWED_ORIGIN = "https://cpmwall3.vercel.app";
+const ALLOWED_ORIGINS = [
+  "https://cpmwall.tech",
+  "https://www.cpmwall.tech",
+  "https://cpmwall3.vercel.app",
+  "http://localhost:3000"
+];
+
+function isOriginAllowed(origin) {
+  if (!origin || origin === "null" || origin === "file://") return true;
+  if (ALLOWED_ORIGINS.includes(origin)) return true;
+  if (/^https:\/\/.*\.vercel\.app$/.test(origin)) return true;
+  return false;
+}
+
 const MAX_STANDARD_CHARS = 150;
 const MAX_VIP_CHARS = 250;
 const RATE_LIMIT = 5;
 const RATE_WINDOW_MS = 60_000;
-
 const LINK_REGEX =
   /(https?:\/\/|www\.|discord\.gg|t\.me|telegram\.me|chat\.whatsapp\.com|\.com|\.gg|\.xyz|\.top)/i;
-
 const STATIC_BLOCKED_WORDS = [
   "free coins", "hack cpm", "mod apk", "cpm hack",
   "coin generator", "buy followers", "free w16",
@@ -24,21 +34,17 @@ function getDb() {
   if (!process.env.FIREBASE_SERVICE_KEY) {
     throw new Error("Firebase service configuration is missing.");
   }
-
   if (!admin.apps.length) {
     let serviceAccount;
-
     try {
       serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_KEY);
     } catch {
       throw new Error("Firebase service configuration is invalid.");
     }
-
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount)
     });
   }
-
   return admin.firestore();
 }
 
@@ -50,7 +56,6 @@ function getSubnet24(ip = "") {
   ) {
     return `${parts[0]}.${parts[1]}.${parts[2]}.0`;
   }
-
   return null;
 }
 
@@ -62,9 +67,7 @@ function getClientIp(req) {
     req.headers["x-real-ip"] ||
     req.socket?.remoteAddress ||
     "";
-
   const ip = String(candidate).split(",")[0].trim();
-
   if (
     ip.length > 64 ||
     !/^[a-fA-F0-9:.]+$/.test(ip) ||
@@ -72,7 +75,6 @@ function getClientIp(req) {
   ) {
     return "unknown";
   }
-
   return ip;
 }
 
@@ -84,7 +86,6 @@ function getDeviceFingerprint(headers = {}) {
   const ua = String(headers["user-agent"] || "unknown").slice(0, 512);
   const lang = String(headers["accept-language"] || "unknown").slice(0, 128);
   const platform = String(headers["sec-ch-ua-platform"] || "unknown").slice(0, 128);
-
   return crypto
     .createHash("sha256")
     .update(`${ua}_${lang}_${platform}`)
@@ -112,21 +113,17 @@ function parseUserAgent(ua = "") {
 
 async function containsBlockedContent(db, text) {
   if (LINK_REGEX.test(text)) return true;
-
   try {
     const filterDoc = await db.collection("settings").doc("filters").get();
     const configuredWords = filterDoc.exists
       ? filterDoc.data()?.words
       : [];
-
     const dynamicWords = Array.isArray(configuredWords)
       ? configuredWords.filter(
           word => typeof word === "string" && word.length > 0
         )
       : [];
-
     const lower = text.toLowerCase();
-
     return [...STATIC_BLOCKED_WORDS, ...dynamicWords].some(
       word => lower.includes(word.toLowerCase())
     );
@@ -140,7 +137,6 @@ async function containsBlockedContent(db, text) {
 async function sendWebhookAlert(message) {
   const webhookUrl = process.env.ALERT_WEBHOOK_URL;
   if (!webhookUrl) return;
-
   try {
     await fetch(webhookUrl, {
       method: "POST",
@@ -157,9 +153,7 @@ async function askApexRacer(userMessage) {
   const apiKey = process.env.GEMINI_API_KEY;
   const fallbackReply =
     "I'm under the hood right now! Double-check your gear ratios and tire pressure, I'll be back soon.";
-
   if (!apiKey) return fallbackReply;
-
   try {
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`,
@@ -181,9 +175,7 @@ async function askApexRacer(userMessage) {
         signal: AbortSignal.timeout(8000)
       }
     );
-
     if (!response.ok) return fallbackReply;
-
     const data = await response.json();
     return (
       data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ||
@@ -205,32 +197,27 @@ function validDocumentId(value) {
 
 function setCors(req, res) {
   const origin = req.headers.origin;
-
-  if (origin === ALLOWED_ORIGIN) {
-    res.setHeader("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
+  if (isOriginAllowed(origin)) {
+    // Dynamically echo the valid requested origin back to the client
+    res.setHeader("Access-Control-Allow-Origin", origin || "*");
     res.setHeader("Vary", "Origin");
   }
-
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
   res.setHeader("Cache-Control", "no-store");
 }
 
 export default async function handler(req, res) {
   setCors(req, res);
-
   if (req.method === "OPTIONS") {
-    if (
-      req.headers.origin &&
-      req.headers.origin !== ALLOWED_ORIGIN
-    ) {
+    if (req.headers.origin && !isOriginAllowed(req.headers.origin)) {
       return res.status(403).end();
     }
-
-    return res.status(204).end();
+    // Explicitly answer preflight requests with a 200 OK
+    return res.status(200).end();
   }
-
-  if (req.headers.origin && req.headers.origin !== ALLOWED_ORIGIN) {
+  
+  if (req.headers.origin && !isOriginAllowed(req.headers.origin)) {
     return res.status(403).json({ error: "Origin not allowed." });
   }
 
@@ -240,7 +227,6 @@ export default async function handler(req, res) {
   }
 
   let db;
-
   try {
     db = getDb();
   } catch {
@@ -259,7 +245,6 @@ export default async function handler(req, res) {
       const posts = snap.docs
         .map(doc => {
           const data = doc.data();
-
           return {
             id: doc.id,
             name: data.name || "Unknown",
@@ -292,7 +277,6 @@ export default async function handler(req, res) {
     }
 
     let decoded;
-
     try {
       decoded = verifyJwt(tokenMatch[1]);
     } catch {
@@ -336,7 +320,6 @@ export default async function handler(req, res) {
       if (!isRealAdmin) {
         return res.status(403).json({ error: "Admin permission required." });
       }
-
       if (!validDocumentId(postId)) {
         return res.status(400).json({ error: "Invalid post ID." });
       }
@@ -353,9 +336,7 @@ export default async function handler(req, res) {
       if (!isRealAdmin) {
         return res.status(403).json({ error: "Admin permission required." });
       }
-
       const text = typeof body.text === "string" ? body.text.trim() : "";
-
       if (text.length > 200) {
         return res.status(400).json({ error: "Pinned text is too long." });
       }
@@ -380,9 +361,7 @@ export default async function handler(req, res) {
       if (!validDocumentId(postId)) {
         return res.status(400).json({ error: "Invalid post ID." });
       }
-
       const postRef = db.collection("posts").doc(postId);
-
       // The original increment endpoint allowed unlimited repeat likes.
       // Use a per-user marker to prevent repeated likes from this account.
       const likeRef = postRef.collection("likes").doc(username);
@@ -396,7 +375,6 @@ export default async function handler(req, res) {
             const error = new Error("POST_NOT_FOUND");
             throw error;
           }
-
           if (likeSnap.exists) {
             const error = new Error("ALREADY_LIKED");
             throw error;
@@ -406,7 +384,6 @@ export default async function handler(req, res) {
             username,
             createdAt: admin.firestore.FieldValue.serverTimestamp()
           });
-
           transaction.update(postRef, {
             likes: admin.firestore.FieldValue.increment(1)
           });
@@ -415,14 +392,11 @@ export default async function handler(req, res) {
         if (error.message === "POST_NOT_FOUND") {
           return res.status(404).json({ error: "Post not found." });
         }
-
         if (error.message === "ALREADY_LIKED") {
           return res.status(409).json({ error: "You already liked this post." });
         }
-
         throw error;
       }
-
       return res.status(200).json({ success: true });
     }
 
@@ -435,13 +409,11 @@ export default async function handler(req, res) {
     }
 
     const cleanMsg = message.trim();
-
     if (!cleanMsg) {
       return res.status(400).json({ error: "Message cannot be empty." });
     }
 
     const maxChars = isVipUser ? MAX_VIP_CHARS : MAX_STANDARD_CHARS;
-
     if (cleanMsg.length > maxChars) {
       return res.status(400).json({
         error: `Message exceeds the ${maxChars}-character limit.`
@@ -449,7 +421,6 @@ export default async function handler(req, res) {
     }
 
     const pinnedRef = db.collection("pinned").doc("current");
-
     const [
       banSnap,
       fingerprintBanSnap,
@@ -473,7 +444,6 @@ export default async function handler(req, res) {
     if (pinnedData.chatLocked && !isRealAdmin) {
       return res.status(403).json({ error: "Chat is locked." });
     }
-
     if (pinnedData.raidMode && !isVerifiedUser && !isRealAdmin) {
       return res.status(403).json({
         error: "Only verified and VIP users can post during raid mode."
@@ -484,20 +454,17 @@ export default async function handler(req, res) {
       if (banSnap.exists) {
         const banData = banSnap.data();
         const until = banData.bannedUntil?.toDate?.();
-
         if (!until || until > new Date()) {
           return res.status(403).json({
             error: "Posting is restricted for this network."
           });
         }
       }
-
       if (fingerprintBanSnap.exists) {
         return res.status(403).json({
           error: "This device is restricted from posting."
         });
       }
-
       if (
         subnetBanSnap?.exists &&
         !whitelistSnap.exists
@@ -509,7 +476,6 @@ export default async function handler(req, res) {
     }
 
     let isBlocked;
-
     try {
       isBlocked = await containsBlockedContent(db, cleanMsg);
     } catch {
@@ -549,7 +515,6 @@ export default async function handler(req, res) {
         await sendWebhookAlert(
           `Account ${username} was restricted after repeated content violations.`
         );
-
         return res.status(403).json({
           error: "Posting suspended after repeated content violations."
         });
@@ -679,15 +644,14 @@ export default async function handler(req, res) {
       success: true,
       isShadowbanned: shadowSnap.exists
     });
+
   } catch (error) {
     if (error.message === "RATE_LIMIT" || error.message === "SLOW_MODE") {
       const retryAfter = Math.max(1, Number(error.retryAfter) || 1);
       res.setHeader("Retry-After", String(retryAfter));
-
       return res.status(429).json({
         error:
-          error.message === 
-          "RATE_LIMIT"
+          error.message === "RATE_LIMIT"
             ? `Rate limit exceeded. Please wait ${retryAfter} seconds.`
             : `Slow mode active. Please wait ${retryAfter} seconds.`
       });

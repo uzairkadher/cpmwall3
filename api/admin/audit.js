@@ -1,48 +1,54 @@
-
 import admin from "firebase-admin";
 import { verifyJwt } from "../auth.js";
 
-const ALLOWED_ORIGIN = "https://cpmwall3.vercel.app";
+const ALLOWED_ORIGINS = [
+  "https://cpmwall.tech",
+  "https://www.cpmwall.tech",
+  "https://cpmwall3.vercel.app",
+  "http://localhost:3000"
+];
+
+function isOriginAllowed(origin) {
+  if (!origin || origin === "null" || origin === "file://") return true;
+  if (ALLOWED_ORIGINS.includes(origin)) return true;
+  if (/^https:\/\/.*\.vercel\.app$/.test(origin)) return true;
+  return false;
+}
+
 const MAX_LOGS = 300;
 
 function getDb() {
   if (!process.env.FIREBASE_SERVICE_KEY) {
     throw new Error("Firebase service configuration is missing.");
   }
-
   if (!admin.apps.length) {
     let serviceAccount;
-
     try {
       serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_KEY);
     } catch {
       throw new Error("Firebase service configuration is invalid.");
     }
-
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount)
     });
   }
-
   return admin.firestore();
 }
 
 function setCors(req, res) {
-  if (req.headers.origin === ALLOWED_ORIGIN) {
-    res.setHeader("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
+  const origin = req.headers.origin;
+  if (isOriginAllowed(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin || "*");
     res.setHeader("Vary", "Origin");
   }
-
-  res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
   res.setHeader("Cache-Control", "no-store");
 }
 
 function cleanUsername(value) {
   if (typeof value !== "string") return "";
-
   const username = value.trim().toUpperCase();
-
   return /^[A-Z0-9_.]{3,20}$/.test(username)
     ? username
     : "";
@@ -52,29 +58,23 @@ function parseDate(value) {
   if (typeof value !== "string" || value.length > 40) {
     return null;
   }
-
   const timestamp = Date.parse(value);
-
   return Number.isFinite(timestamp) ? timestamp : null;
 }
 
 function serializeTimestamp(value) {
   if (!value) return null;
-
   if (typeof value.toDate === "function") {
     const date = value.toDate();
     return Number.isNaN(date.getTime()) ? null : date.toISOString();
   }
-
   if (value instanceof Date) {
     return Number.isNaN(value.getTime()) ? null : value.toISOString();
   }
-
   if (typeof value === "string" || typeof value === "number") {
     const date = new Date(value);
     return Number.isNaN(date.getTime()) ? null : date.toISOString();
   }
-
   return null;
 }
 
@@ -123,14 +123,13 @@ export default async function handler(req, res) {
   setCors(req, res);
 
   if (req.method === "OPTIONS") {
-    if (req.headers.origin && req.headers.origin !== ALLOWED_ORIGIN) {
+    if (req.headers.origin && !isOriginAllowed(req.headers.origin)) {
       return res.status(403).end();
     }
-
-    return res.status(204).end();
+    return res.status(200).end();
   }
 
-  if (req.headers.origin && req.headers.origin !== ALLOWED_ORIGIN) {
+  if (req.headers.origin && !isOriginAllowed(req.headers.origin)) {
     return res.status(403).json({ error: "Origin not allowed." });
   }
 
@@ -140,7 +139,6 @@ export default async function handler(req, res) {
   }
 
   let db;
-
   try {
     db = getDb();
   } catch {
@@ -158,7 +156,6 @@ export default async function handler(req, res) {
     }
 
     let decoded;
-
     try {
       decoded = verifyJwt(match[1]);
     } catch {
@@ -168,7 +165,6 @@ export default async function handler(req, res) {
     }
 
     const adminUsername = cleanUsername(decoded?.username);
-
     if (!adminUsername) {
       return res.status(401).json({ error: "Invalid session." });
     }
@@ -213,7 +209,6 @@ export default async function handler(req, res) {
     const filterStart = startValue
       ? parseDate(String(startValue))
       : null;
-
     const filterEnd = endValue
       ? parseDate(String(endValue))
       : null;
@@ -221,11 +216,9 @@ export default async function handler(req, res) {
     if (startValue && filterStart === null) {
       return res.status(400).json({ error: "Invalid start date." });
     }
-
     if (endValue && filterEnd === null) {
       return res.status(400).json({ error: "Invalid end date." });
     }
-
     if (
       filterStart !== null &&
       filterEnd !== null &&
@@ -271,13 +264,10 @@ export default async function handler(req, res) {
 
       if (filterStart !== null || filterEnd !== null) {
         if (!timestamp) continue;
-
         const logTime = Date.parse(timestamp);
-
         if (filterStart !== null && logTime < filterStart) {
           continue;
         }
-
         if (filterEnd !== null && logTime > filterEnd) {
           continue;
         }
@@ -292,12 +282,12 @@ export default async function handler(req, res) {
       scanned: snapshot.size,
       truncated: snapshot.size === MAX_LOGS
     });
+
   } catch (error) {
     console.error(
       "Admin audit API failure:",
       error?.message || "Unknown error"
     );
-
     return res.status(500).json({
       error: "An internal server error occurred."
     });

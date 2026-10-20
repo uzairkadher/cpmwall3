@@ -1,8 +1,20 @@
-
 import admin from "firebase-admin";
 import { verifyJwt } from "../auth.js";
 
-const ALLOWED_ORIGIN = "https://cpmwall3.vercel.app";
+const ALLOWED_ORIGINS = [
+  "https://cpmwall.tech",
+  "https://www.cpmwall.tech",
+  "https://cpmwall3.vercel.app",
+  "http://localhost:3000"
+];
+
+function isOriginAllowed(origin) {
+  if (!origin || origin === "null" || origin === "file://") return true;
+  if (ALLOWED_ORIGINS.includes(origin)) return true;
+  if (/^https:\/\/.*\.vercel\.app$/.test(origin)) return true;
+  return false;
+}
+
 const USERNAME_PATTERN = /^[A-Z0-9_.]{3,20}$/;
 const USERNAME_COOLDOWN_DAYS = 30;
 const FIRESTORE_BATCH_LIMIT = 400;
@@ -10,19 +22,15 @@ const FIRESTORE_BATCH_LIMIT = 400;
 function getDb() {
   if (!admin.apps.length) {
     const serviceKey = process.env.FIREBASE_SERVICE_KEY;
-
     if (!serviceKey) {
       throw new Error("FIREBASE_SERVICE_KEY is not configured");
     }
-
     let credentials;
-
     try {
       credentials = JSON.parse(serviceKey);
     } catch {
       throw new Error("FIREBASE_SERVICE_KEY is not valid JSON");
     }
-
     if (
       !credentials ||
       !credentials.project_id ||
@@ -31,33 +39,29 @@ function getDb() {
     ) {
       throw new Error("FIREBASE_SERVICE_KEY is incomplete");
     }
-
     admin.initializeApp({
       credential: admin.credential.cert(credentials)
     });
   }
-
   return admin.firestore();
 }
 
 function setCorsHeaders(req, res) {
-  if (req.headers.origin === ALLOWED_ORIGIN) {
-    res.setHeader("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
+  const origin = req.headers.origin;
+  if (isOriginAllowed(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin || "*");
     res.setHeader("Vary", "Origin");
   }
-
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
   res.setHeader("Cache-Control", "no-store");
 }
 
 function getBearerToken(req) {
   const authorization = req.headers.authorization;
-
   if (typeof authorization !== "string") {
     return null;
   }
-
   const match = authorization.match(/^Bearer\s+(\S+)$/i);
   return match ? match[1] : null;
 }
@@ -70,11 +74,9 @@ function getRequestBody(req) {
   ) {
     return req.body;
   }
-
   if (typeof req.body === "string") {
     try {
       const parsed = JSON.parse(req.body);
-
       if (
         parsed &&
         typeof parsed === "object" &&
@@ -86,7 +88,6 @@ function getRequestBody(req) {
       return {};
     }
   }
-
   return {};
 }
 
@@ -94,16 +95,13 @@ function getDateMillis(value) {
   if (value && typeof value.toMillis === "function") {
     return value.toMillis();
   }
-
   if (value && typeof value.toDate === "function") {
     return value.toDate().getTime();
   }
-
   if (typeof value === "string" || typeof value === "number") {
     const parsed = new Date(value).getTime();
     return Number.isFinite(parsed) ? parsed : null;
   }
-
   return null;
 }
 
@@ -122,11 +120,9 @@ async function updateNamesInChunks(db, documents, newUsername) {
       offset,
       offset + FIRESTORE_BATCH_LIMIT
     );
-
     for (const document of chunk) {
       batch.update(document.ref, { name: newUsername });
     }
-
     await batch.commit();
   }
 }
@@ -135,7 +131,14 @@ export default async function handler(req, res) {
   setCorsHeaders(req, res);
 
   if (req.method === "OPTIONS") {
-    return res.status(204).end();
+    if (req.headers.origin && !isOriginAllowed(req.headers.origin)) {
+      return res.status(403).end();
+    }
+    return res.status(200).end();
+  }
+
+  if (req.headers.origin && !isOriginAllowed(req.headers.origin)) {
+    return sendError(res, 403, "Origin not allowed");
   }
 
   if (req.method !== "POST") {
@@ -145,13 +148,11 @@ export default async function handler(req, res) {
 
   try {
     const token = getBearerToken(req);
-
     if (!token) {
       return sendError(res, 401, "Unauthorized");
     }
 
     const decoded = verifyJwt(token);
-
     if (
       !decoded ||
       typeof decoded.username !== "string" ||
@@ -161,7 +162,6 @@ export default async function handler(req, res) {
     }
 
     const body = getRequestBody(req);
-
     if (typeof body.newUsername !== "string") {
       return sendError(res, 400, "newUsername is required");
     }
@@ -191,11 +191,9 @@ export default async function handler(req, res) {
 
     // Read both username records and enforce uniqueness atomically.
     let migratedUserData;
-
     try {
       await db.runTransaction(async transaction => {
         const oldUserSnap = await transaction.get(oldUserRef);
-
         if (!oldUserSnap.exists) {
           const error = new Error("User not found");
           error.statusCode = 404;
@@ -203,7 +201,6 @@ export default async function handler(req, res) {
         }
 
         const newUserSnap = await transaction.get(newUserRef);
-
         if (newUserSnap.exists) {
           const error = new Error("Username is already taken");
           error.statusCode = 409;
@@ -216,7 +213,6 @@ export default async function handler(req, res) {
           const lastChangeMillis = getDateMillis(
             userData.lastUsernameChange
           );
-
           if (lastChangeMillis === null) {
             const error = new Error(
               "Username cooldown data is invalid; contact support"
@@ -224,7 +220,6 @@ export default async function handler(req, res) {
             error.statusCode = 409;
             throw error;
           }
-
           const elapsedMillis = Date.now() - lastChangeMillis;
           const cooldownMillis =
             USERNAME_COOLDOWN_DAYS * 24 * 60 * 60 * 1000;
@@ -234,7 +229,6 @@ export default async function handler(req, res) {
               (cooldownMillis - elapsedMillis) /
                 (24 * 60 * 60 * 1000)
             );
-
             const error = new Error(
               `Username change locked. Please wait ${remainingDays} more days.`
             );
@@ -257,7 +251,6 @@ export default async function handler(req, res) {
       if (error?.statusCode) {
         return sendError(res, error.statusCode, error.message);
       }
-
       throw error;
     }
 
@@ -274,7 +267,6 @@ export default async function handler(req, res) {
       postsSnapshot.docs,
       newUsername
     );
-
     await updateNamesInChunks(
       db,
       ipLogsSnapshot.docs,
@@ -286,6 +278,7 @@ export default async function handler(req, res) {
       newUsername,
       message: "Username changed. Please log in again."
     });
+
   } catch {
     return sendError(res, 500, "Username service error");
   }

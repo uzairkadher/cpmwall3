@@ -1,48 +1,54 @@
-
 import admin from "firebase-admin";
 import { verifyJwt } from "../auth.js";
 
-const ALLOWED_ORIGIN = "https://cpmwall3.vercel.app";
+const ALLOWED_ORIGINS = [
+  "https://cpmwall.tech",
+  "https://www.cpmwall.tech",
+  "https://cpmwall3.vercel.app",
+  "http://localhost:3000"
+];
+
+function isOriginAllowed(origin) {
+  if (!origin || origin === "null" || origin === "file://") return true;
+  if (ALLOWED_ORIGINS.includes(origin)) return true;
+  if (/^https:\/\/.*\.vercel\.app$/.test(origin)) return true;
+  return false;
+}
+
 const MAX_RESULTS = 100;
 
 function getDb() {
   if (!process.env.FIREBASE_SERVICE_KEY) {
     throw new Error("Firebase service configuration is missing.");
   }
-
   if (!admin.apps.length) {
     let serviceAccount;
-
     try {
       serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_KEY);
     } catch {
       throw new Error("Firebase service configuration is invalid.");
     }
-
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount)
     });
   }
-
   return admin.firestore();
 }
 
 function setCors(req, res) {
-  if (req.headers.origin === ALLOWED_ORIGIN) {
-    res.setHeader("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
+  const origin = req.headers.origin;
+  if (isOriginAllowed(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin || "*");
     res.setHeader("Vary", "Origin");
   }
-
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
   res.setHeader("Cache-Control", "no-store");
 }
 
 function cleanUsername(value) {
   if (typeof value !== "string") return "";
-
   const username = value.trim().toUpperCase();
-
   return /^[A-Z0-9_.]{3,20}$/.test(username)
     ? username
     : "";
@@ -54,9 +60,7 @@ function getClientIp(req) {
     req.headers["x-real-ip"] ||
     req.socket?.remoteAddress ||
     "";
-
   const ip = String(candidate).split(",")[0].trim();
-
   return ip.length <= 64 && /^[a-fA-F0-9:.]+$/.test(ip)
     ? ip
     : "unknown";
@@ -64,7 +68,6 @@ function getClientIp(req) {
 
 function safeSessionRecord(doc) {
   const data = doc.data() || {};
-
   // Explicit allowlist. Never return the complete session document,
   // which could contain tokens or other sensitive fields.
   return {
@@ -97,14 +100,13 @@ export default async function handler(req, res) {
   setCors(req, res);
 
   if (req.method === "OPTIONS") {
-    if (req.headers.origin && req.headers.origin !== ALLOWED_ORIGIN) {
+    if (req.headers.origin && !isOriginAllowed(req.headers.origin)) {
       return res.status(403).end();
     }
-
-    return res.status(204).end();
+    return res.status(200).end();
   }
 
-  if (req.headers.origin && req.headers.origin !== ALLOWED_ORIGIN) {
+  if (req.headers.origin && !isOriginAllowed(req.headers.origin)) {
     return res.status(403).json({ error: "Origin not allowed." });
   }
 
@@ -114,7 +116,6 @@ export default async function handler(req, res) {
   }
 
   let db;
-
   try {
     db = getDb();
   } catch {
@@ -130,7 +131,6 @@ export default async function handler(req, res) {
     }
 
     let decoded;
-
     try {
       decoded = verifyJwt(match[1]);
     } catch {
@@ -138,7 +138,6 @@ export default async function handler(req, res) {
     }
 
     const adminUsername = cleanUsername(decoded?.username);
-
     if (!adminUsername) {
       return res.status(401).json({ error: "Invalid session." });
     }
@@ -170,7 +169,6 @@ export default async function handler(req, res) {
       }
 
       let query = db.collection("sessions");
-
       if (targetUsername) {
         query = query.where("username", "==", targetUsername);
       }
@@ -228,9 +226,7 @@ export default async function handler(req, res) {
     // This does not by itself invalidate a stateless JWT unless
     // the authentication middleware checks session validity.
     const batch = db.batch();
-
     batch.delete(sessionRef);
-
     batch.set(db.collection("audit_logs").doc(), {
       adminUsername,
       action: "REVOKE_SESSION",
@@ -252,12 +248,12 @@ export default async function handler(req, res) {
       warning:
         "Session record deleted. JWT invalidation depends on authentication middleware."
     });
+
   } catch (error) {
     console.error(
       "Admin sessions API failure:",
       error?.message || "Unknown error"
     );
-
     return res.status(500).json({
       error: "An internal server error occurred."
     });

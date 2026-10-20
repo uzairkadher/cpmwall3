@@ -1,8 +1,20 @@
-
 import admin from "firebase-admin";
 import { verifyJwt } from "../auth.js";
 
-const ALLOWED_ORIGIN = "https://cpmwall3.vercel.app";
+const ALLOWED_ORIGINS = [
+  "https://cpmwall.tech",
+  "https://www.cpmwall.tech",
+  "https://cpmwall3.vercel.app",
+  "http://localhost:3000"
+];
+
+function isOriginAllowed(origin) {
+  if (!origin || origin === "null" || origin === "file://") return true;
+  if (ALLOWED_ORIGINS.includes(origin)) return true;
+  if (/^https:\/\/.*\.vercel\.app$/.test(origin)) return true;
+  return false;
+}
+
 const VALID_ROLES = ["ADMIN", "VIP", "USER", "MOD"];
 const MAX_BAN_HOURS = 24 * 365;
 
@@ -10,40 +22,34 @@ function getDb() {
   if (!process.env.FIREBASE_SERVICE_KEY) {
     throw new Error("Firebase configuration missing.");
   }
-
   if (!admin.apps.length) {
     let serviceAccount;
-
     try {
       serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_KEY);
     } catch {
       throw new Error("Firebase configuration invalid.");
     }
-
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount)
     });
   }
-
   return admin.firestore();
 }
 
 function setCors(req, res) {
-  if (req.headers.origin === ALLOWED_ORIGIN) {
-    res.setHeader("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
+  const origin = req.headers.origin;
+  if (isOriginAllowed(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin || "*");
     res.setHeader("Vary", "Origin");
   }
-
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
   res.setHeader("Cache-Control", "no-store");
 }
 
 function cleanUsername(value) {
   if (typeof value !== "string") return "";
-
   const username = value.trim().toUpperCase();
-
   return /^[A-Z0-9_.]{3,20}$/.test(username)
     ? username
     : "";
@@ -51,7 +57,6 @@ function cleanUsername(value) {
 
 function cleanText(value, maxLength, fallback = "") {
   if (typeof value !== "string") return fallback;
-
   return value
     .replace(/[\u0000-\u001F\u007F]/g, "")
     .trim()
@@ -64,16 +69,13 @@ function getClientIp(req) {
     req.headers["x-real-ip"] ||
     req.socket?.remoteAddress ||
     "";
-
   const ip = String(candidate).split(",")[0].trim();
-
   if (
     ip.length > 64 ||
     !/^[a-fA-F0-9:.]+$/.test(ip)
   ) {
     return "unknown";
   }
-
   return ip;
 }
 
@@ -85,9 +87,7 @@ function parsePositiveHours(value) {
   if (value === undefined || value === null || value === "") {
     return null;
   }
-
   const hours = Number(value);
-
   if (
     !Number.isFinite(hours) ||
     hours <= 0 ||
@@ -95,13 +95,11 @@ function parsePositiveHours(value) {
   ) {
     return undefined;
   }
-
   return hours;
 }
 
 function safeUserRecord(doc) {
   const data = doc.data() || {};
-
   // Explicit allowlist: never return arbitrary private user fields.
   return {
     username: doc.id,
@@ -127,17 +125,13 @@ export default async function handler(req, res) {
   setCors(req, res);
 
   if (req.method === "OPTIONS") {
-    if (
-      req.headers.origin &&
-      req.headers.origin !== ALLOWED_ORIGIN
-    ) {
+    if (req.headers.origin && !isOriginAllowed(req.headers.origin)) {
       return res.status(403).end();
     }
-
-    return res.status(204).end();
+    return res.status(200).end();
   }
 
-  if (req.headers.origin && req.headers.origin !== ALLOWED_ORIGIN) {
+  if (req.headers.origin && !isOriginAllowed(req.headers.origin)) {
     return res.status(403).json({ error: "Origin not allowed." });
   }
 
@@ -147,7 +141,6 @@ export default async function handler(req, res) {
   }
 
   let db;
-
   try {
     db = getDb();
   } catch {
@@ -163,7 +156,6 @@ export default async function handler(req, res) {
     }
 
     let decoded;
-
     try {
       decoded = verifyJwt(match[1]);
     } catch {
@@ -171,7 +163,6 @@ export default async function handler(req, res) {
     }
 
     const adminUsername = cleanUsername(decoded?.username);
-
     if (!adminUsername) {
       return res.status(401).json({ error: "Invalid session." });
     }
@@ -215,12 +206,10 @@ export default async function handler(req, res) {
       const filtered = snapshot.docs.filter(doc => {
         const data = doc.data() || {};
         const username = doc.id.toUpperCase();
-
         if (q && !username.includes(q)) return false;
         if (roleFilter && (data.role || "USER") !== roleFilter) {
           return false;
         }
-
         return true;
       });
 
@@ -252,7 +241,6 @@ export default async function handler(req, res) {
     if (!targetUsername) {
       return res.status(400).json({ error: "Valid target username required." });
     }
-
     if (targetUsername === adminUsername) {
       return res.status(400).json({ error: "Cannot modify your own account." });
     }
@@ -268,7 +256,6 @@ export default async function handler(req, res) {
 
     if (action === "update_role") {
       const role = cleanText(body.role, 20).toUpperCase();
-
       if (!VALID_ROLES.includes(role)) {
         return res.status(400).json({ error: "Invalid role." });
       }
@@ -280,7 +267,6 @@ export default async function handler(req, res) {
           .where("role", "==", "ADMIN")
           .limit(2)
           .get();
-
         if (admins.size <= 1) {
           return res.status(409).json({
             error: "Cannot remove the last administrator."
@@ -376,9 +362,9 @@ export default async function handler(req, res) {
     }
 
     return res.status(400).json({ error: "Invalid action." });
+
   } catch (error) {
     console.error("Admin users API failure:", error?.message || "Unknown error");
-
     return res.status(500).json({
       error: "An internal server error occurred."
     });

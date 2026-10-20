@@ -1,30 +1,56 @@
 import admin from "firebase-admin";
 import { verifyJwt } from "../auth.js";
 
+const ALLOWED_ORIGINS = [
+  "https://cpmwall.tech",
+  "https://www.cpmwall.tech",
+  "https://cpmwall3.vercel.app",
+  "http://localhost:3000"
+];
+
+function isOriginAllowed(origin) {
+  if (!origin || origin === "null" || origin === "file://") return true;
+  if (ALLOWED_ORIGINS.includes(origin)) return true;
+  if (/^https:\/\/.*\.vercel\.app$/.test(origin)) return true;
+  return false;
+}
+
 if (!admin.apps.length) {
   const serviceKey = process.env.FIREBASE_SERVICE_KEY;
-
   if (!serviceKey) {
     throw new Error("Server configuration error");
   }
-
   admin.initializeApp({
     credential: admin.credential.cert(JSON.parse(serviceKey)),
   });
 }
 
 const db = admin.firestore();
-const ALLOWED_ORIGIN = "https://cpmwall3.vercel.app";
 const TOP_POSTS_SAMPLE_LIMIT = 1000;
 
-export default async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
-  res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+function setCorsHeaders(req, res) {
+  const origin = req.headers.origin;
+  if (isOriginAllowed(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin || "*");
+    res.setHeader("Vary", "Origin");
+  }
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
   res.setHeader("Cache-Control", "private, no-store");
+}
+
+export default async function handler(req, res) {
+  setCorsHeaders(req, res);
 
   if (req.method === "OPTIONS") {
-    return res.status(204).end();
+    if (req.headers.origin && !isOriginAllowed(req.headers.origin)) {
+      return res.status(403).end();
+    }
+    return res.status(200).end();
+  }
+
+  if (req.headers.origin && !isOriginAllowed(req.headers.origin)) {
+    return res.status(403).json({ error: "Origin not allowed." });
   }
 
   if (req.method !== "GET") {
@@ -43,20 +69,17 @@ export default async function handler(req, res) {
     }
 
     const decoded = verifyJwt(token);
-
     if (!decoded || typeof decoded.username !== "string") {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
     const adminUsername = decoded.username.trim().toUpperCase();
-
     if (!adminUsername) {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
     // Check the current role in Firestore rather than trusting JWT role claims.
     const adminDoc = await db.collection("users").doc(adminUsername).get();
-
     if (!adminDoc.exists || adminDoc.data()?.role !== "ADMIN") {
       return res.status(403).json({ error: "Forbidden" });
     }
@@ -126,6 +149,7 @@ export default async function handler(req, res) {
       topPostersSampled: postsTodaySnapshot.data().count >
         TOP_POSTS_SAMPLE_LIMIT,
     });
+
   } catch (err) {
     // Log the internal error on the server; never return its details to clients.
     console.error("Admin analytics request failed:", err);

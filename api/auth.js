@@ -1,4 +1,3 @@
-
 import admin from "firebase-admin";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
@@ -14,20 +13,31 @@ const RESERVED_HANDLES = [
 
 const JWT_LIFETIME_SECONDS = 30 * 24 * 60 * 60;
 const BCRYPT_ROUNDS = 12;
-const ALLOWED_ORIGIN = "https://cpmwall3.vercel.app";
+
+const ALLOWED_ORIGINS = [
+  "https://cpmwall.tech",
+  "https://www.cpmwall.tech",
+  "https://cpmwall3.vercel.app",
+  "http://localhost:3000"
+];
+
+function isOriginAllowed(origin) {
+  if (!origin || origin === "null" || origin === "file://") return true;
+  if (ALLOWED_ORIGINS.includes(origin)) return true;
+  if (/^https:\/\/.*\.vercel\.app$/.test(origin)) return true;
+  return false;
+}
 
 let dbInstance = null;
 
 function getJwtSecret() {
   const secret = process.env.JWT_SECRET;
-
   if (
     typeof secret !== "string" ||
     Buffer.byteLength(secret, "utf8") < 32
   ) {
     throw new Error("JWT_SECRET is missing or too short");
   }
-
   return secret;
 }
 
@@ -35,14 +45,12 @@ function getDb() {
   if (dbInstance) return dbInstance;
 
   const serviceKey = process.env.FIREBASE_SERVICE_KEY;
-
   if (!serviceKey) {
     throw new Error("FIREBASE_SERVICE_KEY is not configured");
   }
 
   if (!admin.apps.length) {
     let credentials;
-
     try {
       credentials = JSON.parse(serviceKey);
     } catch {
@@ -92,7 +100,6 @@ function signJwt(payload) {
   );
 
   const unsignedToken = `${header}.${data}`;
-
   const signature = crypto
     .createHmac("sha256", secret)
     .update(unsignedToken)
@@ -112,16 +119,15 @@ export function verifyJwt(token) {
     }
 
     const [encodedHeader, encodedPayload, suppliedSignature] = parts;
+
     const header = JSON.parse(
       Buffer.from(encodedHeader, "base64url").toString("utf8")
     );
-
     if (header.alg !== "HS256" || header.typ !== "JWT") {
       return null;
     }
 
     const secret = getJwtSecret();
-
     const expectedSignature = crypto
       .createHmac("sha256", secret)
       .update(`${encodedHeader}.${encodedPayload}`)
@@ -232,20 +238,17 @@ async function verifyStoredPassword(password, userData) {
 
 function setCorsHeaders(req, res) {
   const origin = req.headers.origin;
-
-  if (origin === ALLOWED_ORIGIN) {
-    res.setHeader("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
+  if (isOriginAllowed(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin || "*");
     res.setHeader("Vary", "Origin");
   }
-
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
   res.setHeader("Cache-Control", "no-store");
 }
 
 function getBearerToken(req) {
   const authHeader = req.headers.authorization;
-
   if (typeof authHeader !== "string") return null;
 
   const match = authHeader.match(/^Bearer\s+(\S+)$/i);
@@ -256,7 +259,6 @@ function getRequestBody(req) {
   if (req.body && typeof req.body === "object" && !Array.isArray(req.body)) {
     return req.body;
   }
-
   if (typeof req.body === "string") {
     try {
       const parsed = JSON.parse(req.body);
@@ -267,7 +269,6 @@ function getRequestBody(req) {
       return {};
     }
   }
-
   return {};
 }
 
@@ -278,6 +279,7 @@ function sendError(res, status, error) {
 async function registerUser(db, cleanUser, password) {
   const userRef = db.collection("users").doc(cleanUser);
   const passHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
+
   const rawIp = String(
     (arguments[3]?.headers?.["x-forwarded-for"] || "")
       .split(",")[0]
@@ -286,7 +288,6 @@ async function registerUser(db, cleanUser, password) {
 
   await db.runTransaction(async transaction => {
     const existing = await transaction.get(userRef);
-
     if (existing.exists) {
       const error = new Error("Username taken");
       error.statusCode = 409;
@@ -319,7 +320,6 @@ async function migrateUserAfterLogin(
 
   await db.runTransaction(async transaction => {
     const sourceSnap = await transaction.get(sourceRef);
-
     if (!sourceSnap.exists) {
       const error = new Error("Account changed during login. Please retry.");
       error.statusCode = 409;
@@ -340,7 +340,6 @@ async function migrateUserAfterLogin(
 
     if (isLegacyDocument) {
       const canonicalSnap = await transaction.get(canonicalRef);
-
       if (canonicalSnap.exists) {
         const error = new Error("Account migration conflict. Please retry.");
         error.statusCode = 409;
@@ -353,7 +352,6 @@ async function migrateUserAfterLogin(
         passwordHash,
         migratedAt: admin.firestore.FieldValue.serverTimestamp()
       };
-
       delete migratedData.passHash;
 
       transaction.create(canonicalRef, migratedData);
@@ -372,7 +370,14 @@ export default async function handler(req, res) {
   setCorsHeaders(req, res);
 
   if (req.method === "OPTIONS") {
-    return res.status(204).end();
+    if (req.headers.origin && !isOriginAllowed(req.headers.origin)) {
+      return res.status(403).end();
+    }
+    return res.status(200).end();
+  }
+  
+  if (req.headers.origin && !isOriginAllowed(req.headers.origin)) {
+    return sendError(res, 403, "Origin not allowed");
   }
 
   if (req.method !== "GET" && req.method !== "POST") {
@@ -387,13 +392,11 @@ export default async function handler(req, res) {
 
     if (req.method === "GET" && action === "me") {
       const token = getBearerToken(req);
-
       if (!token) {
         return sendError(res, 401, "Missing token");
       }
 
       const decoded = verifyJwt(token);
-
       if (!decoded || !decoded.username) {
         return sendError(res, 401, "Invalid token");
       }
@@ -434,23 +437,22 @@ export default async function handler(req, res) {
           "This username is reserved and cannot be registered."
         );
       }
-
       if (password.length < 6) {
         return sendError(res, 400, "Password must be at least 6 characters");
       }
-
       if (password.length > 1024) {
         return sendError(res, 400, "Password is too long");
       }
-
       if (password !== confirmPassword) {
         return sendError(res, 400, "Passwords do not match");
       }
 
       getJwtSecret();
       const db = getDb();
+
       const userRef = db.collection("users").doc(cleanUser);
       const passHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
+
       const rawIp = String(
         (req.headers["x-forwarded-for"] || "")
           .split(",")[0]
@@ -459,7 +461,6 @@ export default async function handler(req, res) {
 
       await db.runTransaction(async transaction => {
         const existing = await transaction.get(userRef);
-
         if (existing.exists) {
           const error = new Error("Username taken");
           error.statusCode = 409;
@@ -475,7 +476,6 @@ export default async function handler(req, res) {
       });
 
       const token = signJwt({ username: cleanUser });
-
       return res.status(200).json({
         token,
         username: cleanUser
@@ -488,8 +488,10 @@ export default async function handler(req, res) {
 
     getJwtSecret();
     const db = getDb();
+
     const canonicalRef = db.collection("users").doc(cleanUser);
     let sourceRef = canonicalRef;
+
     let userSnap = await canonicalRef.get();
     let isLegacyDocument = false;
 
@@ -512,7 +514,6 @@ export default async function handler(req, res) {
 
     if (passwordResult.needsUpgrade) {
       const upgradedHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
-
       await migrateUserAfterLogin(
         db,
         cleanUser,
@@ -529,11 +530,11 @@ export default async function handler(req, res) {
       token,
       username: cleanUser
     });
+
   } catch (err) {
     if (err?.statusCode === 409) {
       return sendError(res, 409, err.message);
     }
-
     // Keep credential/configuration details out of public error responses.
     return sendError(res, 500, "Authentication service error");
   }
