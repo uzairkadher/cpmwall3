@@ -35,3 +35,19 @@
 - An ADMIN-role user loading, updating the role of, and banning a user from admin.html against real Firestore.
 - The 5/min post rate limit (429 on the 6th post) against real Firestore.
 - CORS rejection on the deployed domain.
+
+# TEST_RESULTS — Phase 1 Wall (commit 7617f68)
+Raw log: [`evidence/phase1_wall.log`](evidence/phase1_wall.log). Headless Chrome (playwright-core over CDP) against the local harness. Firestore Web SDK modules replaced in-browser by a mock (4 posts + pinned), `/api/post` mocked with a 1.5 s delay.
+
+| Check | Before (2118abf) | After (7617f68) |
+|---|---|---|
+| Rapid submit (Enter, Enter, click, Enter) → POST /api/post calls | **4** | **1** ✅ |
+| `#sendBtn` while request in flight | enabled | `disabled`, `aria-busy="true"` ✅ |
+| `#sendBtn` after response | — | re-enabled, input cleared ✅ |
+| Feed renders mocked posts | 4 | 4 ✅ |
+| Page errors (/, 1280 and 390 wide) | 0 | 0 ✅ |
+| Page errors (/login, /settings, /admin with new tokens) | 0 | 0 ✅ |
+| DOM IDs (index/login/settings/admin) | 25/11/15/42 | identical ✅ |
+
+Not tested: real Firestore feed, real posting, rate limit, likes against production.
+

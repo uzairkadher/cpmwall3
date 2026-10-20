@@ -1,0 +1,22 @@
+# Phase 1 Wall evidence (Tue Oct 20 14:28:52 UTC 2026)
+Harness: /home/ubuntu/harness/server.mjs (local Vercel-style routing). Browser: headless Chrome via playwright-core CDP.
+Firebase Web SDK modules (gstatic firebase-app.js / firebase-firestore.js) replaced by an in-browser mock serving 4 posts + pinned/current; /api/post mocked with a 1.5s delay.
+Script: Enter x2, click #sendBtn, Enter x1 in quick succession, then read #sendBtn state.
+
+## BEFORE (main @ 2118abf, port 4174)
+{"errors":[],"bubbles":4,"postCalls":4,"whilePosting":{"disabled":false,"ariaBusy":null},"afterPost":{"disabled":false,"input":""}}
+
+## AFTER (7617f68, port 4173) 1280x860
+{"errors":[],"bubbles":4,"postCalls":1,"whilePosting":{"disabled":true,"ariaBusy":"true"},"afterPost":{"disabled":false,"input":""}}
+
+## AFTER 390x844 (mobile)
+{"errors":[],"bubbles":4,"postCalls":1,"whilePosting":{"disabled":true,"ariaBusy":"true"},"afterPost":{"disabled":false,"input":""}}
+
+## login/settings/admin re-render with new tokens: page errors
+errors: []
+
+## DOM ID preservation vs main
+index.html: 25 ids IDENTICAL
+login.html: 11 ids IDENTICAL
+settings.html: 15 ids IDENTICAL
+admin.html: 42 ids IDENTICAL
