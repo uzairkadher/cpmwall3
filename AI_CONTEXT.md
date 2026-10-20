@@ -26,7 +26,7 @@
 
 # Change Log (newest first)
 
-## [2026-10-20] PR #__PR__ R-02 Admin ban enforcement - DONE (commit dd283d079df26c61d6c71383531a5498524093d1)
+## [2026-10-20] PR #4 R-02 Admin ban enforcement - DONE (commit dd283d079df26c61d6c71383531a5498524093d1)
 - What: Admin network bans now use the same SHA-256 IP document key as `api/post.js`; non-admin account bans block post and like actions while permanent or unexpired.
 - Decision: Expired account bans remain read-only and are not cleared. No unban action or auth changes.
 - Files: `api/admin/users.js`, `api/post.js`, `evidence/r02_seed.mjs`, `evidence/r02_ban.log`, `AI_CONTEXT.md`, `blueprint.md`, `PROGRESS.md`, `TEST_RESULTS.md`.
