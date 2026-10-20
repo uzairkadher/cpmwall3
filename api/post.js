@@ -1,6 +1,6 @@
 import crypto from "crypto";
 import admin from "firebase-admin";
-import { verifyJwt } from "./auth.js";
+import { isSessionActive, verifyJwt } from "./auth.js";
 
 const ALLOWED_ORIGINS = [
   "https://cpmwall.tech",
@@ -283,8 +283,15 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: "Invalid or expired session." });
     }
 
+    if (!decoded) {
+      return res.status(401).json({ error: "Invalid session." });
+    }
+    if (!(await isSessionActive(db, decoded))) {
+      return res.status(401).json({ error: "Session revoked." });
+    }
+
     const username =
-      typeof decoded?.username === "string"
+      typeof decoded.username === "string"
         ? decoded.username.toUpperCase()
         : "";
 

@@ -1,7 +1,7 @@
 import admin from "firebase-admin";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
-import { verifyJwt } from "../auth.js";
+import { isSessionActive, verifyJwt } from "../auth.js";
 
 const ALLOWED_ORIGINS = [
   "https://cpmwall.tech",
@@ -172,8 +172,15 @@ export default async function handler(req, res) {
     }
 
     const decoded = verifyJwt(token);
+    if (!decoded) {
+      return sendError(res, 401, "Invalid or expired token");
+    }
+
+    const db = getDb();
+    if (!(await isSessionActive(db, decoded))) {
+      return sendError(res, 401, "Session revoked.");
+    }
     if (
-      !decoded ||
       typeof decoded.username !== "string" ||
       !/^[A-Z0-9_.]{3,20}$/.test(decoded.username)
     ) {
@@ -181,7 +188,6 @@ export default async function handler(req, res) {
     }
 
     const username = decoded.username;
-    const db = getDb();
     const userRef = db.collection("users").doc(username);
     const userDoc = await userRef.get();
 

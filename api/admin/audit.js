@@ -1,5 +1,5 @@
 import admin from "firebase-admin";
-import { verifyJwt } from "../auth.js";
+import { isSessionActive, verifyJwt } from "../auth.js";
 
 const ALLOWED_ORIGINS = [
   "https://cpmwall.tech",
@@ -164,7 +164,14 @@ export default async function handler(req, res) {
       });
     }
 
-    const adminUsername = cleanUsername(decoded?.username);
+    if (!decoded) {
+      return res.status(401).json({ error: "Invalid session." });
+    }
+    if (!(await isSessionActive(db, decoded))) {
+      return res.status(401).json({ error: "Session revoked." });
+    }
+
+    const adminUsername = cleanUsername(decoded.username);
     if (!adminUsername) {
       return res.status(401).json({ error: "Invalid session." });
     }
