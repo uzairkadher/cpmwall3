@@ -104,7 +104,7 @@ Raw curl transcript and fixture helper: [`evidence/r05_sessions.log`](evidence/r
 | BOB logs in again and calls `/api/user/me` | Not run | 200 with a new `sid` |
 | Legacy BOB token without `sid` calls `/api/user/me` | Not run | 200; compatibility behavior is deliberate |
 
-# TEST_RESULTS — R-04 Shadowban feed (PR #__PR__, commit d980bbb435d03c64621b5ec8cf903d302969d3b4)
+# TEST_RESULTS — R-04 Shadowban feed (PR #7, commit d980bbb435d03c64621b5ec8cf903d302969d3b4)
 
 Raw curl transcript, fixture helper, and proof runner: [`evidence/r04_shadowban.log`](evidence/r04_shadowban.log), [`evidence/r04_seed.mjs`](evidence/r04_seed.mjs), [`evidence/r04_proof.sh`](evidence/r04_proof.sh).
 

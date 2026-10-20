@@ -26,7 +26,7 @@
 
 # Change Log (newest first)
 
-## [2026-10-20] PR #__PR__ R-04 Shadowban hidden from public feed - DONE (commit d980bbb435d03c64621b5ec8cf903d302969d3b4)
+## [2026-10-20] PR #7 R-04 Shadowban hidden from public feed - DONE (commit d980bbb435d03c64621b5ec8cf903d302969d3b4)
 - What: `GET /api/post` filters shadowbanned posts using raw Firestore data, includes a viewer's own posts for active sessions, and omits moderation state. The POST success response no longer reveals shadowban status; browser reads of `posts` are denied.
 - Decision: Option B was chosen because there is no production access; option A (realtime feed with rules plus backfill) remains possible later.
 - Decision: Shadowbanned users continue to see their own posts to preserve the illusion.
