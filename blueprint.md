@@ -101,3 +101,19 @@ service cloud.firestore {
     }
   }
 }
+```
+
+## 5. API route status (2026-10-20)
+All 12 frontend `fetch()` targets resolve to a handler (see INVENTORY.md). The only mismatch, `/api/admin/users`, was fixed in PR #1 by renaming the handler file. Evidence: `evidence/phase0_curl.log`. Real Firestore-backed behaviour is still unverified (no credentials in the test environment).
+
+## 6. Empire Singularity design system progress
+| Item | Status | Commit |
+|---|---|---|
+| Tokens: obsidian `#0A0A0F`, electric cyan `#00F5FF`, violet `#8B5CF6`, `--cyan-deep`, gradients, glows, semantic status colors | DONE | 2118abf, 7617f68 |
+| login.html on tokens (gold removed) | DONE | 2118abf |
+| index.html wall: feed, composer, pinned, tabs, toasts, focus, touch targets, double-submit guard | DONE | 7617f68 |
+| Composer preserves drafts and reply targets changed during an in-flight post | DONE | 85359c3130b54fde59e8c839f67a2ef8bbf8d0f6 |
+| settings.html / admin.html: tokenized colors only; deeper polish pending | PARTIAL | 2118abf |
+| Skeletons / empty / error states consistent on settings + admin | TODO | — |
+
+Rules: no CSS frameworks; keep `design-tokens.css`; never change DOM IDs; filled cyan surfaces with white text use `--cyan-deep` for contrast.

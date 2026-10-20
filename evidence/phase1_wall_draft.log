@@ -1,0 +1,8 @@
+Phase 1 draft regression proof; fixed PR #3; mocked browser/API/Firestore; harness port 4173; mock POST delay 1500ms
+PHASE1_DRAFT_RESULT={"normalSend":{"status":200,"sentText":"normal send","inputAfter200":""},"draftReplacement":{"status":200,"sentText":"first","inputAfter200":"second draft"},"sentReply":{"name":"APEX","text":"Anyone up for a drag race in room 4521? #Drag"},"replyTargetAfterPending":{"status":200,"visible":true,"text":"Replying to @DEMO: \"Trading my tuned GTR, DM me #T...\""},"normalReplySend":{"sentReply":{"name":"DEMO","text":"Trading my tuned GTR, DM me #Trade"},"replyBarDisplay":"none"},"failedPost":{"status":500,"inputAfter500":"failed message stays"},"rapidEnter":{"calls":1,"sentText":"rapid Enter regression","status":200},"initialBubbleCount":4,"pageErrors":[]}
+R04_BROWSER_RESULT={"viewport":{"width":1280,"height":860},"initialBubbleCount":4,"pageErrors":[],"screenshot":"/home/ubuntu/shots/phase1-draft-wall-1280.png","feedCalls":0}
+DOM IDs vs main: identical
+
+PR #3 rejected-fetch proof; mocked browser/API/Firestore; harness port 4173; POST route aborts after 1500ms
+NETWORK_REJECT_RESULT={"toast":"Network error. Your message may not have been posted. Check the wall before sending again.","inputAfterReject":"keep this after a network error","postCalls":1,"networkRejected":true,"pageErrors":[]}
+R04_BROWSER_RESULT={"viewport":{"width":1280,"height":860},"initialBubbleCount":4,"pageErrors":[],"screenshot":"/home/ubuntu/shots/phase1-network-reject-wall-1280.png","feedCalls":0}

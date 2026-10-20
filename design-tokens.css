@@ -8,8 +8,11 @@
 :root {
   /* Immutable Base Tokens */
   --bg-obsidian: #0a0a0f;
-  --violet: #7c3aed;
-  --cyan: #06b6d4;
+  --violet: #8b5cf6;
+  --violet-rgb: 139, 92, 246;
+  --cyan: #00f5ff;
+  --cyan-rgb: 0, 245, 255;
+  --cyan-deep: #06b6d4;
   --glass-bg: rgba(255, 255, 255, 0.06);
   --glass-border: rgba(255, 255, 255, 0.1);
 
@@ -50,22 +53,23 @@
   /* Interaction & State */
   --transition-fast: 150ms ease;
   --transition-normal: 250ms ease;
-  --focus-ring: 2px solid var(--violet);
+  --focus-ring: 2px solid var(--cyan);
   --disabled-opacity: 0.5;
 
   /* Skeleton Surfaces */
   --skeleton-bg: linear-gradient(90deg, #12121a 0%, #1a1a24 50%, #12121a 100%);
 
   /* Phase 1 Singularity Accents */
-  --cyan-bright: #22d3ee;
+  --cyan-bright: #67fbff;
   --violet-bright: #a78bfa;
   --violet-soft: #c4b5fd;
-  --gradient-singularity: linear-gradient(135deg, var(--violet) 0%, var(--cyan) 100%);
-  --glow-cyan: 0 0 24px rgba(6, 182, 212, 0.35);
-  --glow-violet: 0 0 24px rgba(124, 58, 237, 0.35);
+  --gradient-singularity: linear-gradient(135deg, var(--violet) 0%, var(--cyan-deep) 100%);
+  --gradient-singularity-text: linear-gradient(135deg, var(--violet-bright) 0%, var(--cyan) 100%);
+  --glow-cyan: 0 0 24px rgba(var(--cyan-rgb), 0.3);
+  --glow-violet: 0 0 24px rgba(var(--violet-rgb), 0.35);
   --bg-singularity:
-    radial-gradient(900px at 50% -20%, rgba(124, 58, 237, 0.28), transparent),
-    radial-gradient(700px at 100% 100%, rgba(6, 182, 212, 0.14), transparent),
+    radial-gradient(900px at 50% -20%, rgba(var(--violet-rgb), 0.28), transparent),
+    radial-gradient(700px at 100% 100%, rgba(var(--cyan-rgb), 0.1), transparent),
     var(--bg-obsidian);
 
   /* Semantic Status Colors */
