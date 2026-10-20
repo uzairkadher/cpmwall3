@@ -109,7 +109,7 @@ service cloud.firestore {
 All 12 frontend `fetch()` targets resolve to a handler (see INVENTORY.md). The only mismatch, `/api/admin/users`, was fixed in PR #1 by renaming the handler file. Evidence: `evidence/phase0_curl.log`. Real Firestore-backed behaviour is still unverified (no credentials in the test environment).
 R-02: admin IP bans and non-admin account bans are enforced using matching SHA-256 IP keys and `isBanned`/`bannedUntil` checks; emulator evidence only, not production Firestore or Vercel (`evidence/r02_ban.log`).
 R-03: `firestore.rules` is configured by `firebase.json`; emulator access checks are recorded in `evidence/r03_rules.log`. Production deployment is pending the project owner.
-R-05 (PR #__PR__): login and registration write `sessions` documents; authenticated JWTs with `sid` are checked against them, so admin revocation invalidates the token. Legacy no-`sid` tokens remain valid until expiry. Emulator evidence only (`evidence/r05_sessions.log`).
+R-05 (PR #6): login and registration write `sessions` documents; authenticated JWTs with `sid` are checked against them, so admin revocation invalidates the token. Legacy no-`sid` tokens remain valid until expiry. Emulator evidence only (`evidence/r05_sessions.log`).
 
 ## 6. Empire Singularity design system progress
 | Item | Status | Commit |

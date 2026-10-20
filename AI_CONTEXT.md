@@ -26,7 +26,7 @@
 
 # Change Log (newest first)
 
-## [2026-10-20] PR #__PR__ R-05 Session revoke enforced - DONE (commit baeb829b3f958c0240d2c81449f7c95fe845c9a6)
+## [2026-10-20] PR #6 R-05 Session revoke enforced - DONE (commit baeb829b3f958c0240d2c81449f7c95fe845c9a6)
 - What: Login and registration now create Firestore session documents and include `sid` in JWTs; every JWT-protected API route checks the session before protected work. Revoking a session invalidates its session-backed JWT.
 - Decision: Legacy JWTs without `sid` remain valid until expiry to avoid logging everyone out at deploy; usernames are not compared to session records.
 - Decision: Every authenticated request now adds one Firestore read for session validation; legacy no-`sid` tokens bypass that lookup.

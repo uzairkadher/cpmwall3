@@ -86,7 +86,7 @@ Raw curl transcript: [`evidence/r03_rules.log`](evidence/r03_rules.log). Emulato
 
 The server-side Admin SDK write succeeded because Admin SDK operations bypass Firestore Security Rules. The production rules deployment is pending the project owner; no production credentials or project ID were added.
 
-# TEST_RESULTS — R-05 Session revocation (PR #__PR__, commit baeb829b3f958c0240d2c81449f7c95fe845c9a6)
+# TEST_RESULTS — R-05 Session revocation (PR #6, commit baeb829b3f958c0240d2c81449f7c95fe845c9a6)
 
 Raw curl transcript and fixture helper: [`evidence/r05_sessions.log`](evidence/r05_sessions.log), [`evidence/r05_seed.mjs`](evidence/r05_seed.mjs).
 
