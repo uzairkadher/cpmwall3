@@ -1,0 +1,37 @@
+# TEST_RESULTS — Phase 0
+
+## Environment
+- Node 20.20.2 (nvm), `npm install` of package.json deps (npm audit: 7 moderate, 2 high, not addressed in this PR).
+- `npx vercel dev` could not run: it needs Vercel credentials ("No existing credentials found. Please log in").
+- Instead I used a **local harness** that copies Vercel's filesystem routing: `/api/<path>` runs `api/<path>.js`, a missing file returns 404, and clean URLs are served. It used a dummy `JWT_SECRET` and a dummy Firebase service account. **This is not a real Vercel deployment.** It proves which route resolves and that the auth gate works. It can't test Firestore-backed behaviour.
+- Full raw curl transcript (commands + headers + bodies): [`evidence/phase0_curl.log`](evidence/phase0_curl.log).
+
+## P0 route fix: `/api/admin/users`
+| # | Request | Before rename | After rename | Expected |
+|---|---|---|---|---|
+| 1 | `GET /api/admin/users` | **404** `{"error":"Not found"}` | **401** `Authentication required.` | not 404 ✅ |
+| 2 | `GET /api/admin/users?q=&role=` + `Origin: https://cpmwall.tech` | — | **401** | not 404 ✅ |
+| 3 | `POST /api/admin/users` `{"action":"update_role",...}` no token | — | **401** | not 404 ✅ |
+| 4 | `GET /api/admin/users` + valid HS256 JWT (`TESTADMIN`) | — | **500**: the handler got to the Firestore role lookup, which failed with `16 UNAUTHENTICATED` because the service account is a dummy | JWT accepted. A real role check needs real Firebase creds ⚠️ |
+| 5 | `GET /api/admin/user` (old singular path) | — | **404** | 404 ✅ |
+
+## Other endpoints: none return 404
+| Endpoint | Status (no token) | Why |
+|---|---|---|
+| GET /api/admin/analytics | 401 | auth gate |
+| GET /api/admin/audit | 401 | auth gate |
+| GET /api/admin/flags | 401 | auth gate |
+| GET /api/admin/sessions | 401 | auth gate |
+| GET /api/admin/vip-keys | 401 | auth gate |
+| GET /api/auth | 400 | no `action` |
+| POST /api/heartbeat | 503 | Firestore unavailable (dummy creds) |
+| GET /api/post | 500 | Firestore unavailable (dummy creds) |
+| GET /api/user/change-password | 401 | auth gate |
+| POST /api/user/change-username | 401 | auth gate |
+| GET /api/user/me | 401 | auth gate |
+| GET /admin (clean URL) | 200 | static page |
+
+## Not yet tested (needs real Firebase + Vercel)
+- An ADMIN-role user loading, updating the role of, and banning a user from admin.html against real Firestore.
+- The 5/min post rate limit (429 on the 6th post) against real Firestore.
+- CORS rejection on the deployed domain.
