@@ -637,7 +637,7 @@ button:focus-visible, a:focus-visible, [role="button"]:focus-visible, .room-tab:
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, onSnapshot, query, orderBy, limit, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, onSnapshot, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const _k1 = "AIza";
 const _k2 = "SyAOE8v7ANE6vvlHh2ZbiaJ6iHBN4voFcYM";
@@ -743,7 +743,6 @@ let currentRoom = 'public';
 let soundMode = localStorage.getItem('cpm_sound_mode') || 'bov';
 let alertsEnabled = localStorage.getItem('cpm_alerts') === 'true';
 let audioCtx = null;
-let isInitialLoad = true;
 let hasLoadedPosts = false;
 let activeSearchQuery = '';
 let replyingToData = null;
@@ -1041,55 +1040,88 @@ onSnapshot(doc(db, "pinned", "current"), (snap) => {
   announcementBanner.style.display = 'none';
 }, () => {});
 
-const q = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(100));
-onSnapshot(q, (snap) => {
-  if (feedSkeletons) feedSkeletons.style.display = 'none';
-  if (errorFeedState) errorFeedState.style.display = 'none';
+function normalizeApiPost(post) {
+  const createdAt = post.createdAt;
+  if (createdAt && Number.isFinite(createdAt._seconds)) {
+    return {
+      ...post,
+      createdAt: {
+        toDate: () => new Date(
+          createdAt._seconds * 1000 + (createdAt._nanoseconds || 0) / 1e6
+        )
+      }
+    };
+  }
+  return post;
+}
 
-  if (snap.empty) {
+let feedPollInFlight = false;
+
+async function pollPosts() {
+  if (feedPollInFlight || document.hidden) return;
+  feedPollInFlight = true;
+  try {
+    const res = await fetch('/api/post', {
+      headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+    });
+    if (!res.ok) throw new Error('Could not load posts.');
+
+    const responsePosts = await res.json();
+    if (!Array.isArray(responsePosts)) throw new Error('Invalid post feed.');
+    const posts = responsePosts.map(normalizeApiPost);
+
+    if (feedSkeletons) feedSkeletons.style.display = 'none';
+    if (errorFeedState) errorFeedState.style.display = 'none';
+
     if (!hasLoadedPosts) {
       feedEl.innerHTML = '';
+      posts.forEach(post => feedEl.appendChild(buildBubble(post.id, post, false)));
+      hasLoadedPosts = true;
+      filterFeedByRoom();
+      return;
     }
-    isInitialLoad = false;
-    hasLoadedPosts = true;
+
+    const postIds = new Set(posts.map(post => post.id));
+    feedEl.querySelectorAll('.bubble[id^="post-"]').forEach(element => {
+      if (!postIds.has(element.id.slice(5))) element.remove();
+    });
+
+    posts.forEach((post, index) => {
+      const id = post.id;
+      let element = document.getElementById(`post-${id}`);
+      if (element) {
+        const countEl = document.getElementById(`like-${id}`);
+        if (countEl) {
+          countEl.innerHTML = DOMPurify.sanitize(`👍 ${post.likes || 0}`);
+        }
+      } else {
+        element = buildBubble(id, post, false);
+        playAlertSound();
+      }
+
+      const position = feedEl.children[index] || null;
+      if (position !== element) feedEl.insertBefore(element, position);
+    });
+
     filterFeedByRoom();
-    return;
+  } catch {
+    if (feedSkeletons) feedSkeletons.style.display = 'none';
+    if (errorFeedState) errorFeedState.style.display = 'flex';
+    if (emptyFeedState) emptyFeedState.style.display = 'none';
+  } finally {
+    feedPollInFlight = false;
   }
+}
 
-  if (isInitialLoad || !hasLoadedPosts) {
-    feedEl.innerHTML = '';
-    snap.docs.forEach(docSnap => feedEl.appendChild(buildBubble(docSnap.id, docSnap.data(), false)));
-    isInitialLoad = false;
-    hasLoadedPosts = true;
-    filterFeedByRoom();
-    return;
-  }
-
-  snap.docChanges().forEach((change) => {
-    if (change.type === 'added') {
-      const id = change.doc.id;
-      const data = change.doc.data();
-      if (document.getElementById(`post-${id}`)) return;
-      feedEl.prepend(buildBubble(id, data, false));
-      playAlertSound();
-    }
-    if (change.type === 'modified') {
-      const id = change.doc.id;
-      const data = change.doc.data();
-      const countEl = document.getElementById(`like-${id}`);
-      if (countEl) countEl.innerHTML = DOMPurify.sanitize(`👍 ${data.likes || 0}`);
-    }
-    if (change.type === 'removed') {
-      const el = document.getElementById(`post-${change.doc.id}`);
-      if (el) el.remove();
-    }
-  });
-
-  filterFeedByRoom();
-}, (error) => {
-  if (feedSkeletons) feedSkeletons.style.display = 'none';
-  if (errorFeedState) errorFeedState.style.display = 'flex';
-  if (emptyFeedState) emptyFeedState.style.display = 'none';
+void pollPosts();
+setInterval(() => {
+  if (!document.hidden) void pollPosts();
+}, 5000);
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) void pollPosts();
+});
+window.addEventListener('online', () => {
+  void pollPosts();
 });
 
 msgInput.addEventListener('input', () => updateCharCounterDisplay());
@@ -1134,6 +1166,7 @@ window.sendPost = async () => {
       msgInput.value = '';
       cancelReply();
       updateCharCounterDisplay();
+      await pollPosts();
     } else {
       const d = await res.json().catch(() => ({}));
       window.showToast(d.error || 'Failed to post', true);
