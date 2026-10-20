@@ -51,6 +51,23 @@ Raw log: [`evidence/phase1_wall.log`](evidence/phase1_wall.log). Headless Chrome
 
 Not tested: real Firestore feed, real posting, rate limit, likes against production.
 
+# TEST_RESULTS — R-02 Admin ban enforcement (commit dd283d079df26c61d6c71383531a5498524093d1)
+
+Raw terminal/curl transcript and seed/helper script: [`evidence/r02_ban.log`](evidence/r02_ban.log), [`evidence/r02_seed.mjs`](evidence/r02_seed.mjs).
+
+**This proof ran against the Firestore emulator only. It is not a test of production Firestore or Vercel.** The baseline comparison used PR #3 code at `c67f23b` with a fresh emulator wipe. Both harnesses used throwaway `demo-cpm` service-account JSON with freshly generated RSA keys and the local-only JWT secret. Requests supplied both `x-forwarded-for` and `x-vercel-forwarded-for`; the handler trusts the latter. The same-IP rate-limit record was deleted before each CAROL post test.
+
+| Scenario | Before (PR #3 `c67f23b`) | After (`dd283d0`) |
+|---|---:|---:|
+| BOB posts from `203.0.113.7` before ban | 200 | 200 |
+| ADMINU bans BOB for one hour | 200; banned doc ID was raw `203.0.113.7` | 200; banned doc ID was SHA-256 `fec52565aa0cf18f57d7cf5b3ac728503b8992d2d6f7d46da1d1201090902b02` |
+| BOB posts from `198.51.100.9` while account ban is active | 200 | 403, `Your account is banned from posting.` |
+| BOB likes seeded post while account ban is active | 200 | 403, `Your account is banned from posting.` |
+| CAROL posts from BOB's banned IP `203.0.113.7` | 200 | 403, `Posting is restricted for this network.` |
+| BOB posts after `bannedUntil` is set in the past and network ban doc is deleted | Not run | 200; `users/BOB.isBanned` remained `true` |
+
+No `fingerprint_bans` documents were seeded; the collection dump showed count `0` in both runs. The raw log preserves an initial fixed-branch CAROL test request mistakenly signed as ADMINU (which bypassed network-ban enforcement); it is explicitly excluded from the result above. The corrected request used CAROL's JWT and returned 403.
+
 ## Phase 1 Wall draft/reply preservation (PR #3 follow-up, commit 85359c3130b54fde59e8c839f67a2ef8bbf8d0f6)
 
 Browser proof, not curl: headless Chrome via Playwright/CDP against the local harness, with mocked Firestore and `/api/post` responses and a 1.5 s POST delay. This is mock-only evidence, not production verification. Raw output: [`evidence/phase1_wall_draft.log`](evidence/phase1_wall_draft.log).

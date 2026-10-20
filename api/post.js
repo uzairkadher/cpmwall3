@@ -301,6 +301,14 @@ export default async function handler(req, res) {
 
     const userData = userSnap.data() || {};
     const isRealAdmin = userData.role === "ADMIN";
+    if (!isRealAdmin && userData.isBanned) {
+      const until = userData.bannedUntil?.toDate?.();
+      if (!until || until > new Date()) {
+        return res.status(403).json({
+          error: "Your account is banned from posting."
+        });
+      }
+    }
     const isVipUser =
       isRealAdmin &&
       true ||

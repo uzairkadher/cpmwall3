@@ -34,6 +34,12 @@
 - Decisions: Clear the input only if it still equals the submitted text, and clear the reply target only if its object identity is unchanged.
 - Tokens used: not tracked.
 
+## [2026-10-20] PR #4 R-02 Admin ban enforcement - DONE (commit dd283d079df26c61d6c71383531a5498524093d1)
+- What: Admin network bans now use the same SHA-256 IP document key as `api/post.js`; non-admin account bans block post and like actions while permanent or unexpired.
+- Decision: Expired account bans remain read-only and are not cleared. No unban action or auth changes.
+- Files: `api/admin/users.js`, `api/post.js`, `evidence/r02_seed.mjs`, `evidence/r02_ban.log`, `AI_CONTEXT.md`, `blueprint.md`, `PROGRESS.md`, `TEST_RESULTS.md`.
+- Verified: Before/after curl scenarios ran against the Firestore emulator only; not production Firestore or Vercel. Baseline `c67f23b` returned 200 for the ineffective account/network bans; fixed code returned 403. Evidence: `evidence/r02_ban.log`. Vercel: all 3 PR #4 checks passed; cpm_wall_3 preview Ready (https://cpmwall3-git-devin-1792507192-r02-ban-enforcement-kad-dev.vercel.app), cpmwall3 DEPLOYED.
+- Next: R-03 (`firestore.rules` not in repo).
 ## [2026-10-20] PR #3 Phase 1 Wall Empire Retheme - DONE (commit 7617f68)
 - What: Retuned palette to obsidian `#0A0A0F` + electric cyan `#00F5FF` + violet `#8B5CF6`; polished wall feed, composer, pinned bar, room tabs, toasts; keyboard focus rings; 44px touch targets on chips/profile chip; themed feed scrollbar; pulse dot honors reduced-motion.
 - Behaviour: `sendPost()` now has an in-flight guard (`isPosting`, `#sendBtn.disabled`, `aria-busy`) and a network-error toast. Before: 4 rapid submits sent 4 POSTs. After: 1 POST.
