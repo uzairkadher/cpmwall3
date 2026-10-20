@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import admin from "firebase-admin";
 import { verifyJwt } from "../auth.js";
 
@@ -77,10 +78,6 @@ function getClientIp(req) {
     return "unknown";
   }
   return ip;
-}
-
-function safeIpDocumentId(ip) {
-  return ip.replace(/[^a-zA-Z0-9.:]/g, "_").slice(0, 100);
 }
 
 function parsePositiveHours(value) {
@@ -327,7 +324,9 @@ export default async function handler(req, res) {
 
       if (ipToBan && ipToBan !== "unknown") {
         batch.set(
-          db.collection("banned").doc(safeIpDocumentId(ipToBan)),
+          db.collection("banned").doc(
+            crypto.createHash("sha256").update(ipToBan).digest("hex")
+          ),
           {
             ip: ipToBan,
             username: targetUsername,
