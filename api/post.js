@@ -236,6 +236,22 @@ export default async function handler(req, res) {
   // Public post feed. Do not expose internal moderation or IP logs.
   if (req.method === "GET") {
     try {
+      let viewer = null;
+      const authorization = req.headers.authorization || "";
+      const tokenMatch = authorization.match(/^Bearer\s+(\S+)$/);
+      if (tokenMatch) {
+        try {
+          const decoded = verifyJwt(tokenMatch[1]);
+          if (
+            decoded &&
+            typeof decoded.username === "string" &&
+            await isSessionActive(db, decoded)
+          ) {
+            viewer = decoded.username;
+          }
+        } catch {}
+      }
+
       const snap = await db
         .collection("posts")
         .orderBy("createdAt", "desc")
@@ -243,6 +259,13 @@ export default async function handler(req, res) {
         .get();
 
       const posts = snap.docs
+        .filter(doc => {
+          const data = doc.data();
+          return (
+            data.isShadowbanned !== true ||
+            (viewer && (data.userId === viewer || data.name === viewer))
+          );
+        })
         .map(doc => {
           const data = doc.data();
           return {
@@ -259,8 +282,7 @@ export default async function handler(req, res) {
             room: data.room || "public",
             replyTo: data.replyTo || null
           };
-        })
-        .filter(post => !post.isShadowbanned);
+        });
 
       return res.status(200).json(posts);
     } catch {
@@ -655,10 +677,7 @@ export default async function handler(req, res) {
       });
     }
 
-    return res.status(200).json({
-      success: true,
-      isShadowbanned: shadowSnap.exists
-    });
+    return res.status(200).json({ success: true });
 
   } catch (error) {
     if (error.message === "RATE_LIMIT" || error.message === "SLOW_MODE") {

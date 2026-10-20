@@ -16,6 +16,7 @@ as verified.
 **Frontend:** Vanilla HTML, CSS and JavaScript pages:
 `index.html`, `login.html`, `admin.html`, `settings.html`. Deployed
 using Clean URLs (extensionless routing) with the Empire Visual Identity (`design-tokens.css`).
+**Wall feed:** `GET /api/post` polled every five seconds; browser Firestore reads are limited to `pinned` and `presence`.
 **Backend:** Vercel serverless API routes under `api/`.
 **Database:** Cloud Firestore.
 **Authentication:** Custom username/password authentication. The
@@ -69,18 +70,18 @@ apply.
 ## 4. Firestore Security Rules
 **strict configuration**
 Paste into **Firebase Console → Firestore Database → Rules**, then
-Publish. These rules allow public reads of posts, pinned posts, and
-presence, while denying browser access to `users` and all other
-collections.
+Publish. These rules allow public reads of pinned posts and presence,
+while denying browser reads and writes of posts, `users`, and all other
+collections. The wall feed is served through `GET /api/post`.
 Source of truth: these rules now live in `firestore.rules`; deploy with `firebase deploy --only firestore:rules` or paste into the Firebase Console. The project owner must deploy them; production deployment is not verified here.
 
 ```javascript
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Public community posts: read-only for browser clients
+    // Posts are available through the server API only
     match /posts/{document} {
-      allow read: if true;
+      allow read: if false;
       allow write: if false;
     }
     // Public pinned posts: read-only for browser clients
@@ -109,6 +110,7 @@ service cloud.firestore {
 All 12 frontend `fetch()` targets resolve to a handler (see INVENTORY.md). The only mismatch, `/api/admin/users`, was fixed in PR #1 by renaming the handler file. Evidence: `evidence/phase0_curl.log`. Real Firestore-backed behaviour is still unverified (no credentials in the test environment).
 R-02: admin IP bans and non-admin account bans are enforced using matching SHA-256 IP keys and `isBanned`/`bannedUntil` checks; emulator evidence only, not production Firestore or Vercel (`evidence/r02_ban.log`).
 R-03: `firestore.rules` is configured by `firebase.json`; emulator access checks are recorded in `evidence/r03_rules.log`. Production deployment is pending the project owner.
+R-04 (PR #7, commit d980bbb435d03c64621b5ec8cf903d302969d3b4): the wall feed uses five-second `GET /api/post` polling; browser reads of posts are denied, and shadowbanned posts are visible only to their owner. Emulator and mocked-browser evidence only (`evidence/r04_shadowban.log`).
 R-05 (PR #6): login and registration write `sessions` documents; authenticated JWTs with `sid` are checked against them, so admin revocation invalidates the token. Legacy no-`sid` tokens remain valid until expiry. Emulator evidence only (`evidence/r05_sessions.log`).
 
 ## 6. Empire Singularity design system progress
