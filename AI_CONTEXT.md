@@ -26,6 +26,13 @@
 
 # Change Log (newest first)
 
+## [2026-10-20] PR #3 follow-up: draft-erase fix - DONE (commit 85359c3130b54fde59e8c839f67a2ef8bbf8d0f6)
+- What: `sendPost()` preserves composer text and reply targets changed while a post is pending.
+- Files: `index.html`, `evidence/phase1_wall_draft.log`, `AI_CONTEXT.md`, `blueprint.md`, `PROGRESS.md`, `TEST_RESULTS.md`.
+- Verified: Mocked headless Chrome proof covered normal send, draft replacement, reply-target replacement and normal reply clearing, failed POST preservation, four rapid Enter presses producing one POST, zero page errors, and DOM IDs unchanged versus `main`. Evidence: `evidence/phase1_wall_draft.log`; mocks only, not production.
+- Decisions: Clear the input only if it still equals the submitted text, and clear the reply target only if its object identity is unchanged.
+- Tokens used: not tracked.
+
 ## [2026-10-20] PR #3 Phase 1 Wall Empire Retheme - DONE (commit 7617f68)
 - What: Retuned palette to obsidian `#0A0A0F` + electric cyan `#00F5FF` + violet `#8B5CF6`; polished wall feed, composer, pinned bar, room tabs, toasts; keyboard focus rings; 44px touch targets on chips/profile chip; themed feed scrollbar; pulse dot honors reduced-motion.
 - Behaviour: `sendPost()` now has an in-flight guard (`isPosting`, `#sendBtn.disabled`, `aria-busy`) and a network-error toast. Before: 4 rapid submits sent 4 POSTs. After: 1 POST.

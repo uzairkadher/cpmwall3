@@ -112,6 +112,7 @@ All 12 frontend `fetch()` targets resolve to a handler (see INVENTORY.md). The o
 | Tokens: obsidian `#0A0A0F`, electric cyan `#00F5FF`, violet `#8B5CF6`, `--cyan-deep`, gradients, glows, semantic status colors | DONE | 2118abf, 7617f68 |
 | login.html on tokens (gold removed) | DONE | 2118abf |
 | index.html wall: feed, composer, pinned, tabs, toasts, focus, touch targets, double-submit guard | DONE | 7617f68 |
+| Composer preserves drafts and reply targets changed during an in-flight post | DONE | 85359c3130b54fde59e8c839f67a2ef8bbf8d0f6 |
 | settings.html / admin.html: tokenized colors only; deeper polish pending | PARTIAL | 2118abf |
 | Skeletons / empty / error states consistent on settings + admin | TODO | — |
 

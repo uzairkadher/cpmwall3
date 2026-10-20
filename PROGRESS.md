@@ -22,6 +22,7 @@ Source of truth: `CPM_Community_Wall_Singularity_Edition_Roadmap.pdf` (20 Oct 20
 - [x] index.html wall polish: feed, composer, pinned, navigation, toasts — 7617f68 (PR #3)
 - [x] Focus states, 44px touch targets, reduced-motion — 7617f68 (PR #3)
 - [x] Prevent repeated submissions while posting — 7617f68 (PR #3)
+- [x] Preserve composer drafts/reply targets changed during an in-flight post — 85359c3130b54fde59e8c839f67a2ef8bbf8d0f6 (PR #3; mocked-browser proof)
 - [ ] settings.html polish (beyond token swap)
 - [ ] admin.html polish (Phase 4 overlaps)
 
