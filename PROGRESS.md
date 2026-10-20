@@ -17,11 +17,11 @@ Source of truth: `CPM_Community_Wall_Singularity_Edition_Roadmap.pdf` (20 Oct 20
 - [ ] R-05 Session revoke ineffective (no session docs written; JWT verify ignores `sessions`)
 
 ## Phase 1 — Empire Visual Singularity
-- [x] design-tokens.css palette/gradients/glows/status tokens — 2118abf (PR #2), 7617f68 (PR #__PR__)
+- [x] design-tokens.css palette/gradients/glows/status tokens — 2118abf (PR #2), 7617f68 (PR #3)
 - [x] login.html retheme — 2118abf (PR #2)
-- [x] index.html wall polish: feed, composer, pinned, navigation, toasts — 7617f68 (PR #__PR__)
-- [x] Focus states, 44px touch targets, reduced-motion — 7617f68 (PR #__PR__)
-- [x] Prevent repeated submissions while posting — 7617f68 (PR #__PR__)
+- [x] index.html wall polish: feed, composer, pinned, navigation, toasts — 7617f68 (PR #3)
+- [x] Focus states, 44px touch targets, reduced-motion — 7617f68 (PR #3)
+- [x] Prevent repeated submissions while posting — 7617f68 (PR #3)
 - [ ] settings.html polish (beyond token swap)
 - [ ] admin.html polish (Phase 4 overlaps)
 

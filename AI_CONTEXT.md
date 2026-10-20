@@ -26,12 +26,12 @@
 
 # Change Log (newest first)
 
-## [2026-10-20] PR #__PR__ Phase 1 Wall Empire Retheme - DONE (commit 7617f68)
+## [2026-10-20] PR #3 Phase 1 Wall Empire Retheme - DONE (commit 7617f68)
 - What: Retuned palette to obsidian `#0A0A0F` + electric cyan `#00F5FF` + violet `#8B5CF6`; polished wall feed, composer, pinned bar, room tabs, toasts; keyboard focus rings; 44px touch targets on chips/profile chip; themed feed scrollbar; pulse dot honors reduced-motion.
 - Behaviour: `sendPost()` now has an in-flight guard (`isPosting`, `#sendBtn.disabled`, `aria-busy`) and a network-error toast. Before: 4 rapid submits sent 4 POSTs. After: 1 POST.
 - Tokens added/changed: `--violet #8b5cf6`, `--violet-rgb`, `--cyan #00f5ff`, `--cyan-rgb`, `--cyan-deep #06b6d4` (filled surfaces with white text, for contrast), `--gradient-singularity` (violet→cyan-deep), `--gradient-singularity-text`, `--glow-cyan/violet`, `--focus-ring` now cyan.
 - Files: design-tokens.css, index.html, evidence/phase1_wall.log, docs (AI_CONTEXT.md, blueprint.md, PROGRESS.md, TEST_RESULTS.md).
-- Verified: headless Chrome + mocked Firestore/API, 0 page errors on all 4 pages, DOM IDs identical (25/11/15/42). Vercel preview: __VERCEL__.
+- Verified: headless Chrome + mocked Firestore/API, 0 page errors on all 4 pages, DOM IDs identical (25/11/15/42). Vercel preview: pending at commit time (see PR #3 checks).
 - Next: R-02 admin ban not enforced.
 
 ## [2026-10-20] PR #2 Phase 1 Empire Singularity tokens + login retheme - DONE (commit 2118abf)
