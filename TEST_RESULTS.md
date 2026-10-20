@@ -134,3 +134,4 @@ Browser proof, not curl: headless Chrome via Playwright/CDP against the local ha
 | Failed POST (500) | Input remained |
 | Four rapid Enter presses | Exactly one POST |
 | Page errors / `index.html` DOM IDs vs `main` | 0 / identical |
+| Rejected POST / network failure | Exact uncertain-outcome toast; input remained |

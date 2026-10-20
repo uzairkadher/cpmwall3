@@ -23,6 +23,7 @@ Source of truth: `CPM_Community_Wall_Singularity_Edition_Roadmap.pdf` (20 Oct 20
 - [x] Focus states, 44px touch targets, reduced-motion — 7617f68 (PR #3)
 - [x] Prevent repeated submissions while posting — 7617f68 (PR #3)
 - [x] Preserve composer drafts/reply targets changed during an in-flight post — 85359c3130b54fde59e8c839f67a2ef8bbf8d0f6 (PR #3; mocked-browser proof)
+- [x] Clarify uncertain outcomes after rejected post requests — 1634ca4db6f7ed0a6638c2918ab6307f5aa7f03e (PR #3; mocked-browser proof)
 - [ ] settings.html polish (beyond token swap)
 - [ ] admin.html polish (Phase 4 overlaps)
 

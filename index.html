@@ -1174,7 +1174,7 @@ window.sendPost = async () => {
       window.showToast(d.error || 'Failed to post', true);
     }
   } catch {
-    window.showToast('Network error. Your message was not posted.', true);
+    window.showToast('Network error. Your message may not have been posted. Check the wall before sending again.', true);
   } finally {
     isPosting = false;
     sendBtn.disabled = false;
