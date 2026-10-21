@@ -51,27 +51,29 @@ body {
   background: var(--bg-obsidian);
 }
 
-/* Header & Top Nav */
+/* Header & Top Nav - COMPACT */
 .header {
   background: var(--bg-obsidian);
   border-bottom: 1px solid var(--border-strong);
-  padding: var(--space-2);
+  padding: 6px 10px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
   flex-shrink: 0;
   z-index: 50;
   position: sticky;
   top: 0;
+  max-height: 52px;
 }
 .header-brand {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 .header-logo {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: var(--radius-sm);
   background: var(--surface-raised);
   border: 1px solid var(--cyan);
@@ -86,26 +88,28 @@ body {
   flex-direction: column;
 }
 .header-title h1 {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--text-primary);
 }
 .header-presence {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-secondary);
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
 }
 .header-presence .dot { color: var(--success); text-shadow: 0 0 8px var(--success); }
 
 .user-pill {
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  gap: 4px;
   background: var(--warning);
   color: #000;
-  padding: 4px 12px;
+  padding: 0 10px;
+  height: 28px;
   border-radius: var(--radius-pill);
   font-weight: 700;
   font-size: 12px;
@@ -114,41 +118,44 @@ body {
 
 .header-right-actions {
   display: flex;
-  gap: 8px;
+  gap: 6px;
 }
 .ctrl-btn {
   background: transparent;
   border: 1px solid var(--cyan);
   color: var(--cyan);
-  padding: 4px 8px;
+  padding: 0 10px;
+  height: 28px;
   border-radius: var(--radius-sm);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   display: flex;
-  flex-direction: column;
   align-items: center;
+  justify-content: center;
 }
 
-/* Room Navigation */
+/* Room Navigation - COMPACT */
 .room-bar {
   display: flex;
-  gap: 8px;
-  padding: 12px var(--space-2);
   flex-shrink: 0;
+  padding: 6px !important;
+  gap: 6px !important;
 }
 .room-tab {
   flex: 1;
   background: transparent;
   border: 1px solid var(--border-strong);
   color: var(--text-secondary);
-  padding: 10px 8px;
+  padding: 6px 12px;
   border-radius: var(--radius-sm);
-  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   text-align: center;
   transition: all 0.2s;
+  min-height: 36px !important;
+  height: 36px !important;
+  font-size: 12px !important;
 }
 .room-tab.active {
   border-color: var(--cyan);
@@ -160,10 +167,10 @@ body {
 .pinned-banner {
   background: rgba(10, 10, 15, 0.9);
   border: 1px solid var(--border-subtle);
-  margin: 0 var(--space-2) var(--space-1);
-  padding: 10px 14px;
+  margin: 0 6px 6px;
+  padding: 8px 12px;
   border-radius: var(--radius-sm);
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-primary);
   display: flex;
   align-items: center;
@@ -176,8 +183,8 @@ body {
 /* Action Chips */
 .action-chips {
   display: flex;
-  gap: 8px;
-  padding: 0 var(--space-2) 12px;
+  gap: 6px;
+  padding: 0 6px 8px;
   overflow-x: auto;
   scrollbar-width: none;
   flex-shrink: 0;
@@ -194,30 +201,33 @@ body {
   text-decoration: none;
   display: inline-flex;
   align-items: center;
+  height: 28px;
 }
 .chip-green { background: #10b981; }
 .chip-blue { background: #3b82f6; }
 .chip-orange { background: #f97316; }
 .chip-pink { background: #ec4899; }
 
-/* Filter & Search */
+/* Filter & Search - COMPACT */
 .filter-row {
   display: flex;
-  margin: 0 var(--space-2) var(--space-1);
+  margin: 6px 0;
   background: var(--surface-raised);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-sm);
-  padding: 4px 12px;
+  border-top: 1px solid var(--border-strong);
+  border-bottom: 1px solid var(--border-strong);
+  padding: 0 12px;
   align-items: center;
+  height: 36px;
 }
 .filter-row input {
   background: transparent;
   border: none;
   outline: none;
   color: var(--text-primary);
-  font-size: 13px;
   flex: 1;
   height: 36px;
+  padding: 8px 12px;
+  font-size: 13px;
 }
 
 /* Skeletons & Empty States */
@@ -232,30 +242,25 @@ body {
   border-radius: var(--radius-lg);
   width: 85%;
 }
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  text-align: center;
-  color: var(--text-secondary);
-}
 
-/* Feed */
-.feed {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+/* Feed - FLICKER FIX APPLIED */
+#feed {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  padding-bottom: 380px !important;
+  position: relative !important;
   flex: 1 1 0;
   min-height: 0;
   overflow-y: auto;
   padding: var(--space-2);
-  padding-bottom: 380px; /* Dynamic padding handled in JS */
   scrollbar-width: thin; 
   scrollbar-color: var(--border-strong) transparent;
 }
 .bubble {
+  position: relative !important;
+  width: 100% !important;
+  transform: none !important;
   max-width: 90%;
   padding: 14px;
   border-radius: 12px;
@@ -298,12 +303,7 @@ body {
   word-break: break-word;
   color: var(--text-primary);
 }
-.text-color-gold { color: #f59e0b; }
-.text-color-red { color: #ef4444; }
-.text-color-purple { color: #a855f7; }
-.text-color-green { color: #10b981; }
-.text-color-cyan { color: #06b6d4; }
-.text-color-default { color: #ffffff; }
+.text-color-default { color: #E6E6E6; }
 
 .bubble-actions {
   display: flex;
@@ -332,11 +332,11 @@ body {
   right: 0;
   background: var(--bg-obsidian);
   border-top: 1px solid var(--border-strong);
-  padding: 12px;
-  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  padding: 10px 12px;
+  padding-bottom: calc(10px + env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   z-index: 100;
   max-width: 640px;
   margin: 0 auto;
@@ -359,19 +359,6 @@ body {
   cursor: pointer;
   white-space: nowrap;
 }
-.color-dot {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  cursor: pointer;
-  border: 2px solid transparent;
-}
-.color-dot.active { border-color: #fff; }
-.bg-gold { background: #f59e0b; }
-.bg-red { background: #ef4444; }
-.bg-purple { background: #a855f7; }
-.bg-green { background: #10b981; }
-.bg-cyan { background: #06b6d4; }
 
 .frame-btn {
   background: transparent;
@@ -390,7 +377,7 @@ body {
   background: var(--surface-raised);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-sm);
-  padding: 8px 12px;
+  padding: 6px 12px;
   align-items: center;
 }
 .input-field-wrap input {
@@ -420,7 +407,7 @@ body {
 /* Toast System */
 .toast-container {
   position: fixed;
-  bottom: calc(200px + var(--safe-area-bottom));
+  bottom: calc(180px + var(--safe-area-bottom));
   right: 16px;
   z-index: 9999;
   display: flex;
@@ -441,7 +428,7 @@ body {
   transition: opacity 0.25s ease;
 }
 
-/* Modals */
+/* Tip Modal */
 .modal-overlay {
   display: none;
   position: fixed;
@@ -485,17 +472,7 @@ body {
 </style>
 </head>
 <body>
-<!-- Renamed to protected ID "#toast" per requirements -->
 <div id="toast" class="toast-container" role="status" aria-live="polite"></div>
-
-<!-- Generic Modal -->
-<div id="modal" class="modal-overlay">
-  <div class="modal-box">
-    <h2 id="modalTitle" class="modal-title"></h2>
-    <p id="modalText" class="modal-body"></p>
-    <button class="modal-close" onclick="document.getElementById('modal').style.display='none'">Close</button>
-  </div>
-</div>
 
 <!-- Tip Jar Modal -->
 <div id="tipModal" class="modal-overlay">
@@ -504,7 +481,7 @@ body {
     <p class="modal-body">Nayapay - Local & International</p>
     <div style="background: var(--bg-obsidian); padding: 10px; border-radius: 4px; margin-bottom: 16px; display:flex; justify-content:space-between; align-items:center;">
       <code>PK97NAYA1234503427565802</code>
-      <button id="copyIbanBtn" class="ctrl-btn" style="padding: 4px 12px;">Copy</button>
+      <button id="copyIbanBtn" class="ctrl-btn" style="padding: 0 12px; height: 28px;">Copy</button>
     </div>
     <a href="https://wa.me/923558182875?text=I%20sent%20VIP%20payment%20for%20CPM%20Wall" target="_blank" rel="noopener noreferrer" style="display:block; text-align:center; background:var(--success); color:#fff; text-decoration:none; padding:10px; border-radius:var(--radius-sm); margin-bottom:8px; font-weight:bold;">Send Proof on WhatsApp</a>
     <button class="modal-close" onclick="document.getElementById('tipModal').style.display='none'">Close</button>
@@ -527,14 +504,14 @@ body {
       <span id="topUsername">@user</span> 👑
     </div>
     <div class="header-right-actions">
-      <button type="button" class="ctrl-btn">Alerts<br>On</button>
-      <button type="button" class="ctrl-btn">Blow-<br>Off</button>
+      <button type="button" class="ctrl-btn">Alerts On</button>
+      <button type="button" class="ctrl-btn">Blow Off</button>
     </div>
   </div>
 
   <div class="room-bar">
     <button type="button" id="tabWall" class="room-tab active">🌐 Public Wall</button>
-    <button type="button" id="tabMarket" class="room-tab">🛒 Marketplace</button>
+    <button type="button" id="tabMarketplace" class="room-tab">🛒 Marketplace</button>
     <button type="button" id="tabVip" class="room-tab">🔒 VIP Lounge</button>
   </div>
 
@@ -551,7 +528,7 @@ body {
   </div>
 
   <div class="filter-row">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2" style="margin-right:8px;"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2" style="margin-left:12px;"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
     <input id="searchInput" placeholder="Search wall messages, drivers, or #tags..." maxlength="100">
   </div>
 
@@ -560,7 +537,7 @@ body {
     <div class="skeleton-card skeleton-shimmer me"></div>
   </div>
 
-  <div id="feed" class="feed"></div>
+  <div id="feed"></div>
 
   <form id="admin-login-box" style="display:none;" onsubmit="event.preventDefault(); handleAdminLogin();"></form>
 
@@ -571,15 +548,6 @@ body {
       <button type="button" class="comp-chip" onclick="addTag('#Gearbox')">#Gearbox</button>
       <button type="button" class="comp-chip" onclick="addTag('#Drag')">#Drag</button>
       <button type="button" class="comp-chip" onclick="addTag('#RoomCode')">#RoomCode</button>
-    </div>
-    
-    <div class="composer-row">
-      Text Color:
-      <div class="color-dot bg-gold active" onclick="selectColor('gold')"></div>
-      <div class="color-dot bg-red" onclick="selectColor('red')"></div>
-      <div class="color-dot bg-purple" onclick="selectColor('purple')"></div>
-      <div class="color-dot bg-green" onclick="selectColor('green')"></div>
-      <div class="color-dot bg-cyan" onclick="selectColor('cyan')"></div>
     </div>
     
     <div class="composer-row">
@@ -636,19 +604,17 @@ window.updateUsername = async () => {};
 window.updatePassword = async () => {};
 window.handleAdminLogin = async () => {};
 
-// Modals Setup
-window.openModal = (title, text) => {
-  document.getElementById('modalTitle').textContent = title;
-  document.getElementById('modalText').textContent = escapeHtml(text);
-  document.getElementById('modal').style.display = 'flex';
-};
-
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') {
-    document.getElementById('modal').style.display = 'none';
-    document.getElementById('tipModal').style.display = 'none';
+// Dynamic Required Modal Generator
+window.openModal = function(title, text) {
+  let m = document.getElementById('modal');
+  if(!m){ 
+    m = document.createElement('div'); 
+    m.id = 'modal'; 
+    document.body.appendChild(m); 
   }
-});
+  m.innerHTML = `<div style="background:#111;padding:20px;border-radius:12px;border:1px solid #00F5FF;max-width:90%;"><h3 style="color:#00F5FF;margin-top:0;">${title}</h3><p style="color:white;margin:12px 0;line-height:1.4;">${text}</p><button onclick="document.getElementById('modal').style.display='none'" style="padding:8px 16px;background:#222;color:#fff;border:1px solid #00F5FF;border-radius:6px;cursor:pointer;font-weight:bold;">Close</button></div>`;
+  m.style.cssText = 'display:flex;position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;background:rgba(0,0,0,0.8);align-items:center;justify-content:center;';
+};
 
 // Toast System
 window.showToast = (msg, isError = false) => {
@@ -663,24 +629,20 @@ window.showToast = (msg, isError = false) => {
   }, 3000);
 };
 
-// Wiring Tabs
+// Wiring Tabs (Fixing VIP & Marketplace)
 document.getElementById('tabWall').addEventListener('click', () => {
   document.getElementById('tabWall').classList.add('active');
-  document.getElementById('tabMarket').classList.remove('active');
+  document.getElementById('tabMarketplace').classList.remove('active');
   document.getElementById('tabVip').classList.remove('active');
-  document.getElementById('feed').scrollTo({ top: document.getElementById('feed').scrollHeight, behavior: 'smooth' });
+  document.getElementById('feed').scrollIntoView({behavior:'smooth'});
 });
 
-document.getElementById('tabMarket').addEventListener('click', () => {
+document.getElementById('tabMarketplace').addEventListener('click', () => {
   openModal('Marketplace', 'Marketplace Phase C - Trade IDs, Accounts, Setups. Follow IG @cpmwall for early access. Contact admin@cpmwall.tech');
 });
 
 document.getElementById('tabVip').addEventListener('click', () => {
-  if (isUserAdmin === true) {
-    openModal('VIP Welcome', 'Welcome to the VIP Lounge.');
-  } else {
-    openModal('VIP Lounge Locked', 'VIP Benefits: Gold Trim + Top Pin + BOT Priority. Price: 300 PKR / $1. Pay to Nayapay IBAN PK97NAYA1234503427565802 then send proof on WhatsApp 923558182875');
-  }
+  openModal('VIP Lounge Locked', 'VIP Benefits: Gold Trim + Top Pin + BOT Priority. Price: 300 PKR / $1. Pay to Nayapay IBAN PK97NAYA1234503427565802 then send proof on WhatsApp https://wa.me/923558182875');
 });
 
 // Wiring Chips
@@ -703,7 +665,6 @@ document.getElementById('copyIbanBtn').addEventListener('click', () => {
 document.getElementById('chipShare').addEventListener('click', async () => {
   const shareData = {
     title: 'CPM Wall',
-    text: 'Join CPM Wall Live Lobby - https://cpmwall.tech',
     url: 'https://cpmwall.tech'
   };
   if (navigator.share) {
@@ -734,10 +695,7 @@ function updateViewportLayout() {
   
   requestAnimationFrame(() => {
     inputPanel.style.transform = `translateY(-${keyboardHeight}px)`;
-    const composerHeight = inputPanel.getBoundingClientRect().height;
-    // 380px requested clearance baseline + keyboard
-    const feedClearance = Math.max(380, composerHeight) + keyboardHeight + 20;
-    feedContainer.style.paddingBottom = `${feedClearance}px`;
+    // Dynamic padding overrides omitted here since user requested explicit padding-bottom: 380px !important
   });
 }
 
@@ -746,7 +704,7 @@ if (window.visualViewport) {
   window.visualViewport.addEventListener('scroll', updateViewportLayout);
 }
 window.addEventListener('resize', updateViewportLayout);
-updateViewportLayout(); // Initial setup
+updateViewportLayout();
 
 function escapeHtml(unsafe) {
   if (!unsafe) return '';
@@ -792,16 +750,10 @@ const searchInput = document.getElementById('searchInput');
 let currentRoom = 'public';
 let isInitialLoad = true;
 let activeSearchQuery = '';
-let selectedColor = 'gold';
 let selectedFrame = 'gold-trim';
 let lastBotPing = 0;
 let lastPostTime = 0;
 
-window.selectColor = (c) => {
-  selectedColor = c;
-  document.querySelectorAll('.color-dot').forEach(el => el.classList.remove('active'));
-  event.target.classList.add('active');
-};
 window.selectFrame = (f) => {
   selectedFrame = f;
   document.querySelectorAll('.frame-btn').forEach(el => el.classList.remove('active'));
@@ -912,10 +864,7 @@ function buildBubble(id, data) {
   authorLine.appendChild(meta);
 
   const bodyEl = document.createElement('div');
-  bodyEl.className = 'body';
-  if (data.color && ['gold', 'red', 'purple', 'green', 'cyan', 'default'].includes(data.color)) {
-    bodyEl.classList.add(`text-color-${data.color}`);
-  }
+  bodyEl.className = 'body text-color-default';
   bodyEl.textContent = data.message || '';
 
   bubble.appendChild(authorLine);
@@ -935,7 +884,7 @@ function buildBubble(id, data) {
 
 searchInput.addEventListener('input', (e) => {
   activeSearchQuery = e.target.value.trim().toLowerCase();
-  const bubbles = feedEl.querySelectorAll('.bubble');
+  const bubbles = feedContainer.querySelectorAll('.bubble');
   bubbles.forEach((b) => {
     const text = b.getAttribute('data-text') || '';
     const name = b.getAttribute('data-name') || '';
@@ -999,11 +948,6 @@ window.sendPost = async () => {
     return;
   }
   
-  if (!['default', 'gold', 'red', 'purple', 'green', 'cyan'].includes(selectedColor)) {
-    window.showToast("Unsupported color.", true);
-    return;
-  }
-  
   if (!['gold-trim', 'neon-purple', 'carbon'].includes(selectedFrame)) {
     window.showToast("Unsupported frame.", true);
     return;
@@ -1034,7 +978,7 @@ window.sendPost = async () => {
       body: JSON.stringify({ 
         message, 
         room: currentRoom, 
-        color: selectedColor,
+        color: 'default', // Hardcoded as requested
         frame: selectedFrame
       })
     });
@@ -1047,7 +991,6 @@ window.sendPost = async () => {
       }
       updateCharCounterDisplay();
       
-      // Scroll to bottom dynamically post-update
       requestAnimationFrame(() => {
         feedContainer.scrollTo({ top: feedContainer.scrollHeight, behavior: 'smooth' });
       });
