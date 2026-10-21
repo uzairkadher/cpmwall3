@@ -148,6 +148,7 @@ body {
   font-weight: 600;
   cursor: pointer;
   text-align: center;
+  transition: all 0.2s;
 }
 .room-tab.active {
   border-color: var(--cyan);
@@ -190,6 +191,9 @@ body {
   white-space: nowrap;
   border: none;
   cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
 }
 .chip-green { background: #10b981; }
 .chip-blue { background: #3b82f6; }
@@ -247,7 +251,7 @@ body {
   min-height: 0;
   overflow-y: auto;
   padding: var(--space-2);
-  padding-bottom: calc(180px + var(--safe-area-bottom));
+  padding-bottom: 380px; /* Dynamic padding handled in JS */
   scrollbar-width: thin; 
   scrollbar-color: var(--border-strong) transparent;
 }
@@ -322,17 +326,20 @@ body {
 
 /* Composer / Input Panel */
 .input-panel {
-  position: absolute;
-  bottom: var(--safe-area-bottom);
+  position: fixed;
+  bottom: 0;
   left: 0;
   right: 0;
   background: var(--bg-obsidian);
   border-top: 1px solid var(--border-strong);
   padding: 12px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
   gap: 10px;
   z-index: 100;
+  max-width: 640px;
+  margin: 0 auto;
 }
 .composer-row {
   display: flex;
@@ -431,11 +438,78 @@ body {
   border: 1px solid var(--border-subtle);
   border-left-width: 4px;
   pointer-events: auto;
+  transition: opacity 0.25s ease;
+}
+
+/* Modals */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+}
+.modal-box {
+  background: var(--surface-raised);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  width: 100%;
+  max-width: 400px;
+  color: var(--text-primary);
+}
+.modal-title {
+  font-size: 18px;
+  font-weight: bold;
+  color: var(--cyan);
+  margin-bottom: 12px;
+}
+.modal-body {
+  font-size: 14px;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+.modal-close {
+  background: var(--bg-obsidian);
+  border: 1px solid var(--border-strong);
+  color: var(--text-primary);
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  width: 100%;
+  font-weight: bold;
 }
 </style>
 </head>
 <body>
-<div id="toastContainer" class="toast-container" role="status" aria-live="polite"></div>
+<!-- Renamed to protected ID "#toast" per requirements -->
+<div id="toast" class="toast-container" role="status" aria-live="polite"></div>
+
+<!-- Generic Modal -->
+<div id="modal" class="modal-overlay">
+  <div class="modal-box">
+    <h2 id="modalTitle" class="modal-title"></h2>
+    <p id="modalText" class="modal-body"></p>
+    <button class="modal-close" onclick="document.getElementById('modal').style.display='none'">Close</button>
+  </div>
+</div>
+
+<!-- Tip Jar Modal -->
+<div id="tipModal" class="modal-overlay">
+  <div class="modal-box">
+    <h2 class="modal-title">Support CPM Wall</h2>
+    <p class="modal-body">Nayapay - Local & International</p>
+    <div style="background: var(--bg-obsidian); padding: 10px; border-radius: 4px; margin-bottom: 16px; display:flex; justify-content:space-between; align-items:center;">
+      <code>PK97NAYA1234503427565802</code>
+      <button id="copyIbanBtn" class="ctrl-btn" style="padding: 4px 12px;">Copy</button>
+    </div>
+    <a href="https://wa.me/923558182875?text=I%20sent%20VIP%20payment%20for%20CPM%20Wall" target="_blank" rel="noopener noreferrer" style="display:block; text-align:center; background:var(--success); color:#fff; text-decoration:none; padding:10px; border-radius:var(--radius-sm); margin-bottom:8px; font-weight:bold;">Send Proof on WhatsApp</a>
+    <button class="modal-close" onclick="document.getElementById('tipModal').style.display='none'">Close</button>
+  </div>
+</div>
 
 <div class="container">
   <div class="header">
@@ -459,9 +533,9 @@ body {
   </div>
 
   <div class="room-bar">
-    <button type="button" class="room-tab active">🌐 Public Wall</button>
-    <button type="button" class="room-tab">🛒 Marketplace</button>
-    <button type="button" class="room-tab">🔒 VIP Lounge</button>
+    <button type="button" id="tabWall" class="room-tab active">🌐 Public Wall</button>
+    <button type="button" id="tabMarket" class="room-tab">🛒 Marketplace</button>
+    <button type="button" id="tabVip" class="room-tab">🔒 VIP Lounge</button>
   </div>
 
   <div id="pinnedBanner" class="pinned-banner">
@@ -469,11 +543,11 @@ body {
   </div>
 
   <div class="action-chips">
-    <button class="action-chip chip-green">🥞 Tip Jar</button>
-    <button class="action-chip chip-blue">🔗 Share</button>
-    <button class="action-chip chip-orange">📷 IG Profile</button>
-    <button class="action-chip chip-pink">▶ IG Channel</button>
-    <button class="action-chip chip-green">💬 WhatsApp</button>
+    <button type="button" id="chipTip" class="action-chip chip-green">🥞 Tip Jar</button>
+    <button type="button" id="chipShare" class="action-chip chip-blue">🔗 Share</button>
+    <a id="chipIg" class="action-chip chip-orange" href="https://www.instagram.com/cpmwall" target="_blank" rel="noopener noreferrer">📷 IG Profile</a>
+    <a id="chipIgc" class="action-chip chip-pink" href="https://ig.me/j/cg7TKtGMHAtXh-Hz/" target="_blank" rel="noopener noreferrer">▶ IG Channel</a>
+    <a id="chipWa" class="action-chip chip-green" href="https://wa.me/923558182875" target="_blank" rel="noopener noreferrer">💬 WhatsApp</a>
   </div>
 
   <div class="filter-row">
@@ -562,8 +636,23 @@ window.updateUsername = async () => {};
 window.updatePassword = async () => {};
 window.handleAdminLogin = async () => {};
 
+// Modals Setup
+window.openModal = (title, text) => {
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalText').textContent = escapeHtml(text);
+  document.getElementById('modal').style.display = 'flex';
+};
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    document.getElementById('modal').style.display = 'none';
+    document.getElementById('tipModal').style.display = 'none';
+  }
+});
+
+// Toast System
 window.showToast = (msg, isError = false) => {
-  const container = document.getElementById('toastContainer');
+  const container = document.getElementById('toast');
   const toast = document.createElement('div');
   toast.className = `toast ${isError ? 'error' : ''}`;
   toast.textContent = msg;
@@ -573,6 +662,91 @@ window.showToast = (msg, isError = false) => {
     setTimeout(() => toast.remove(), 250);
   }, 3000);
 };
+
+// Wiring Tabs
+document.getElementById('tabWall').addEventListener('click', () => {
+  document.getElementById('tabWall').classList.add('active');
+  document.getElementById('tabMarket').classList.remove('active');
+  document.getElementById('tabVip').classList.remove('active');
+  document.getElementById('feed').scrollTo({ top: document.getElementById('feed').scrollHeight, behavior: 'smooth' });
+});
+
+document.getElementById('tabMarket').addEventListener('click', () => {
+  openModal('Marketplace', 'Marketplace Phase C - Trade IDs, Accounts, Setups. Follow IG @cpmwall for early access. Contact admin@cpmwall.tech');
+});
+
+document.getElementById('tabVip').addEventListener('click', () => {
+  if (isUserAdmin === true) {
+    openModal('VIP Welcome', 'Welcome to the VIP Lounge.');
+  } else {
+    openModal('VIP Lounge Locked', 'VIP Benefits: Gold Trim + Top Pin + BOT Priority. Price: 300 PKR / $1. Pay to Nayapay IBAN PK97NAYA1234503427565802 then send proof on WhatsApp 923558182875');
+  }
+});
+
+// Wiring Chips
+document.getElementById('chipTip').addEventListener('click', () => {
+  document.getElementById('tipModal').style.display = 'flex';
+});
+
+document.getElementById('copyIbanBtn').addEventListener('click', () => {
+  const iban = 'PK97NAYA1234503427565802';
+  navigator.clipboard.writeText(iban).then(() => {
+    const btn = document.getElementById('copyIbanBtn');
+    const orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = orig, 1200);
+  }).catch(() => {
+    window.showToast('Failed to copy IBAN.', true);
+  });
+});
+
+document.getElementById('chipShare').addEventListener('click', async () => {
+  const shareData = {
+    title: 'CPM Wall',
+    text: 'Join CPM Wall Live Lobby - https://cpmwall.tech',
+    url: 'https://cpmwall.tech'
+  };
+  if (navigator.share) {
+    try {
+      await navigator.share(shareData);
+    } catch (err) {
+      if (err.name !== 'AbortError') fallbackShare();
+    }
+  } else {
+    fallbackShare();
+  }
+});
+
+function fallbackShare() {
+  navigator.clipboard.writeText('https://cpmwall.tech')
+    .then(() => window.showToast('Link copied to clipboard!'))
+    .catch(() => window.showToast('Failed to copy link.', true));
+}
+
+// Mobile Keyboard Viewport Tracking
+const inputPanel = document.querySelector('.input-panel');
+const feedContainer = document.getElementById('feed');
+
+function updateViewportLayout() {
+  if (!window.visualViewport) return;
+  const viewport = window.visualViewport;
+  const keyboardHeight = Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop);
+  
+  requestAnimationFrame(() => {
+    inputPanel.style.transform = `translateY(-${keyboardHeight}px)`;
+    const composerHeight = inputPanel.getBoundingClientRect().height;
+    // 380px requested clearance baseline + keyboard
+    const feedClearance = Math.max(380, composerHeight) + keyboardHeight + 20;
+    feedContainer.style.paddingBottom = `${feedClearance}px`;
+  });
+}
+
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', updateViewportLayout);
+  window.visualViewport.addEventListener('scroll', updateViewportLayout);
+}
+window.addEventListener('resize', updateViewportLayout);
+updateViewportLayout(); // Initial setup
 
 function escapeHtml(unsafe) {
   if (!unsafe) return '';
@@ -609,7 +783,6 @@ async function verifyAuthAndProfile() {
 }
 verifyAuthAndProfile();
 
-const feedEl = document.getElementById('feed');
 const msgInput = document.getElementById('msgInput');
 const sendBtn = document.getElementById('sendBtn');
 const charCount = document.getElementById('charCount');
@@ -622,6 +795,7 @@ let activeSearchQuery = '';
 let selectedColor = 'gold';
 let selectedFrame = 'gold-trim';
 let lastBotPing = 0;
+let lastPostTime = 0;
 
 window.selectColor = (c) => {
   selectedColor = c;
@@ -639,6 +813,19 @@ function updateCharCounterDisplay() {
   charCount.textContent = `${len}/250`;
 }
 
+// Protected Draft Functions
+window.saveDraft = () => {
+  localStorage.setItem('cpm_draft', msgInput.value);
+};
+
+window.restoreDraft = () => {
+  const draft = localStorage.getItem('cpm_draft');
+  if (draft) {
+    msgInput.value = draft;
+    updateCharCounterDisplay();
+  }
+};
+
 window.addTag = (tag) => {
   if (!msgInput.value.includes(tag)) {
     msgInput.value += (msgInput.value ? ' ' : '') + tag;
@@ -648,20 +835,12 @@ window.addTag = (tag) => {
   msgInput.focus();
 };
 
-window.saveDraft = () => {
-  localStorage.setItem('cpm_draft', msgInput.value);
-};
-
 msgInput.addEventListener('input', () => {
   updateCharCounterDisplay();
   saveDraft();
 });
 
-const draft = localStorage.getItem('cpm_draft');
-if (draft) {
-  msgInput.value = draft;
-  updateCharCounterDisplay();
-}
+restoreDraft();
 
 async function pingHeartbeat() {
   if (!token) return;
@@ -768,38 +947,41 @@ searchInput.addEventListener('input', (e) => {
   });
 });
 
-const q = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(100));
-onSnapshot(q, (snap) => {
-  const skel = document.getElementById('feedSkeletons');
-  if (skel) skel.style.display = 'none';
+window.loadFeed = () => {
+  const q = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(100));
+  onSnapshot(q, (snap) => {
+    const skel = document.getElementById('feedSkeletons');
+    if (skel) skel.style.display = 'none';
 
-  if (isInitialLoad) {
-    feedEl.innerHTML = '';
-    snap.docs.forEach(docSnap => {
-      const b = buildBubble(docSnap.id, docSnap.data());
-      if (b) feedEl.appendChild(b);
+    if (isInitialLoad) {
+      feedContainer.innerHTML = '';
+      snap.docs.forEach(docSnap => {
+        const b = buildBubble(docSnap.id, docSnap.data());
+        if (b) feedContainer.appendChild(b);
+      });
+      isInitialLoad = false;
+      return;
+    }
+
+    snap.docChanges().forEach((change) => {
+      if (change.type === 'added') {
+        const id = change.doc.id;
+        if (document.getElementById(`post-${id}`)) return;
+        const b = buildBubble(id, change.doc.data());
+        if (b) feedContainer.prepend(b);
+      }
+      if (change.type === 'modified') {
+        const countEl = document.getElementById(`like-${change.doc.id}`);
+        if (countEl) countEl.textContent = change.doc.data().likes || 0;
+      }
+      if (change.type === 'removed') {
+        const el = document.getElementById(`post-${change.doc.id}`);
+        if (el) el.remove();
+      }
     });
-    isInitialLoad = false;
-    return;
-  }
-
-  snap.docChanges().forEach((change) => {
-    if (change.type === 'added') {
-      const id = change.doc.id;
-      if (document.getElementById(`post-${id}`)) return;
-      const b = buildBubble(id, change.doc.data());
-      if (b) feedEl.prepend(b);
-    }
-    if (change.type === 'modified') {
-      const countEl = document.getElementById(`like-${change.doc.id}`);
-      if (countEl) countEl.textContent = change.doc.data().likes || 0;
-    }
-    if (change.type === 'removed') {
-      const el = document.getElementById(`post-${change.doc.id}`);
-      if (el) el.remove();
-    }
   });
-});
+};
+window.loadFeed();
 
 let isPosting = false;
 
@@ -827,6 +1009,13 @@ window.sendPost = async () => {
     return;
   }
 
+  // Preserve missing 30-second posting throttle unless Admin
+  if (Date.now() - lastPostTime < 30000 && !isUserAdmin) {
+    window.showToast("Please wait 30 seconds before posting again.", true);
+    return;
+  }
+
+  // Preserve 60s Apex debounce
   if (message.includes('@Apex_Racer')) {
     if (Date.now() - lastBotPing < 60000) {
       window.showToast("Please wait 60s before pinging the bot again.", true);
@@ -851,11 +1040,17 @@ window.sendPost = async () => {
     });
     
     if (res.ok) {
+      lastPostTime = Date.now();
       if (msgInput.value === sentText) {
         msgInput.value = '';
         localStorage.removeItem('cpm_draft');
       }
       updateCharCounterDisplay();
+      
+      // Scroll to bottom dynamically post-update
+      requestAnimationFrame(() => {
+        feedContainer.scrollTo({ top: feedContainer.scrollHeight, behavior: 'smooth' });
+      });
     } else if (res.status === 429) {
       const d = await res.json().catch(() => ({}));
       window.showToast(d.error || 'Rate limit exceeded. Please wait.', true);
