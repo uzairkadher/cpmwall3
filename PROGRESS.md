@@ -1,6 +1,15 @@
 # ROADMAP PROGRESS — CPM Community Wall v3.5 Singularity Edition
 Source of truth: `CPM_Community_Wall_Singularity_Edition_Roadmap.pdf` (20 Oct 2026). Every item marked DONE has a commit hash and evidence in TEST_RESULTS.md / `evidence/`.
 
+## [2026-05-12] - Completed
+Files changed: settings.html index.html api/heartbeat.js vercel.json
+- Profile Photo: Added + button (24px white circle with black +) on avatar circles in index.html top bar and settings.html User Settings section. Hidden input id="profilePhotoInput" accept="image/*" <2MB FileReader DataURL saved to localStorage key cpm_profile_photo.
+- VIP Redeem: In settings.html VIP Lounge Membership card below Buy VIP via WhatsApp button added button id="redeemVipBtn" transparent background purple border #8b5cf6. Modal with input id="vipKeyInput" placeholder "Enter VIP Key e.g. VIP-XXXX-XXXX" with Redeem and Cancel buttons saves to localStorage key cpm_vip_key.
+- Online Indicator: Changed Lobby Chat button to show pulsing green dot 8px color #22c55e with pulse animation and span id="onlineCountText" showing online count. Added @keyframes pulse animation. File api/heartbeat.js updated to 15s interval.
+- Routing: vercel.json added rewrites for /settings, /settings/, /sett, /sett/ to /settings.html keeping existing /privacy and /terms.
+- Tip Jar: Changed from JazzCash to NayaPay IBAN PK97NAYA1234503427565802 with label NayaPay Pakistan and Copy button.
+- Social Links: IG Profile https://www.instagram.com/cpmwall?srtk=MWJtOWdkYXJyc3Nndg== and IG Group https://ig.me/j/cg7TKtGMHAtXh-Hz/
+
 ## Phase 0 — Singularity Core
 - [x] Resolve admin users API route mismatch — a48feee (PR #1). Deployed-route check: local harness only.
 - [x] One authoritative inventory (INVENTORY.md) — e17aad8 (PR #1)

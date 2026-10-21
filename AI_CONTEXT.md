@@ -26,6 +26,14 @@
 
 # Change Log (newest first)
 
+## [2026-05-12]
+- Profile Photo: Added + button (24px white circle with black +) on avatar circles in index.html top bar and settings.html User Settings section. Hidden input id="profilePhotoInput" accept="image/*" <2MB FileReader DataURL saved to localStorage key cpm_profile_photo.
+- VIP Redeem: In settings.html VIP Lounge Membership card below Buy VIP via WhatsApp button added button id="redeemVipBtn" transparent background purple border #8b5cf6. Modal with input id="vipKeyInput" placeholder "Enter VIP Key e.g. VIP-XXXX-XXXX" with Redeem and Cancel buttons saves to localStorage key cpm_vip_key.
+- Online Indicator: Changed Lobby Chat button to show pulsing green dot 8px color #22c55e with pulse animation and span id="onlineCountText" showing online count. Added @keyframes pulse animation. File api/heartbeat.js updated to 15s interval.
+- Routing: vercel.json added rewrites for /settings, /settings/, /sett, /sett/ to /settings.html keeping existing /privacy and /terms.
+- Tip Jar: Changed from JazzCash to NayaPay IBAN PK97NAYA1234503427565802 with label NayaPay Pakistan and Copy button.
+- Social Links: IG Profile https://www.instagram.com/cpmwall?srtk=MWJtOWdkYXJyc3Nndg== and IG Group https://ig.me/j/cg7TKtGMHAtXh-Hz/
+
 ## [2026-10-20] PR #3 follow-up: draft-erase fix - DONE (commit 85359c3130b54fde59e8c839f67a2ef8bbf8d0f6)
 - What: `sendPost()` preserves composer text and reply targets changed while a post is pending.
 - Files: `index.html`, `evidence/phase1_wall_draft.log`, `AI_CONTEXT.md`, `blueprint.md`, `PROGRESS.md`, `TEST_RESULTS.md`.

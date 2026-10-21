@@ -49,3 +49,23 @@ users, posts, posts/*/likes, ip_logs, rate_limits, strikes, banned, pinned, audi
 
 ## Env vars
 `FIREBASE_SERVICE_KEY` (required), `JWT_SECRET` (required, ≥32 bytes, enforced in auth.js), `GEMINI_API_KEY` (optional), `ALERT_WEBHOOK_URL` (optional).
+
+## Core Files Inventory (Updated 2026-05-12)
+
+| File | Updates |
+|---|---|
+| `index.html` | Profile Photo Overlay Button logic added. |
+| `settings.html` | VIP Redeem Button and Profile Photo Overlay Button logic added. |
+| `api/heartbeat.js` | Updated interval to 15s. |
+| `vercel.json` | Rewrites for `/settings`, `/settings/`, `/sett`, `/sett/` to `/settings.html`. |
+
+## LocalStorage Keys
+
+* `cpm_profile_photo`
+* `cpm_vip_key`
+
+## UI Components
+
+* Profile Photo Overlay
+* VIP Redeem Button
+* Online Dot

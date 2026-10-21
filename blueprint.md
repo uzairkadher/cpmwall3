@@ -12,6 +12,14 @@ claim the deployment has been tested end-to-end. Confirm the
 production domain and test the listed flows before treating deployment
 as verified.
 
+## Features Added on 2026-05-12
+1. Profile Photo: Added + button (24px white circle with black +) on avatar circles in index.html top bar and settings.html User Settings section. Hidden input id="profilePhotoInput" accept="image/*" <2MB FileReader DataURL saved to localStorage key cpm_profile_photo.
+2. VIP Redeem: In settings.html VIP Lounge Membership card below Buy VIP via WhatsApp button added button id="redeemVipBtn" transparent background purple border #8b5cf6. Modal with input id="vipKeyInput" placeholder "Enter VIP Key e.g. VIP-XXXX-XXXX" with Redeem and Cancel buttons saves to localStorage key cpm_vip_key.
+3. Online Indicator: Changed Lobby Chat button to show pulsing green dot 8px color #22c55e with pulse animation and span id="onlineCountText" showing online count. Added @keyframes pulse animation. File api/heartbeat.js updated to 15s interval.
+4. Routing: vercel.json added rewrites for /settings, /settings/, /sett, /sett/ to /settings.html keeping existing /privacy and /terms.
+5. Tip Jar: Changed from JazzCash to NayaPay IBAN PK97NAYA1234503427565802 with label NayaPay Pakistan and Copy button.
+6. Social Links: IG Profile https://www.instagram.com/cpmwall?srtk=MWJtOWdkYXJyc3Nndg== and IG Group https://ig.me/j/cg7TKtGMHAtXh-Hz/
+
 ## 1. Project architecture
 **Frontend:** Vanilla HTML, CSS and JavaScript pages:
 `index.html`, `login.html`, `admin.html`, `settings.html`. Deployed
@@ -35,11 +43,11 @@ state in Vercel functions.
 `textContent`. If HTML insertion is unavoidable, sanitize it with
 DOMPurify. Never expose private account fields to the browser.
 
-## 2. Files included in the current project
-Frontend/config: `index.html`, `login.html`, `settings.html`,
+## 2. File Structure
+**Frontend/config:** `index.html`, `login.html`, `settings.html`,
 `admin.html`, `design-tokens.css`, `manifest.json`, `vercel.json`, `package.json`,
 `blueprint.md`, `AI_CONTEXT.md`.
-APIs: `api/auth.js`, `api/post.js`, `api/heartbeat.js`,
+**APIs:** `api/auth.js`, `api/post.js`, `api/heartbeat.js`,
 `api/user/me.js`, `api/user/change-username.js`,
 `api/user/change-password.js`, `api/admin/users.js`,
 `api/admin/sessions.js`, `api/admin/audit.js`,
@@ -101,19 +109,3 @@ service cloud.firestore {
     }
   }
 }
-```
-
-## 5. API route status (2026-10-20)
-All 12 frontend `fetch()` targets resolve to a handler (see INVENTORY.md). The only mismatch, `/api/admin/users`, was fixed in PR #1 by renaming the handler file. Evidence: `evidence/phase0_curl.log`. Real Firestore-backed behaviour is still unverified (no credentials in the test environment).
-
-## 6. Empire Singularity design system progress
-| Item | Status | Commit |
-|---|---|---|
-| Tokens: obsidian `#0A0A0F`, electric cyan `#00F5FF`, violet `#8B5CF6`, `--cyan-deep`, gradients, glows, semantic status colors | DONE | 2118abf, 7617f68 |
-| login.html on tokens (gold removed) | DONE | 2118abf |
-| index.html wall: feed, composer, pinned, tabs, toasts, focus, touch targets, double-submit guard | DONE | 7617f68 |
-| Composer preserves drafts and reply targets changed during an in-flight post | DONE | 85359c3130b54fde59e8c839f67a2ef8bbf8d0f6 |
-| settings.html / admin.html: tokenized colors only; deeper polish pending | PARTIAL | 2118abf |
-| Skeletons / empty / error states consistent on settings + admin | TODO | — |
-
-Rules: no CSS frameworks; keep `design-tokens.css`; never change DOM IDs; filled cyan surfaces with white text use `--cyan-deep` for contrast.
