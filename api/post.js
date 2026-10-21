@@ -20,6 +20,7 @@ const MAX_STANDARD_CHARS = 150;
 const MAX_VIP_CHARS = 250;
 const RATE_LIMIT = 5;
 const RATE_WINDOW_MS = 60_000;
+
 const LINK_REGEX =
   /(https?:\/\/|www\.|discord\.gg|t\.me|telegram\.me|chat\.whatsapp\.com|\.com|\.gg|\.xyz|\.top)/i;
 const STATIC_BLOCKED_WORDS = [
@@ -34,6 +35,7 @@ function getDb() {
   if (!process.env.FIREBASE_SERVICE_KEY) {
     throw new Error("Firebase service configuration is missing.");
   }
+
   if (!admin.apps.length) {
     let serviceAccount;
     try {
@@ -82,6 +84,10 @@ function getSafeIpKey(ip) {
   return crypto.createHash("sha256").update(ip).digest("hex");
 }
 
+function safeIpDocumentId(ip) {
+  return ip.replace(/[^a-zA-Z0-9.:]/g, "_").slice(0, 100);
+}
+
 function getDeviceFingerprint(headers = {}) {
   const ua = String(headers["user-agent"] || "unknown").slice(0, 512);
   const lang = String(headers["accept-language"] || "unknown").slice(0, 128);
@@ -123,6 +129,7 @@ async function containsBlockedContent(db, text) {
           word => typeof word === "string" && word.length > 0
         )
       : [];
+
     const lower = text.toLowerCase();
     return [...STATIC_BLOCKED_WORDS, ...dynamicWords].some(
       word => lower.includes(word.toLowerCase())
@@ -149,11 +156,66 @@ async function sendWebhookAlert(message) {
   }
 }
 
-async function askApexRacer(userMessage) {
+async function askApexRacer(db, username, userMessage) {
   const apiKey = process.env.GEMINI_API_KEY;
   const fallbackReply =
     "I'm under the hood right now! Double-check your gear ratios and tire pressure, I'll be back soon.";
   if (!apiKey) return fallbackReply;
+
+  let isThrottled = false;
+  try {
+    await db.runTransaction(async transaction => {
+      const userRef = db.collection("rate_limits").doc(`gemini_user_${username}`);
+      const globalRef = db.collection("rate_limits").doc("gemini_global");
+
+      const [userSnap, globalSnap] = await transaction.getAll(userRef, globalRef);
+      const now = Date.now();
+      const windowMs = 60_000;
+
+      let userCount = 0;
+      let userStart = now;
+      if (userSnap.exists) {
+        const data = userSnap.data();
+        const start = data.windowStart?.toMillis?.() || 0;
+        if (now - start < windowMs) {
+          userCount = data.count || 0;
+          userStart = start;
+        }
+      }
+
+      let globalCount = 0;
+      let globalStart = now;
+      if (globalSnap.exists) {
+        const data = globalSnap.data();
+        const start = data.windowStart?.toMillis?.() || 0;
+        if (now - start < windowMs) {
+          globalCount = data.count || 0;
+          globalStart = start;
+        }
+      }
+
+      if (userCount >= 1 || globalCount >= 30) {
+        isThrottled = true;
+        return;
+      }
+
+      transaction.set(userRef, {
+        count: userCount + 1,
+        windowStart: admin.firestore.Timestamp.fromMillis(userStart)
+      }, { merge: true });
+
+      transaction.set(globalRef, {
+        count: globalCount + 1,
+        windowStart: admin.firestore.Timestamp.fromMillis(globalStart)
+      }, { merge: true });
+    });
+  } catch (err) {
+    console.error("Apex_Racer rate limit error:", err);
+    isThrottled = true;
+  }
+
+  if (isThrottled) return fallbackReply;
+
   try {
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`,
@@ -169,7 +231,7 @@ async function askApexRacer(userMessage) {
           },
           contents: [{
             role: "user",
-            parts: [{ text: userMessage.slice(0, 1000) }]
+            parts: [{ text: userMessage.slice(0, 300) }]
           }]
         }),
         signal: AbortSignal.timeout(8000)
@@ -209,6 +271,7 @@ function setCors(req, res) {
 
 export default async function handler(req, res) {
   setCors(req, res);
+
   if (req.method === "OPTIONS") {
     if (req.headers.origin && !isOriginAllowed(req.headers.origin)) {
       return res.status(403).end();
@@ -216,7 +279,7 @@ export default async function handler(req, res) {
     // Explicitly answer preflight requests with a 200 OK
     return res.status(200).end();
   }
-  
+
   if (req.headers.origin && !isOriginAllowed(req.headers.origin)) {
     return res.status(403).json({ error: "Origin not allowed." });
   }
@@ -271,7 +334,6 @@ export default async function handler(req, res) {
   try {
     const authorization = req.headers.authorization || "";
     const tokenMatch = authorization.match(/^Bearer\s+(\S+)$/);
-
     if (!tokenMatch) {
       return res.status(401).json({ error: "Authentication required." });
     }
@@ -311,7 +373,6 @@ export default async function handler(req, res) {
       req.body && typeof req.body === "object" && !Array.isArray(req.body)
         ? req.body
         : {};
-
     const { action, postId, message, room, replyTo } = body;
 
     // Administrative actions require the role stored in Firestore.
@@ -323,12 +384,10 @@ export default async function handler(req, res) {
       if (!validDocumentId(postId)) {
         return res.status(400).json({ error: "Invalid post ID." });
       }
-
       const batch = db.batch();
       batch.delete(db.collection("posts").doc(postId));
       batch.delete(db.collection("ip_logs").doc(postId));
       await batch.commit();
-
       return res.status(200).json({ success: true });
     }
 
@@ -340,7 +399,6 @@ export default async function handler(req, res) {
       if (text.length > 200) {
         return res.status(400).json({ error: "Pinned text is too long." });
       }
-
       await db.collection("pinned").doc("current").set({
         text,
         name: username,
@@ -348,7 +406,6 @@ export default async function handler(req, res) {
         isAnnouncement: body.isAnnouncement === true,
         updatedAt: admin.firestore.FieldValue.serverTimestamp()
       }, { merge: true });
-
       return res.status(200).json({ success: true });
     }
 
@@ -362,6 +419,7 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: "Invalid post ID." });
       }
       const postRef = db.collection("posts").doc(postId);
+      
       // The original increment endpoint allowed unlimited repeat likes.
       // Use a per-user marker to prevent repeated likes from this account.
       const likeRef = postRef.collection("likes").doc(username);
@@ -370,7 +428,6 @@ export default async function handler(req, res) {
         await db.runTransaction(async transaction => {
           const postSnap = await transaction.get(postRef);
           const likeSnap = await transaction.get(likeRef);
-
           if (!postSnap.exists) {
             const error = new Error("POST_NOT_FOUND");
             throw error;
@@ -379,7 +436,6 @@ export default async function handler(req, res) {
             const error = new Error("ALREADY_LIKED");
             throw error;
           }
-
           transaction.create(likeRef, {
             username,
             createdAt: admin.firestore.FieldValue.serverTimestamp()
@@ -407,7 +463,6 @@ export default async function handler(req, res) {
     if (typeof message !== "string") {
       return res.status(400).json({ error: "Message required." });
     }
-
     const cleanMsg = message.trim();
     if (!cleanMsg) {
       return res.status(400).json({ error: "Message cannot be empty." });
@@ -422,7 +477,8 @@ export default async function handler(req, res) {
 
     const pinnedRef = db.collection("pinned").doc("current");
     const [
-      banSnap,
+      legacyBanSnap,
+      adminBanSnap,
       fingerprintBanSnap,
       subnetBanSnap,
       whitelistSnap,
@@ -430,6 +486,7 @@ export default async function handler(req, res) {
       pinnedSnap
     ] = await Promise.all([
       db.collection("banned").doc(ipKey).get(),
+      db.collection("banned").doc(safeIpDocumentId(rawIp)).get(),
       db.collection("fingerprint_bans").doc(fingerprint).get(),
       subnet
         ? db.collection("subnet_bans").doc(subnet).get()
@@ -444,6 +501,7 @@ export default async function handler(req, res) {
     if (pinnedData.chatLocked && !isRealAdmin) {
       return res.status(403).json({ error: "Chat is locked." });
     }
+
     if (pinnedData.raidMode && !isVerifiedUser && !isRealAdmin) {
       return res.status(403).json({
         error: "Only verified and VIP users can post during raid mode."
@@ -451,20 +509,34 @@ export default async function handler(req, res) {
     }
 
     if (!isRealAdmin) {
-      if (banSnap.exists) {
-        const banData = banSnap.data();
-        const until = banData.bannedUntil?.toDate?.();
+      if (userData.isBanned) {
+        const until = userData.bannedUntil?.toDate?.();
         if (!until || until > new Date()) {
           return res.status(403).json({
-            error: "Posting is restricted for this network."
+            error: "Your account is banned from posting."
           });
         }
       }
+
+      const activeIpBan = [legacyBanSnap, adminBanSnap].find(snap => {
+        if (!snap.exists) return false;
+        const until = snap.data().bannedUntil?.toDate?.();
+        if (!until || until > new Date()) return true;
+        return false;
+      });
+
+      if (activeIpBan) {
+        return res.status(403).json({
+          error: "Posting is restricted for this network."
+        });
+      }
+
       if (fingerprintBanSnap.exists) {
         return res.status(403).json({
           error: "This device is restricted from posting."
         });
       }
+
       if (
         subnetBanSnap?.exists &&
         !whitelistSnap.exists
@@ -549,6 +621,7 @@ export default async function handler(req, res) {
       const windowStart = data.windowStart?.toMillis?.() || 0;
       const inWindow = now - windowStart < RATE_WINDOW_MS;
       const count = inWindow ? Number(data.count) || 0 : 0;
+      
       const slowModeSeconds = Math.max(
         0,
         Math.min(300, Number(pinnedData.slowModeSeconds) || 10)
@@ -623,7 +696,7 @@ export default async function handler(req, res) {
     });
 
     if (cleanMsg.includes("@Apex_Racer")) {
-      const aiReply = await askApexRacer(cleanMsg);
+      const aiReply = await askApexRacer(db, username, cleanMsg);
       await db.collection("posts").add({
         name: "Apex_Racer",
         userId: "BOT",

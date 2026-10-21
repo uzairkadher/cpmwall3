@@ -16,11 +16,13 @@ function isOriginAllowed(origin) {
 }
 
 const PRESENCE_WINDOW_MS = 45_000;
+const THROTTLE_WINDOW_MS = 30_000;
 
 function getDb() {
   if (!process.env.FIREBASE_SERVICE_KEY) {
     throw new Error("Firebase service configuration is missing.");
   }
+
   if (!admin.apps.length) {
     let serviceAccount;
     try {
@@ -32,6 +34,7 @@ function getDb() {
       credential: admin.credential.cert(serviceAccount)
     });
   }
+
   return admin.firestore();
 }
 
@@ -198,45 +201,58 @@ export default async function handler(req, res) {
     const ramNumber = safeNumber(client.ram, 1, 1024);
     const coresNumber = safeNumber(client.cores, 1, 512);
 
+    let isThrottled = false;
+
     if (rawIp !== "unknown") {
       const ipKey = hashIp(rawIp);
-      const now = admin.firestore.FieldValue.serverTimestamp();
+      
+      // Check last heartbeat time before executing writes
+      const presenceRef = db.collection("presence").doc(ipKey);
+      const presenceSnap = await presenceRef.get();
+      
+      if (presenceSnap.exists) {
+        const lastSeen = presenceSnap.data()?.lastSeen;
+        if (lastSeen && typeof lastSeen.toMillis === "function") {
+          if (Date.now() - lastSeen.toMillis() < THROTTLE_WINDOW_MS) {
+            isThrottled = true;
+          }
+        }
+      }
 
-      // The visitor record is keyed by a one-way IP hash instead of
-      // a directly readable IP address.
-      await db.collection("visitors").doc(ipKey).set({
-        ipHash: ipKey,
-        country,
-        city,
-        region,
-        timezone,
-        os,
-        browser,
-        device,
-        screen,
-        battery: batteryNumber === null
-          ? "N/A"
-          : batteryNumber,
-        ram: ramNumber === null
-          ? "N/A"
-          : ramNumber,
-        cores: coresNumber === null
-          ? "N/A"
-          : coresNumber,
-        network,
-        lang,
-        referrer,
-        lastSeen: now
-      }, { merge: true });
-
-      await db.collection("presence").doc(ipKey).set({
-        lastSeen: now
-      }, { merge: true });
+      if (!isThrottled) {
+        const now = admin.firestore.FieldValue.serverTimestamp();
+        
+        // The visitor record is keyed by a one-way IP hash instead of
+        // a directly readable IP address.
+        await db.collection("visitors").doc(ipKey).set({
+          ipHash: ipKey,
+          country,
+          city,
+          region,
+          timezone,
+          os,
+          browser,
+          device,
+          screen,
+          battery: batteryNumber === null ? "N/A" : batteryNumber,
+          ram: ramNumber === null ? "N/A" : ramNumber,
+          cores: coresNumber === null ? "N/A" : coresNumber,
+          network,
+          lang,
+          referrer,
+          lastSeen: now
+        }, { merge: true });
+  
+        await db.collection("presence").doc(ipKey).set({
+          lastSeen: now
+        }, { merge: true });
+      }
     }
 
     const cutoff = admin.firestore.Timestamp.fromMillis(
       Date.now() - PRESENCE_WINDOW_MS
     );
+    
     const countSnap = await db
       .collection("presence")
       .where("lastSeen", ">=", cutoff)
@@ -248,7 +264,13 @@ export default async function handler(req, res) {
       Number(countSnap.data()?.count) || 0
     );
 
-    return res.status(200).json({ online });
+    const responsePayload = { online };
+    if (isThrottled) {
+      responsePayload.throttled = true;
+    }
+
+    return res.status(200).json(responsePayload);
+
   } catch (error) {
     console.error(
       "Heartbeat failure:",

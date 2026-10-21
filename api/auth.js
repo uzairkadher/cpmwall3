@@ -13,6 +13,8 @@ const RESERVED_HANDLES = [
 
 const JWT_LIFETIME_SECONDS = 30 * 24 * 60 * 60;
 const BCRYPT_ROUNDS = 12;
+const LOGIN_RATE_LIMIT = 5;
+const LOGIN_RATE_WINDOW_MS = 15 * 60 * 1000;
 
 const ALLOWED_ORIGINS = [
   "https://cpmwall.tech",
@@ -56,7 +58,6 @@ function getDb() {
     } catch {
       throw new Error("FIREBASE_SERVICE_KEY is not valid JSON");
     }
-
     if (
       !credentials ||
       typeof credentials !== "object" ||
@@ -66,12 +67,10 @@ function getDb() {
     ) {
       throw new Error("FIREBASE_SERVICE_KEY is incomplete");
     }
-
     admin.initializeApp({
       credential: admin.credential.cert(credentials)
     });
   }
-
   dbInstance = admin.firestore();
   return dbInstance;
 }
@@ -148,7 +147,6 @@ export function verifyJwt(token) {
     const payload = JSON.parse(
       Buffer.from(encodedPayload, "base64url").toString("utf8")
     );
-
     if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
       return null;
     }
@@ -195,7 +193,6 @@ function verifyLegacyPassword(password, storedHash) {
   ) {
     return false;
   }
-
   const expected = Buffer.from(hashLegacyPassword(password), "hex");
   const actual = Buffer.from(storedHash, "hex");
 
@@ -250,7 +247,6 @@ function setCorsHeaders(req, res) {
 function getBearerToken(req) {
   const authHeader = req.headers.authorization;
   if (typeof authHeader !== "string") return null;
-
   const match = authHeader.match(/^Bearer\s+(\S+)$/i);
   return match ? match[1] : null;
 }
@@ -276,10 +272,122 @@ function sendError(res, status, error) {
   return res.status(status).json({ error });
 }
 
+function getClientIp(req) {
+  const candidate =
+    req.headers["x-vercel-forwarded-for"] ||
+    req.headers["x-forwarded-for"] ||
+    req.headers["x-real-ip"] ||
+    req.socket?.remoteAddress ||
+    "";
+  const ip = String(candidate).split(",")[0].trim();
+  return ip.length <= 64 && /^[a-fA-F0-9:.]+$/.test(ip) ? ip : "unknown";
+}
+
+async function checkLoginRateLimit(db, ip, username) {
+  const ipHash = crypto.createHash("sha256").update(ip).digest("hex");
+  const ipLimitRef = db.collection("rate_limits").doc(`login_ip_${ipHash}`);
+  const userLimitRef = db.collection("rate_limits").doc(`login_user_${username}`);
+
+  const [ipSnap, userSnap] = await Promise.all([
+    ipLimitRef.get(),
+    userLimitRef.get()
+  ]);
+
+  const now = Date.now();
+  let ipCount = 0;
+  if (ipSnap.exists) {
+    const data = ipSnap.data();
+    const winMillis = data.windowStart?.toMillis?.() || 0;
+    if (now - winMillis < LOGIN_RATE_WINDOW_MS) {
+      ipCount = data.count || 0;
+    }
+  }
+
+  let userCount = 0;
+  if (userSnap.exists) {
+    const data = userSnap.data();
+    const winMillis = data.windowStart?.toMillis?.() || 0;
+    if (now - winMillis < LOGIN_RATE_WINDOW_MS) {
+      userCount = data.count || 0;
+    }
+  }
+
+  if (ipCount >= LOGIN_RATE_LIMIT || userCount >= LOGIN_RATE_LIMIT) {
+    return false;
+  }
+  return true;
+}
+
+async function recordLoginFailure(db, ip, username) {
+  const ipHash = crypto.createHash("sha256").update(ip).digest("hex");
+  const ipLimitRef = db.collection("rate_limits").doc(`login_ip_${ipHash}`);
+  const userLimitRef = db.collection("rate_limits").doc(`login_user_${username}`);
+
+  try {
+    await db.runTransaction(async transaction => {
+      const snaps = await transaction.getAll(ipLimitRef, userLimitRef);
+      const ipData = snaps[0].exists ? snaps[0].data() : {};
+      const userData = snaps[1].exists ? snaps[1].data() : {};
+
+      const now = Date.now();
+
+      let newIpCount = 1;
+      let ipWindowStart = now;
+      if (ipData.windowStart) {
+        const ipWinMillis = ipData.windowStart.toMillis?.() || 0;
+        if (now - ipWinMillis < LOGIN_RATE_WINDOW_MS) {
+          newIpCount = (ipData.count || 0) + 1;
+          ipWindowStart = ipWinMillis;
+        }
+      }
+
+      let newUserCount = 1;
+      let userWindowStart = now;
+      if (userData.windowStart) {
+        const userWinMillis = userData.windowStart.toMillis?.() || 0;
+        if (now - userWinMillis < LOGIN_RATE_WINDOW_MS) {
+          newUserCount = (userData.count || 0) + 1;
+          userWindowStart = userWinMillis;
+        }
+      }
+
+      transaction.set(ipLimitRef, {
+        count: newIpCount,
+        windowStart: admin.firestore.Timestamp.fromMillis(ipWindowStart)
+      }, { merge: true });
+
+      transaction.set(userLimitRef, {
+        count: newUserCount,
+        windowStart: admin.firestore.Timestamp.fromMillis(userWindowStart)
+      }, { merge: true });
+
+      const auditRef = db.collection("audit_logs").doc();
+      transaction.set(auditRef, {
+        action: "login_fail",
+        ip,
+        targetUser: username,
+        timestamp: admin.firestore.FieldValue.serverTimestamp()
+      });
+    });
+  } catch (err) {
+    console.error("Failed to record login failure:", err);
+  }
+}
+
+async function clearLoginFailures(db, ip, username) {
+  const ipHash = crypto.createHash("sha256").update(ip).digest("hex");
+  const ipLimitRef = db.collection("rate_limits").doc(`login_ip_${ipHash}`);
+  const userLimitRef = db.collection("rate_limits").doc(`login_user_${username}`);
+
+  const batch = db.batch();
+  batch.delete(ipLimitRef);
+  batch.delete(userLimitRef);
+  await batch.commit();
+}
+
 async function registerUser(db, cleanUser, password) {
   const userRef = db.collection("users").doc(cleanUser);
   const passHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
-
   const rawIp = String(
     (arguments[3]?.headers?.["x-forwarded-for"] || "")
       .split(",")[0]
@@ -293,7 +401,6 @@ async function registerUser(db, cleanUser, password) {
       error.statusCode = 409;
       throw error;
     }
-
     transaction.create(userRef, {
       username: cleanUser,
       passwordHash: passHash,
@@ -375,7 +482,7 @@ export default async function handler(req, res) {
     }
     return res.status(200).end();
   }
-  
+
   if (req.headers.origin && !isOriginAllowed(req.headers.origin)) {
     return sendError(res, 403, "Origin not allowed");
   }
@@ -437,6 +544,7 @@ export default async function handler(req, res) {
           "This username is reserved and cannot be registered."
         );
       }
+
       if (password.length < 6) {
         return sendError(res, 400, "Password must be at least 6 characters");
       }
@@ -449,15 +557,9 @@ export default async function handler(req, res) {
 
       getJwtSecret();
       const db = getDb();
-
       const userRef = db.collection("users").doc(cleanUser);
       const passHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
-
-      const rawIp = String(
-        (req.headers["x-forwarded-for"] || "")
-          .split(",")[0]
-          .trim() || "unknown"
-      );
+      const rawIp = getClientIp(req);
 
       await db.runTransaction(async transaction => {
         const existing = await transaction.get(userRef);
@@ -466,7 +568,6 @@ export default async function handler(req, res) {
           error.statusCode = 409;
           throw error;
         }
-
         transaction.create(userRef, {
           username: cleanUser,
           passwordHash: passHash,
@@ -476,6 +577,7 @@ export default async function handler(req, res) {
       });
 
       const token = signJwt({ username: cleanUser });
+
       return res.status(200).json({
         token,
         username: cleanUser
@@ -488,10 +590,15 @@ export default async function handler(req, res) {
 
     getJwtSecret();
     const db = getDb();
+    const rawIp = getClientIp(req);
+
+    const isAllowed = await checkLoginRateLimit(db, rawIp, cleanUser);
+    if (!isAllowed) {
+      return sendError(res, 429, "Too many failed login attempts. Please try again in 15 minutes.");
+    }
 
     const canonicalRef = db.collection("users").doc(cleanUser);
     let sourceRef = canonicalRef;
-
     let userSnap = await canonicalRef.get();
     let isLegacyDocument = false;
 
@@ -502,6 +609,7 @@ export default async function handler(req, res) {
     }
 
     if (!userSnap.exists) {
+      await recordLoginFailure(db, rawIp, cleanUser);
       return sendError(res, 401, "Invalid username or password");
     }
 
@@ -509,8 +617,11 @@ export default async function handler(req, res) {
     const passwordResult = await verifyStoredPassword(password, userData);
 
     if (!passwordResult.valid) {
+      await recordLoginFailure(db, rawIp, cleanUser);
       return sendError(res, 401, "Invalid username or password");
     }
+
+    await clearLoginFailures(db, rawIp, cleanUser);
 
     if (passwordResult.needsUpgrade) {
       const upgradedHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
