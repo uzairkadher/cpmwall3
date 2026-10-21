@@ -48,16 +48,12 @@ body {
   flex-direction: column;
   position: relative;
   overflow: hidden;
-  background:
-    radial-gradient(600px circle at 0% 0%, rgba(var(--violet-rgb), 0.12), transparent 60%),
-    radial-gradient(500px circle at 100% 100%, rgba(var(--cyan-rgb), 0.06), transparent 60%);
+  background: var(--bg-obsidian);
 }
 
 /* Header & Top Nav */
 .header {
-  background: var(--glass-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: var(--bg-obsidian);
   border-bottom: 1px solid var(--border-strong);
   padding: var(--space-2);
   display: flex;
@@ -68,157 +64,156 @@ body {
   position: sticky;
   top: 0;
 }
-.header-left-pill {
+.header-brand {
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: rgba(var(--cyan-rgb), 0.1);
-  border: 1px solid rgba(var(--cyan-rgb), 0.3);
-  padding: 6px 12px;
-  border-radius: var(--radius-pill);
-  font-size: var(--text-14);
-  font-weight: 600;
-  color: var(--cyan);
+  gap: 12px;
 }
-.header-center-chip {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(var(--violet-rgb), 0.1);
-  border: 1px solid var(--violet);
-  padding: 4px 12px 4px 6px;
-  border-radius: var(--radius-pill);
-  cursor: pointer;
-  min-height: 44px;
-  transition: box-shadow var(--transition-fast);
-}
-.header-center-chip:hover { box-shadow: var(--glow-violet); }
-.header-avatar {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: var(--violet);
+.header-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  border: 1px solid var(--cyan);
   display: grid;
   place-items: center;
-  font-weight: 800;
-  font-size: var(--text-14);
-  color: var(--text-on-accent);
-  overflow: hidden;
+  font-size: 10px;
+  font-weight: bold;
+  color: var(--cyan);
 }
-.header-left-pill .dot { animation: pulse-dot 2s ease-in-out infinite; text-shadow: 0 0 8px var(--cyan); }
-@keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
-.header-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.header-username {
-  font-size: var(--text-14);
+.header-title {
+  display: flex;
+  flex-direction: column;
+}
+.header-title h1 {
+  font-size: 16px;
   font-weight: 700;
-  color: var(--text-on-accent);
+  color: var(--text-primary);
 }
+.header-presence {
+  font-size: 12px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.header-presence .dot { color: var(--success); text-shadow: 0 0 8px var(--success); }
+
+.user-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--warning);
+  color: #000;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+}
+
 .header-right-actions {
   display: flex;
-  gap: var(--space-1);
+  gap: 8px;
 }
-.icon-btn {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: var(--surface-raised);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-secondary);
-  display: grid;
-  place-items: center;
-  font-size: 16px;
-  cursor: pointer;
-}
-.icon-btn.active {
-  background: rgba(var(--cyan-rgb), 0.15);
-  border-color: var(--cyan);
+.ctrl-btn {
+  background: transparent;
+  border: 1px solid var(--cyan);
   color: var(--cyan);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 /* Room Navigation */
 .room-bar {
   display: flex;
-  gap: var(--space-1);
-  padding: var(--space-2);
+  gap: 8px;
+  padding: 12px var(--space-2);
   flex-shrink: 0;
 }
 .room-tab {
   flex: 1;
-  background: var(--surface-raised);
-  border: 1px solid var(--border-subtle);
+  background: transparent;
+  border: 1px solid var(--border-strong);
   color: var(--text-secondary);
-  padding: 12px 8px;
+  padding: 10px 8px;
   border-radius: var(--radius-sm);
-  font-size: var(--text-14);
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   text-align: center;
-  transition: all var(--transition-fast);
-  min-height: 44px;
 }
-.room-tab:hover { border-color: var(--border-strong); color: var(--text-primary); }
 .room-tab.active {
-  background: rgba(var(--violet-rgb), 0.15);
-  border-color: var(--violet);
-  color: var(--text-on-accent);
-  box-shadow: inset 0 -2px 0 var(--cyan);
-}
-.room-tab.vip.active {
-  background: rgba(245, 158, 11, 0.15);
-  border-color: var(--warning);
-  color: var(--warning-pale);
-}
-.room-tab.market.active {
-  background: rgba(16, 185, 129, 0.15);
-  border-color: var(--success);
-  color: var(--success-pale);
+  border-color: var(--cyan);
+  color: var(--cyan);
+  box-shadow: 0 0 8px rgba(0,245,255,0.2);
 }
 
 /* Banners & Pinned */
-.announcement-banner, .pinned {
-  background: var(--surface-elevated);
-  border-left: 4px solid var(--violet);
+.pinned-banner {
+  background: rgba(10, 10, 15, 0.9);
+  border: 1px solid var(--border-subtle);
   margin: 0 var(--space-2) var(--space-1);
   padding: 10px 14px;
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-  font-size: var(--text-14);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
   color: var(--text-primary);
-  display: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   flex-shrink: 0;
 }
-.pinned {
-  border-left-color: var(--cyan);
-  background: linear-gradient(90deg, rgba(var(--cyan-rgb), 0.08), var(--surface-elevated) 60%);
+.pinned-banner b { color: var(--text-primary); font-weight: 600; }
+.pinned-banner span.pink-text { color: #ff00ff; }
+
+/* Action Chips */
+.action-chips {
+  display: flex;
+  gap: 8px;
+  padding: 0 var(--space-2) 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  flex-shrink: 0;
 }
-.announcement-banner { border-left-color: var(--danger); }
+.action-chip {
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  border: none;
+  cursor: pointer;
+}
+.chip-green { background: #10b981; }
+.chip-blue { background: #3b82f6; }
+.chip-orange { background: #f97316; }
+.chip-pink { background: #ec4899; }
 
 /* Filter & Search */
 .filter-row {
   display: flex;
   margin: 0 var(--space-2) var(--space-1);
   background: var(--surface-raised);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--border-strong);
   border-radius: var(--radius-sm);
   padding: 4px 12px;
   align-items: center;
-  transition: border-color var(--transition-fast);
 }
-.filter-row:focus-within { border-color: rgba(var(--cyan-rgb), 0.5); }
 .filter-row input {
   background: transparent;
   border: none;
   outline: none;
-  color: var(--text-on-accent);
-  font-size: var(--text-14);
+  color: var(--text-primary);
+  font-size: 13px;
   flex: 1;
   height: 36px;
-}
-.clear-filter {
-  color: var(--text-muted);
-  font-size: 12px;
-  cursor: pointer;
-  display: none;
-  padding: 8px;
 }
 
 /* Skeletons & Empty States */
@@ -230,12 +225,8 @@ body {
 }
 .skeleton-card {
   height: 72px;
-  border-radius: var(--radius-lg) var(--radius-lg) var(--radius-lg) 4px;
+  border-radius: var(--radius-lg);
   width: 85%;
-}
-.skeleton-card.me {
-  align-self: flex-end;
-  border-radius: var(--radius-lg) var(--radius-lg) 4px var(--radius-lg);
 }
 .empty-state {
   display: flex;
@@ -246,292 +237,200 @@ body {
   text-align: center;
   color: var(--text-secondary);
 }
-.empty-state h3 { color: var(--text-primary); font-size: var(--text-16); font-weight: 700; }
-.btn-primary {
-  background: var(--violet);
-  color: var(--text-on-accent);
-  border: none;
-  padding: 12px 24px;
-  border-radius: var(--radius-sm);
-  font-weight: 600;
-  font-size: var(--text-14);
-  margin-top: 16px;
-  cursor: pointer;
-  min-height: 44px;
-}
 
 /* Feed */
 .feed {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   flex: 1 1 0;
   min-height: 0;
   overflow-y: auto;
   padding: var(--space-2);
-  padding-bottom: calc(100px + var(--safe-area-bottom));
+  padding-bottom: calc(180px + var(--safe-area-bottom));
+  scrollbar-width: thin; 
+  scrollbar-color: var(--border-strong) transparent;
 }
-.feed { scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent; }
-.feed::-webkit-scrollbar { width: 6px; }
-.feed::-webkit-scrollbar-track { background: transparent; }
-.feed::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: var(--radius-pill); }
 .bubble {
-  max-width: 85%;
-  padding: 12px;
-  border-radius: var(--radius-lg) var(--radius-lg) var(--radius-lg) 4px;
-  background: var(--surface-raised);
-  border: 1px solid var(--border-subtle);
+  max-width: 90%;
+  padding: 14px;
+  border-radius: 12px;
+  background: transparent;
+  border: 1px solid var(--border-strong);
   align-self: flex-start;
-  position: relative;
   display: flex;
   flex-direction: column;
   gap: 6px;
-  transition: border-color var(--transition-fast);
 }
-.bubble:hover { border-color: var(--border-strong); }
-.bubble.me {
-  align-self: flex-end;
-  border-radius: var(--radius-lg) var(--radius-lg) 4px var(--radius-lg);
-  background: var(--glass-bg);
-  border-color: rgba(var(--violet-rgb), 0.4);
-}
-.bubble.bot {
-  border-color: rgba(var(--cyan-rgb), 0.5);
-  background: rgba(var(--cyan-rgb), 0.05);
-}
-.bubble.vip-bubble {
-  background: linear-gradient(135deg, rgba(245,158,11,0.1), rgba(217,119,6,0.05)) !important;
-  border: 1px solid rgba(245,158,11,0.4) !important;
-}
-.quoted-preview {
-  background: rgba(0, 0, 0, 0.3);
-  border-left: 2px solid var(--violet);
-  padding: 6px 10px;
-  border-radius: 4px;
-  font-size: 12px;
-  color: var(--text-secondary);
-}
+.bubble.me { align-self: flex-end; }
+.bubble.vip { border-color: var(--cyan); box-shadow: 0 0 10px rgba(0,245,255,0.1); }
+.bubble.bot { border-color: #ec4899; box-shadow: 0 0 10px rgba(236,72,153,0.1); }
+
+.bubble.frame-gold-trim { border-color: #f59e0b; }
+.bubble.frame-neon-purple { border-color: #a855f7; box-shadow: 0 0 10px rgba(168,85,247,0.2); }
+.bubble.frame-carbon { border: 1px dashed #555; background: #111; }
+
 .author-line {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 100%;
 }
 .author {
   font-weight: 700;
-  font-size: var(--text-14);
-  color: var(--violet);
+  font-size: 14px;
+  color: var(--cyan);
   display: flex;
   gap: 6px;
   align-items: center;
 }
-.bubble.me .author { color: var(--violet-bright); }
-.bubble.bot .author { color: var(--cyan); }
-.author.vip-glow { color: var(--warning); }
+.author.bot-name { color: #ec4899; }
 .meta { font-size: 11px; color: var(--text-muted); }
-
-.admin-badge { background: var(--danger); color: var(--text-on-accent); font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 700; }
-.vip-badge { background: var(--warning); color: #000; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 700; }
+.bot-badge { background: #ec4899; color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 700; }
+.vip-badge { background: #f59e0b; color: #000; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 700; }
 
 .body {
   font-size: 15px;
-  line-height: var(--line-height-base);
+  line-height: 1.4;
   word-break: break-word;
   color: var(--text-primary);
 }
+.text-color-gold { color: #f59e0b; }
+.text-color-red { color: #ef4444; }
+.text-color-purple { color: #a855f7; }
+.text-color-green { color: #10b981; }
+.text-color-cyan { color: #06b6d4; }
+.text-color-default { color: #ffffff; }
+
 .bubble-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-top: 4px;
+  gap: 8px;
+  margin-top: 6px;
 }
-.reaction-btn, .action-icon-btn {
-  background: transparent;
-  border: none;
+.reaction-btn {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border-subtle);
   color: var(--text-secondary);
   font-size: 12px;
   cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 4px;
-  min-width: 44px;
-  min-height: 44px;
 }
-.reaction-btn { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 4px 10px; border: 1px solid var(--border-subtle); transition: border-color var(--transition-fast), color var(--transition-fast); }
-.reaction-btn:hover, .action-icon-btn:hover { color: var(--cyan); }
-.reaction-btn:hover { border-color: rgba(var(--cyan-rgb), 0.4); }
-.action-icon-btn.delete { color: var(--danger); font-weight: bold; }
-.action-icon-btn.pin { color: var(--warning); font-weight: bold; }
 
 /* Composer / Input Panel */
 .input-panel {
   position: absolute;
-  bottom: calc(60px + var(--safe-area-bottom));
+  bottom: var(--safe-area-bottom);
   left: 0;
   right: 0;
-  background: var(--surface-elevated);
+  background: var(--bg-obsidian);
   border-top: 1px solid var(--border-strong);
-  padding: var(--space-2);
+  padding: 12px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   z-index: 100;
 }
-.replying-bar {
-  display: none;
-  background: var(--surface-raised);
-  border-left: 2px solid var(--violet);
-  padding: 8px 12px;
-  border-radius: var(--radius-sm);
-  font-size: 12px;
-  color: var(--text-secondary);
-  justify-content: space-between;
-  align-items: center;
-}
-.chips-bar {
+.composer-row {
   display: flex;
+  align-items: center;
   gap: 8px;
   overflow-x: auto;
   scrollbar-width: none;
-}
-.chip, .emoji-btn {
-  background: var(--surface-raised);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-secondary);
   font-size: 12px;
-  padding: 6px 12px;
-  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+}
+.comp-chip {
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--text-secondary);
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
   cursor: pointer;
   white-space: nowrap;
-  min-height: 44px;
-  transition: border-color var(--transition-fast), color var(--transition-fast);
 }
-.chip:hover, .emoji-btn:hover { border-color: rgba(var(--cyan-rgb), 0.4); color: var(--text-primary); }
-.input-row { display: flex; gap: 8px; }
-.input-panel input {
-  background: var(--bg-obsidian);
+.color-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+.color-dot.active { border-color: #fff; }
+.bg-gold { background: #f59e0b; }
+.bg-red { background: #ef4444; }
+.bg-purple { background: #a855f7; }
+.bg-green { background: #10b981; }
+.bg-cyan { background: #06b6d4; }
+
+.frame-btn {
+  background: transparent;
   border: 1px solid var(--border-strong);
-  color: var(--text-on-accent);
-  padding: 12px 14px;
-  border-radius: var(--radius-sm);
-  outline: none;
-  font-size: var(--text-14);
-  flex: 1;
+  color: var(--text-secondary);
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  white-space: nowrap;
 }
-.input-panel input:focus { border-color: var(--cyan); outline: none; box-shadow: 0 0 0 3px rgba(var(--cyan-rgb), 0.15); }
-.send-btn {
-  background: var(--gradient-singularity);
-  box-shadow: var(--glow-violet);
-  transition: opacity var(--transition-fast), box-shadow var(--transition-fast);
+.frame-btn.active { border-color: var(--cyan); color: var(--cyan); }
+
+.input-row { display: flex; flex-direction: column; gap: 8px; }
+.input-field-wrap {
+  display: flex;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  align-items: center;
+}
+.input-field-wrap input {
+  background: transparent;
   border: none;
-  color: var(--text-on-accent);
+  color: var(--text-primary);
+  font-size: 14px;
+  flex: 1;
+  outline: none;
+}
+.input-bottom { display: flex; justify-content: space-between; align-items: center; }
+.char-num { font-size: 12px; color: var(--text-muted); }
+.send-btn {
+  background: linear-gradient(90deg, #06b6d4, #a855f7);
+  border: none;
+  color: #fff;
   font-weight: 700;
-  padding: 0 20px;
+  padding: 8px 24px;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  min-height: 44px;
-}
-.send-btn:hover:not(:disabled) { box-shadow: var(--glow-cyan); }
-.send-btn:disabled { opacity: var(--disabled-opacity); cursor: not-allowed; box-shadow: none; }
-.input-bottom { display: flex; justify-content: space-between; align-items: center; }
-.char-num { font-size: 11px; color: var(--text-muted); }
-
-/* Responsive Nav */
-.responsive-nav {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: var(--glass-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-top: 1px solid var(--border-strong);
   display: flex;
-  justify-content: space-around;
-  padding-bottom: var(--safe-area-bottom);
-  z-index: 200;
-}
-.nav-item {
-  flex: 1;
-  text-align: center;
-  padding: 16px 0;
-  color: var(--text-secondary);
-  font-size: 12px;
-  font-weight: 600;
-  text-decoration: none;
-  display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 4px;
-  min-height: 44px;
+  gap: 6px;
 }
-.nav-item.active { color: var(--cyan); }
-
-/* Keyboard focus */
-button:focus-visible, a:focus-visible, [role="button"]:focus-visible, .room-tab:focus-visible {
-  outline: var(--focus-ring);
-  outline-offset: 2px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .header-left-pill .dot { animation: none; }
-}
-
-@media (min-width: 768px) {
-  .responsive-nav { display: none; }
-  .input-panel { bottom: 0; border-bottom: 1px solid var(--border-strong); }
-  .feed { padding-bottom: 140px; }
-}
+.send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* Toast System */
 .toast-container {
   position: fixed;
-  bottom: calc(80px + var(--safe-area-bottom));
+  bottom: calc(200px + var(--safe-area-bottom));
   right: 16px;
   z-index: 9999;
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: 8px;
   pointer-events: none;
 }
 .toast {
   background: var(--surface-raised);
   border-left: 4px solid var(--cyan);
   color: var(--text-primary);
-  padding: var(--space-2);
+  padding: 12px;
   border-radius: var(--radius-sm);
-  font-size: var(--text-14);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  font-size: 13px;
   border: 1px solid var(--border-subtle);
   border-left-width: 4px;
-  max-width: min(320px, calc(100vw - 32px));
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
   pointer-events: auto;
-  transition: opacity var(--transition-normal);
-}
-.toast { border-left-color: var(--cyan); }
-.toast.error { border-left-color: var(--danger); }
-
-/* Tool utilities */
-.jump-btn {
-  position: absolute;
-  bottom: calc(160px + var(--safe-area-bottom));
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--gradient-singularity);
-  box-shadow: var(--glow-violet);
-  color: var(--text-on-accent);
-  font-weight: 700;
-  font-size: 12px;
-  padding: 8px 16px;
-  border-radius: var(--radius-pill);
-  border: none;
-  cursor: pointer;
-  display: none;
-  z-index: 10;
-  min-height: 44px;
 }
 </style>
 </head>
@@ -540,111 +439,113 @@ button:focus-visible, a:focus-visible, [role="button"]:focus-visible, .room-tab:
 
 <div class="container">
   <div class="header">
-    <div class="header-left-pill">
-      <span class="dot">●</span>
-      <span id="onlineCount">1 Online</span>
+    <div class="header-brand">
+      <div class="header-logo">CPM</div>
+      <div class="header-title">
+        <h1>Car Parking Multiplayer</h1>
+        <div class="header-presence">
+          <span class="dot">●</span> Lobby Chat | <span id="onlineCount">12 Online</span>
+        </div>
+      </div>
     </div>
-    <div class="header-center-chip" onclick="window.location.href='/settings'">
-      <div class="header-avatar" id="headerAvatarJ">J</div>
-      <div class="header-username" id="topUsername">@user</div>
+    <div id="userPill" class="user-pill" onclick="window.location.href='/settings'">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span id="topUsername">@user</span> 👑
     </div>
     <div class="header-right-actions">
-      <button id="alertBtn" type="button" class="icon-btn interactive-active" onclick="toggleAlerts()" title="Alerts" aria-label="Toggle Alerts">🔔</button>
-      <button id="soundToggle" type="button" class="icon-btn active interactive-active" onclick="cycleSoundFX()" title="Sound" aria-label="Toggle Sound">🔊</button>
+      <button type="button" class="ctrl-btn">Alerts<br>On</button>
+      <button type="button" class="ctrl-btn">Blow-<br>Off</button>
     </div>
   </div>
 
-  <div id="announcementBanner" class="announcement-banner"></div>
-
   <div class="room-bar">
-    <button id="tabPublic" type="button" class="room-tab active interactive-active" onclick="switchRoom('public')">Public</button>
-    <button id="tabMarket" type="button" class="room-tab market interactive-active" onclick="switchRoom('market')">Market</button>
-    <button id="tabVip" type="button" class="room-tab vip interactive-active" onclick="switchRoom('vip')" style="display:none;">VIP</button>
+    <button type="button" class="room-tab active">🌐 Public Wall</button>
+    <button type="button" class="room-tab">🛒 Marketplace</button>
+    <button type="button" class="room-tab">🔒 VIP Lounge</button>
   </div>
 
-  <div id="pinnedBox" class="pinned"></div>
+  <div id="pinnedBanner" class="pinned-banner">
+    📌 <b>Administration Team</b> · 👑 <span class="pink-text">VIP Lounge & pinned slots available</span> >
+  </div>
+
+  <div class="action-chips">
+    <button class="action-chip chip-green">🥞 Tip Jar</button>
+    <button class="action-chip chip-blue">🔗 Share</button>
+    <button class="action-chip chip-orange">📷 IG Profile</button>
+    <button class="action-chip chip-pink">▶ IG Channel</button>
+    <button class="action-chip chip-green">💬 WhatsApp</button>
+  </div>
 
   <div class="filter-row">
-    <input id="wallSearch" placeholder="Search wall messages..." oninput="handleWallSearch(this.value)" aria-label="Search posts">
-    <span id="clearSearch" class="clear-filter" onclick="clearSearchFilter()" role="button" tabindex="0">Clear</span>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2" style="margin-right:8px;"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
+    <input id="searchInput" placeholder="Search wall messages, drivers, or #tags..." maxlength="100">
   </div>
 
-  <!-- Zero-Jank Skeletons -->
   <div id="feedSkeletons" class="skeletons-wrapper">
     <div class="skeleton-card skeleton-shimmer"></div>
     <div class="skeleton-card skeleton-shimmer me"></div>
-    <div class="skeleton-card skeleton-shimmer"></div>
-  </div>
-
-  <!-- Empty State -->
-  <div id="emptyFeedState" class="empty-state animate-fade-in" style="display:none;">
-    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-bottom:12px; opacity:0.5;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-    <h3>No posts yet</h3>
-    <button class="btn-primary interactive-active" onclick="document.getElementById('msgInput').focus()">Be first to post</button>
-  </div>
-
-  <!-- Error State -->
-  <div id="errorFeedState" class="empty-state animate-fade-in" style="display:none;">
-    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="stroke:var(--danger); margin-bottom:12px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-    <h3 style="color:var(--danger);">Connection lost</h3>
-    <button class="btn-primary interactive-active" style="background:var(--surface-raised); border:1px solid var(--border-strong);" onclick="window.location.reload()">Retry connection</button>
   </div>
 
   <div id="feed" class="feed"></div>
 
-  <button id="jumpBtn" class="jump-btn interactive-active" type="button" onclick="scrollToTop()">New messages</button>
+  <form id="admin-login-box" style="display:none;" onsubmit="event.preventDefault(); handleAdminLogin();"></form>
 
   <div class="input-panel">
-    <div id="replyingBar" class="replying-bar">
-      <span id="replyingText">Replying...</span>
-      <span onclick="cancelReply()" style="cursor:pointer; font-weight:bold; padding:4px;">✕</span>
+    <div class="composer-row">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg> Tag
+      <button type="button" class="comp-chip" onclick="addTag('@Apex_Racer')">@Apex_Racer</button>
+      <button type="button" class="comp-chip" onclick="addTag('#Gearbox')">#Gearbox</button>
+      <button type="button" class="comp-chip" onclick="addTag('#Drag')">#Drag</button>
+      <button type="button" class="comp-chip" onclick="addTag('#RoomCode')">#RoomCode</button>
     </div>
     
-    <div class="chips-bar">
-      <button type="button" class="chip interactive-active" onclick="tagBot()">+ Tag @Apex_Racer</button>
-      <button type="button" class="chip interactive-active" onclick="addTag('#Drag')">#Drag</button>
-      <button type="button" class="chip interactive-active" onclick="addTag('#Trade')">#Trade</button>
-      <button type="button" class="chip interactive-active" onclick="addEmoji('👍')">👍</button>
-      <button type="button" class="chip interactive-active" onclick="addEmoji('🔥')">🔥</button>
+    <div class="composer-row">
+      Text Color:
+      <div class="color-dot bg-gold active" onclick="selectColor('gold')"></div>
+      <div class="color-dot bg-red" onclick="selectColor('red')"></div>
+      <div class="color-dot bg-purple" onclick="selectColor('purple')"></div>
+      <div class="color-dot bg-green" onclick="selectColor('green')"></div>
+      <div class="color-dot bg-cyan" onclick="selectColor('cyan')"></div>
+    </div>
+    
+    <div class="composer-row">
+      Bubble Frame:
+      <button type="button" class="frame-btn active" onclick="selectFrame('gold-trim')">Gold Trim</button>
+      <button type="button" class="frame-btn" onclick="selectFrame('neon-purple')">Neon Purple</button>
+      <button type="button" class="frame-btn" onclick="selectFrame('carbon')">Carbon Fiber</button>
+    </div>
+
+    <div class="composer-row">
+      <button type="button" class="comp-chip" onclick="addTag('🚗')">🚗</button>
+      <button type="button" class="comp-chip" onclick="addTag('🔥')">🔥</button>
+      <button type="button" class="comp-chip" onclick="addTag('👍')">👍</button>
+      <button type="button" class="comp-chip" onclick="addTag('🤝')">🤝</button>
+      <button type="button" class="comp-chip" onclick="addTag('💀')">💀</button>
     </div>
 
     <div class="input-row">
-      <input id="msgInput" placeholder="Type message, room code, or ID..." maxlength="150" autocomplete="off" aria-label="Message input">
-      <button id="sendBtn" class="send-btn interactive-active" onclick="sendPost()" aria-label="Send message">Post</button>
-    </div>
-    
-    <div class="input-bottom">
-      <span id="charCount" class="char-num">0/150</span>
+      <div class="input-field-wrap">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2" style="margin-right:8px;"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+        <input id="msgInput" placeholder="Type message, room code, or ID..." maxlength="250" autocomplete="off">
+      </div>
+      <div class="input-bottom">
+        <span id="charCount" class="char-num">0/250</span>
+        <button id="sendBtn" class="send-btn" onclick="sendPost()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+          Post to Wall
+        </button>
+      </div>
     </div>
   </div>
-
-  <!-- Mobile Bottom Nav -->
-  <nav class="responsive-nav">
-    <a href="/" class="nav-item active interactive-active">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
-      Wall
-    </a>
-    <a href="/settings" class="nav-item interactive-active">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-      Settings
-    </a>
-    <a href="/admin" class="nav-item interactive-active" id="navAdminMobile" style="display:none;">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-      Admin
-    </a>
-  </nav>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, onSnapshot, query, orderBy, limit, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-const _k1 = "AIza";
-const _k2 = "SyAOE8v7ANE6vvlHh2ZbiaJ6iHBN4voFcYM";
 const EXPECTED_PROJECT = "cpmwall3";
-
 const firebaseConfig = {
-  apiKey: _k1 + _k2,
+  apiKey: "AIzaSyAOE8v7ANE6vvlHh2ZbiaJ6iHBN4voFcYM",
   authDomain: `${EXPECTED_PROJECT}.firebaseapp.com`,
   projectId: EXPECTED_PROJECT
 };
@@ -656,10 +557,15 @@ let currentUser = localStorage.getItem('wall_user') || 'user';
 let isUserVip = false;
 let isUserAdmin = false;
 
+window.fetchProfile = async () => {};
+window.updateUsername = async () => {};
+window.updatePassword = async () => {};
+window.handleAdminLogin = async () => {};
+
 window.showToast = (msg, isError = false) => {
   const container = document.getElementById('toastContainer');
   const toast = document.createElement('div');
-  toast.className = `toast animate-slide-up ${isError ? 'error' : ''}`;
+  toast.className = `toast ${isError ? 'error' : ''}`;
   toast.textContent = msg;
   container.appendChild(toast);
   setTimeout(() => {
@@ -668,8 +574,15 @@ window.showToast = (msg, isError = false) => {
   }, 3000);
 };
 
-window.addEventListener('offline', () => window.showToast('Offline', true));
-window.addEventListener('online', () => window.showToast('Back online'));
+function escapeHtml(unsafe) {
+  if (!unsafe) return '';
+  return String(unsafe)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
 
 async function verifyAuthAndProfile() {
   if (!token) {
@@ -680,187 +593,89 @@ async function verifyAuthAndProfile() {
     const res = await fetch('/api/user/me', {
       headers: { 'Authorization': `Bearer ${token}` }
     });
-         
     if (res.ok) {
       const data = await res.json();
       currentUser = String(data.username).toUpperCase();
       localStorage.setItem('wall_user', currentUser);
       isUserVip = Boolean(data.isVip);
       isUserAdmin = data.isAdmin === true;
-             
-      document.getElementById('topUsername').textContent = '@' + currentUser;
-             
-      const cachedPhoto = data.photoURL || localStorage.getItem('wall_photo') || '';
-      const avatarDiv = document.getElementById('headerAvatarJ');
-      if (cachedPhoto) {
-        avatarDiv.innerHTML = DOMPurify.sanitize(`<img src="${cachedPhoto}" style="width:100%;height:100%;object-fit:cover;">`);
-      } else {
-        avatarDiv.textContent = currentUser.charAt(0).toUpperCase();
-      }
-             
-      if (isUserVip || isUserAdmin) {
-        document.getElementById('tabVip').style.display = 'block';
-      }
-      if (isUserAdmin) {
-        const navAdmin = document.getElementById('navAdminMobile');
-        if (navAdmin) navAdmin.style.display = 'flex';
-      }
+      document.getElementById('topUsername').textContent = '@' + escapeHtml(currentUser);
     } else {
-      if (res.status === 401) {
-        window.showToast('Session expired', true);
-      }
       localStorage.removeItem('wall_token');
       localStorage.removeItem('wall_user');
-      setTimeout(() => { window.location.href = '/login'; }, res.status === 401 ? 1500 : 0);
+      window.location.href = '/login';
     }
   } catch {}
 }
-
 verifyAuthAndProfile();
 
 const feedEl = document.getElementById('feed');
-const jumpBtn = document.getElementById('jumpBtn');
-const pinnedBox = document.getElementById('pinnedBox');
-const announcementBanner = document.getElementById('announcementBanner');
 const msgInput = document.getElementById('msgInput');
 const sendBtn = document.getElementById('sendBtn');
 const charCount = document.getElementById('charCount');
-const wallSearchInput = document.getElementById('wallSearch');
-const clearSearchBtn = document.getElementById('clearSearch');
 const onlineCountEl = document.getElementById('onlineCount');
-const alertBtn = document.getElementById('alertBtn');
-const replyingBar = document.getElementById('replyingBar');
-const replyingText = document.getElementById('replyingText');
-const tabPublic = document.getElementById('tabPublic');
-const tabMarket = document.getElementById('tabMarket');
-const tabVip = document.getElementById('tabVip');
-
-const feedSkeletons = document.getElementById('feedSkeletons');
-const emptyFeedState = document.getElementById('emptyFeedState');
-const errorFeedState = document.getElementById('errorFeedState');
+const searchInput = document.getElementById('searchInput');
 
 let currentRoom = 'public';
-let soundMode = localStorage.getItem('cpm_sound_mode') || 'bov';
-let alertsEnabled = localStorage.getItem('cpm_alerts') === 'true';
-let audioCtx = null;
 let isInitialLoad = true;
-let hasLoadedPosts = false;
 let activeSearchQuery = '';
-let replyingToData = null;
+let selectedColor = 'gold';
+let selectedFrame = 'gold-trim';
+let lastBotPing = 0;
+
+window.selectColor = (c) => {
+  selectedColor = c;
+  document.querySelectorAll('.color-dot').forEach(el => el.classList.remove('active'));
+  event.target.classList.add('active');
+};
+window.selectFrame = (f) => {
+  selectedFrame = f;
+  document.querySelectorAll('.frame-btn').forEach(el => el.classList.remove('active'));
+  event.target.classList.add('active');
+};
 
 function updateCharCounterDisplay() {
-  const max = isUserVip ? 250 : 150;
   const len = msgInput.value.length;
-  charCount.textContent = `${len}/${max}`;
-  if (len > max * 0.9) {
-    charCount.style.color = 'var(--danger)';
-  } else {
-    charCount.style.color = 'var(--text-muted)';
-  }
+  charCount.textContent = `${len}/250`;
 }
 
-window.switchRoom = (room) => {
-  if (room === 'vip' && !isUserVip && !isUserAdmin) {
-    window.showToast('VIP Lounge is restricted to VIP members.', true);
-    return;
+window.addTag = (tag) => {
+  if (!msgInput.value.includes(tag)) {
+    msgInput.value += (msgInput.value ? ' ' : '') + tag;
   }
-  currentRoom = room;
-  tabPublic.classList.remove('active');
-  tabMarket.classList.remove('active');
-  tabVip.classList.remove('active');
-  if (room === 'vip') tabVip.classList.add('active');
-  else if (room === 'market') tabMarket.classList.add('active');
-  else tabPublic.classList.add('active');
-  filterFeedByRoom();
+  updateCharCounterDisplay();
+  saveDraft();
+  msgInput.focus();
 };
 
-function filterFeedByRoom() {
-  const bubbles = feedEl.querySelectorAll('.bubble');
-  let visibleCount = 0;
-  bubbles.forEach((b) => {
-    const bubbleRoom = b.getAttribute('data-room') || 'public';
-    const text = b.getAttribute('data-text') || '';
-    const name = b.getAttribute('data-name') || '';
-         
-    const matchesRoom = (bubbleRoom === currentRoom);
-    const matchesSearch = !activeSearchQuery || text.includes(activeSearchQuery) || name.includes(activeSearchQuery);
-         
-    if (matchesRoom && matchesSearch) {
-      b.style.display = 'flex';
-      visibleCount++;
-    } else {
-      b.style.display = 'none';
-    }
-  });
-
-  if (visibleCount === 0 && hasLoadedPosts) {
-    if (emptyFeedState) emptyFeedState.style.display = 'flex';
-  } else {
-    if (emptyFeedState) emptyFeedState.style.display = 'none';
-  }
-}
-
-function initAudio() {
-  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  if (audioCtx.state === 'suspended') audioCtx.resume();
-}
-
-function playTurboBlowOff() {
-  initAudio();
-  const bufferSize = audioCtx.sampleRate * 0.35;
-  const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-  const data = buffer.getChannelData(0);
-  for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
-  const noise = audioCtx.createBufferSource();
-  noise.buffer = buffer;
-  const filter = audioCtx.createBiquadFilter();
-  filter.type = 'bandpass';
-  filter.frequency.setValueAtTime(2600, audioCtx.currentTime);
-  filter.frequency.exponentialRampToValueAtTime(700, audioCtx.currentTime + 0.35);
-  const gain = audioCtx.createGain();
-  gain.gain.setValueAtTime(0.6, audioCtx.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
-  noise.connect(filter);
-  filter.connect(gain);
-  gain.connect(audioCtx.destination);
-  noise.start();
-}
-
-function playAlertSound() {
-  if (soundMode === 'mute') return;
-  try {
-    playTurboBlowOff();
-    if (navigator.vibrate) navigator.vibrate(60);
-  } catch {}
-}
-
-document.addEventListener('click', () => { initAudio(); }, { once: true });
-
-window.cycleSoundFX = () => {
-  soundMode = soundMode === 'bov' ? 'mute' : 'bov';
-  localStorage.setItem('cpm_sound_mode', soundMode);
-  const btn = document.getElementById('soundToggle');
-  btn.className = soundMode === 'bov' ? 'icon-btn active interactive-active' : 'icon-btn interactive-active';
+window.saveDraft = () => {
+  localStorage.setItem('cpm_draft', msgInput.value);
 };
 
-window.toggleAlerts = async () => {
-  if (!('Notification' in window)) return window.showToast('Notifications not supported.', true);
-  const res = await window.Notification.requestPermission();
-  if (res === 'granted') {
-    alertsEnabled = true;
-    alertBtn.className = 'icon-btn active interactive-active';
-  }
-};
+msgInput.addEventListener('input', () => {
+  updateCharCounterDisplay();
+  saveDraft();
+});
+
+const draft = localStorage.getItem('cpm_draft');
+if (draft) {
+  msgInput.value = draft;
+  updateCharCounterDisplay();
+}
 
 async function pingHeartbeat() {
+  if (!token) return;
   try {
-    const r = await fetch('/api/heartbeat', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+    const r = await fetch('/api/heartbeat', { 
+      method: 'POST', 
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` } 
+    });
     const d = await r.json();
     if (d && d.online && onlineCountEl) onlineCountEl.textContent = `${d.online} Online`;
   } catch {}
 }
 pingHeartbeat();
-setInterval(pingHeartbeat, 35000);
+setInterval(pingHeartbeat, 30000);
 
 function timeAgo(date) {
   const seconds = Math.floor((new Date() - date) / 1000);
@@ -869,51 +684,41 @@ function timeAgo(date) {
   return `${Math.floor(seconds / 3600)}h ago`;
 }
 
-window.setReplyTo = (name, text) => {
-  replyingToData = { name, text };
-  replyingText.textContent = `Replying to @${name}: "${text.substring(0, 30)}..."`;
-  replyingBar.style.display = 'flex';
-  msgInput.focus();
-};
+function buildBubble(id, data) {
+  if (data.isShadowbanned || data.shadowbanned) return null;
 
-window.cancelReply = () => {
-  replyingToData = null;
-  replyingBar.style.display = 'none';
-};
-
-function buildBubble(id, data, isTemporary) {
   const isMe = Boolean(currentUser && data.name && data.name.toUpperCase() === currentUser);
   const isBot = Boolean(data.isBot);
-  const isAdminPost = (data.name && data.name.toUpperCase() === 'ADMIN');
+  const isAdminPost = (data.name && data.name.toUpperCase() === 'ADMIN' || data.isAdmin);
   const isVipPost = isAdminPost || Boolean(data.isVip);
 
   const bubble = document.createElement('div');
-  bubble.className = `bubble ${isBot ? 'bot' : isMe ? 'me' : ''} ${isVipPost ? 'vip-bubble' : ''} animate-slide-up`;
+  let bubbleClasses = `bubble ${isMe ? 'me' : ''} ${isVipPost ? 'vip' : ''} ${isBot ? 'bot' : ''}`;
+  
+  if (data.frame && ['gold-trim', 'neon-purple', 'carbon'].includes(data.frame)) {
+    bubbleClasses += ` frame-${data.frame}`;
+  }
+  bubble.className = bubbleClasses;
   if (id) bubble.id = `post-${id}`;
-  if (isTemporary) bubble.setAttribute('data-pending', `${data.name}-${data.message}`);
-  bubble.setAttribute('data-room', data.room || 'public');
   bubble.setAttribute('data-text', (data.message || '').toLowerCase());
   bubble.setAttribute('data-name', (data.name || '').toLowerCase());
 
-  if (data.replyTo) {
-    const qEl = document.createElement('div');
-    qEl.className = 'quoted-preview';
-    qEl.textContent = `@${data.replyTo.name}: ${data.replyTo.text}`;
-    bubble.appendChild(qEl);
-  }
-
   const authorLine = document.createElement('div');
   authorLine.className = 'author-line';
-
   const author = document.createElement('div');
-  author.className = `author ${isVipPost ? 'vip-glow' : ''}`;
-  author.textContent = data.name;
+  author.className = `author ${isBot ? 'bot-name' : ''}`;
+  author.textContent = escapeHtml(data.name);
 
   if (isAdminPost) {
     const adminTag = document.createElement('span');
-    adminTag.className = 'admin-badge';
-    adminTag.textContent = 'ADMIN';
+    adminTag.className = 'vip-badge';
+    adminTag.textContent = 'VIP';
     author.appendChild(adminTag);
+  } else if (isBot) {
+    const botTag = document.createElement('span');
+    botTag.className = 'bot-badge';
+    botTag.textContent = 'BOT';
+    author.appendChild(botTag);
   } else if (isVipPost) {
     const vipTag = document.createElement('span');
     vipTag.className = 'vip-badge';
@@ -922,14 +727,16 @@ function buildBubble(id, data, isTemporary) {
   }
 
   authorLine.appendChild(author);
-
   const meta = document.createElement('div');
   meta.className = 'meta';
-  meta.textContent = isTemporary ? 'Just now' : timeAgo(data.createdAt?.toDate ? data.createdAt.toDate() : new Date());
+  meta.textContent = timeAgo(data.createdAt?.toDate ? data.createdAt.toDate() : new Date());
   authorLine.appendChild(meta);
 
   const bodyEl = document.createElement('div');
   bodyEl.className = 'body';
+  if (data.color && ['gold', 'red', 'purple', 'green', 'cyan', 'default'].includes(data.color)) {
+    bodyEl.classList.add(`text-color-${data.color}`);
+  }
   bodyEl.textContent = data.message || '';
 
   bubble.appendChild(authorLine);
@@ -937,180 +744,62 @@ function buildBubble(id, data, isTemporary) {
 
   const actionsEl = document.createElement('div');
   actionsEl.className = 'bubble-actions';
-
   const likeBtn = document.createElement('button');
   likeBtn.type = 'button';
-  likeBtn.className = `reaction-btn interactive-active`;
-  likeBtn.innerHTML = DOMPurify.sanitize(`<span id="like-${id}">👍 ${data.likes || 0}</span>`);
-  likeBtn.onclick = async () => {
-    await fetch('/api/post', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify({ action: 'like', postId: id })
-    }).catch(() => {});
-  };
+  likeBtn.className = 'reaction-btn';
+  likeBtn.innerHTML = DOMPurify.sanitize(`🔥 <span id="like-${id}">${data.likes || 0}</span>`);
   actionsEl.appendChild(likeBtn);
-
-  const replyBtn = document.createElement('button');
-  replyBtn.type = 'button';
-  replyBtn.className = 'action-icon-btn interactive-active';
-  replyBtn.textContent = '↩ Reply';
-  replyBtn.onclick = () => setReplyTo(data.name, data.message);
-  actionsEl.appendChild(replyBtn);
-
-  if (isUserAdmin) {
-    const delBtn = document.createElement('button');
-    delBtn.type = 'button';
-    delBtn.className = 'action-icon-btn delete interactive-active';
-    delBtn.textContent = '✕ Delete';
-    delBtn.onclick = async () => {
-      if (!confirm('Delete this message?')) return;
-      try {
-        const res = await fetch('/api/post', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-          body: JSON.stringify({ action: 'delete', postId: id })
-        });
-        if (!res.ok) {
-          const d = await res.json();
-          window.showToast(d.error || 'Failed to delete post.', true);
-        }
-      } catch {}
-    };
-    actionsEl.appendChild(delBtn);
-         
-    const pinBtn = document.createElement('button');
-    pinBtn.type = 'button';
-    pinBtn.className = 'action-icon-btn pin interactive-active';
-    pinBtn.textContent = '📌 Announce';
-    pinBtn.onclick = async () => {
-      try {
-        const res = await fetch('/api/post', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-          body: JSON.stringify({ action: 'pin', text: data.message, name: data.name, active: true, isAnnouncement: true })
-        });
-        if (!res.ok) {
-          const d = await res.json();
-          window.showToast(d.error || 'Failed to pin post.', true);
-        }
-      } catch {}
-    };
-    actionsEl.appendChild(pinBtn);
-  }
 
   bubble.appendChild(actionsEl);
   return bubble;
 }
 
-window.handleWallSearch = (val) => {
-  activeSearchQuery = (val || '').trim().toLowerCase();
-  clearSearchBtn.style.display = activeSearchQuery ? 'inline' : 'none';
-  filterFeedByRoom();
-};
-
-window.clearSearchFilter = () => {
-  wallSearchInput.value = '';
-  handleWallSearch('');
-};
-
-window.scrollToTop = () => {
-  feedEl.scrollTo({ top: 0, behavior: 'smooth' });
-  jumpBtn.style.display = 'none';
-};
-
-feedEl.addEventListener('scroll', () => {
-  if (feedEl.scrollTop < 60) jumpBtn.style.display = 'none';
-});
-
-onSnapshot(doc(db, "pinned", "current"), (snap) => {
-  if (snap.exists()) {
-    const d = snap.data();
-    if (d.active && d.text) {
-      if (d.isAnnouncement) {
-        announcementBanner.innerHTML = DOMPurify.sanitize(`<b>Announcement from ${d.name}:</b> ${d.text}`);
-        announcementBanner.style.display = 'block';
-      } else {
-        pinnedBox.innerHTML = DOMPurify.sanitize(`<b>${d.name}:</b> ${d.text}`);
-        pinnedBox.style.display = 'block';
-      }
-      return;
+searchInput.addEventListener('input', (e) => {
+  activeSearchQuery = e.target.value.trim().toLowerCase();
+  const bubbles = feedEl.querySelectorAll('.bubble');
+  bubbles.forEach((b) => {
+    const text = b.getAttribute('data-text') || '';
+    const name = b.getAttribute('data-name') || '';
+    if (!activeSearchQuery || text.includes(activeSearchQuery) || name.includes(activeSearchQuery)) {
+      b.style.display = 'flex';
+    } else {
+      b.style.display = 'none';
     }
-  }
-  pinnedBox.style.display = 'none';
-  announcementBanner.style.display = 'none';
-}, () => {});
+  });
+});
 
 const q = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(100));
 onSnapshot(q, (snap) => {
-  if (feedSkeletons) feedSkeletons.style.display = 'none';
-  if (errorFeedState) errorFeedState.style.display = 'none';
+  const skel = document.getElementById('feedSkeletons');
+  if (skel) skel.style.display = 'none';
 
-  if (snap.empty) {
-    if (!hasLoadedPosts) {
-      feedEl.innerHTML = '';
-    }
-    isInitialLoad = false;
-    hasLoadedPosts = true;
-    filterFeedByRoom();
-    return;
-  }
-
-  if (isInitialLoad || !hasLoadedPosts) {
+  if (isInitialLoad) {
     feedEl.innerHTML = '';
-    snap.docs.forEach(docSnap => feedEl.appendChild(buildBubble(docSnap.id, docSnap.data(), false)));
+    snap.docs.forEach(docSnap => {
+      const b = buildBubble(docSnap.id, docSnap.data());
+      if (b) feedEl.appendChild(b);
+    });
     isInitialLoad = false;
-    hasLoadedPosts = true;
-    filterFeedByRoom();
     return;
   }
 
   snap.docChanges().forEach((change) => {
     if (change.type === 'added') {
       const id = change.doc.id;
-      const data = change.doc.data();
       if (document.getElementById(`post-${id}`)) return;
-      feedEl.prepend(buildBubble(id, data, false));
-      playAlertSound();
+      const b = buildBubble(id, change.doc.data());
+      if (b) feedEl.prepend(b);
     }
     if (change.type === 'modified') {
-      const id = change.doc.id;
-      const data = change.doc.data();
-      const countEl = document.getElementById(`like-${id}`);
-      if (countEl) countEl.innerHTML = DOMPurify.sanitize(`👍 ${data.likes || 0}`);
+      const countEl = document.getElementById(`like-${change.doc.id}`);
+      if (countEl) countEl.textContent = change.doc.data().likes || 0;
     }
     if (change.type === 'removed') {
       const el = document.getElementById(`post-${change.doc.id}`);
       if (el) el.remove();
     }
   });
-
-  filterFeedByRoom();
-}, (error) => {
-  if (feedSkeletons) feedSkeletons.style.display = 'none';
-  if (errorFeedState) errorFeedState.style.display = 'flex';
-  if (emptyFeedState) emptyFeedState.style.display = 'none';
 });
-
-msgInput.addEventListener('input', () => updateCharCounterDisplay());
-
-window.addTag = (tag) => {
-  if (!msgInput.value.includes(tag)) msgInput.value += ' ' + tag;
-  updateCharCounterDisplay();
-  msgInput.focus();
-};
-
-window.tagBot = () => {
-  if (!msgInput.value.includes('@Apex_Racer')) msgInput.value = '@Apex_Racer ' + msgInput.value;
-  updateCharCounterDisplay();
-  msgInput.focus();
-};
-
-window.addEmoji = (emoji) => {
-  msgInput.value += emoji;
-  updateCharCounterDisplay();
-  msgInput.focus();
-};
 
 let isPosting = false;
 
@@ -1121,36 +810,73 @@ window.sendPost = async () => {
   }
   const sentText = msgInput.value;
   const message = sentText.trim();
+  
   if (!message || isPosting) return;
-  const sentReply = replyingToData;
+  if (message.length > 250) {
+    window.showToast("Message exceeds 250 characters.", true);
+    return;
+  }
+  
+  if (!['default', 'gold', 'red', 'purple', 'green', 'cyan'].includes(selectedColor)) {
+    window.showToast("Unsupported color.", true);
+    return;
+  }
+  
+  if (!['gold-trim', 'neon-purple', 'carbon'].includes(selectedFrame)) {
+    window.showToast("Unsupported frame.", true);
+    return;
+  }
+
+  if (message.includes('@Apex_Racer')) {
+    if (Date.now() - lastBotPing < 60000) {
+      window.showToast("Please wait 60s before pinging the bot again.", true);
+      return;
+    }
+    lastBotPing = Date.now();
+  }
+
   isPosting = true;
   sendBtn.disabled = true;
-  sendBtn.setAttribute('aria-busy', 'true');
+  
   try {
     const res = await fetch('/api/post', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify({ message, room: currentRoom, replyTo: sentReply })
+      body: JSON.stringify({ 
+        message, 
+        room: currentRoom, 
+        color: selectedColor,
+        frame: selectedFrame
+      })
     });
+    
     if (res.ok) {
-      if (msgInput.value === sentText) msgInput.value = '';
-      if (replyingToData === sentReply) cancelReply();
+      if (msgInput.value === sentText) {
+        msgInput.value = '';
+        localStorage.removeItem('cpm_draft');
+      }
       updateCharCounterDisplay();
+    } else if (res.status === 429) {
+      const d = await res.json().catch(() => ({}));
+      window.showToast(d.error || 'Rate limit exceeded. Please wait.', true);
     } else {
       const d = await res.json().catch(() => ({}));
       window.showToast(d.error || 'Failed to post', true);
     }
   } catch {
-    window.showToast('Network error. Your message may not have been posted. Check the wall before sending again.', true);
+    window.showToast('Network failed - post may not have sent. Check wall.', true);
   } finally {
     isPosting = false;
     sendBtn.disabled = false;
-    sendBtn.removeAttribute('aria-busy');
   }
 };
 
-msgInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.isComposing) sendPost(); });
-
+msgInput.addEventListener('keydown', (e) => { 
+  if (e.key === 'Enter' && !e.isComposing) {
+    e.preventDefault();
+    sendPost(); 
+  }
+});
 </script>
 </body>
 </html>
