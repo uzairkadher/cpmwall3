@@ -198,20 +198,23 @@
 
     <section class="card glass-panel">
       <div class="profile-info">
-        <button
-          type="button"
-          class="avatar-lg interactive-active"
-          id="avatarContainer"
-          aria-label="Change profile photo"
-          title="Change profile photo"
-          onclick="triggerPhotoUpload()"
-        >
-          <span id="avatarLetter">?</span>
-        </button>
+        <div style="position: relative; display: inline-flex;">
+          <button
+            type="button"
+            class="avatar-lg interactive-active"
+            id="avatarContainer"
+            aria-label="Change profile photo"
+            title="Change profile photo"
+            onclick="triggerPhotoUpload()"
+          >
+            <span id="avatarLetter">?</span>
+          </button>
+          <div onclick="triggerPhotoUpload()" style="position:absolute; bottom:-4px; right:-4px; width:24px; height:24px; background:white; color:black; border:2px solid #0f172a; border-radius:50%; display:flex; justify-content:center; align-items:center; font-weight:bold; font-size:16px; cursor:pointer; line-height:1;">+</div>
+        </div>
         <input
           type="file"
-          id="photoFileInput"
-          accept="image/jpeg,image/png,image/webp,image/gif"
+          id="profilePhotoInput"
+          accept="image/*"
           hidden
         >
         <div class="profile-meta">
@@ -293,17 +296,30 @@
         rel="noopener noreferrer"
         class="btn-whatsapp interactive-active"
       >Buy VIP via WhatsApp</a>
+      
+      <button id="redeemVipBtn" type="button" style="width: 100%; min-height: 44px; background: transparent; border: 1px solid #8b5cf6; color: #a78bfa; border-radius: var(--radius-sm); font-weight: 700; font-size: var(--text-14); margin-top: 10px; cursor: pointer;" onclick="document.getElementById('vipKeyModal').style.display='flex'">Redeem VIP Key</button>
     </section>
 
     <section style="margin-top: 8px;">
       <button type="button" class="logout-btn interactive-active" onclick="logoutUser()">Logout Account</button>
     </section>
+
+    <div id="vipKeyModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center; padding:16px;">
+      <div style="background:var(--surface-raised); border:1px solid var(--border-strong); border-radius:var(--radius-lg); width:100%; max-width:320px; padding:20px;">
+        <h3 style="color:#fff; margin-bottom:10px; font-size:16px;">Redeem VIP Key</h3>
+        <input type="text" id="vipKeyInput" placeholder="Enter VIP Key e.g. VIP-XXXX-XXXX" style="width:100%; background:var(--bg-obsidian); border:1px solid var(--border-strong); border-radius:var(--radius-sm); padding:10px; color:#fff; outline:none; margin-bottom:16px;">
+        <div style="display:flex; gap:10px;">
+          <button type="button" onclick="document.getElementById('vipKeyModal').style.display='none'" style="flex:1; background:transparent; border:1px solid var(--border-strong); color:var(--text-secondary); padding:10px; border-radius:var(--radius-sm); font-weight:600; cursor:pointer;">Cancel</button>
+          <button type="button" onclick="const k=document.getElementById('vipKeyInput').value; if(k) { localStorage.setItem('cpm_vip_key', k.trim()); alert('VIP Key Redeemed & Saved Locally!'); document.getElementById('vipKeyModal').style.display='none'; document.getElementById('vipKeyInput').value=''; }" style="flex:1; background:var(--violet); border:none; color:var(--text-on-accent); padding:10px; border-radius:var(--radius-sm); font-weight:700; cursor:pointer;">Redeem</button>
+        </div>
+      </div>
+    </div>
   </main>
 
   <script>
     "use strict";
     const token = localStorage.getItem("wall_token");
-    const MAX_LOCAL_PHOTO_BYTES = 1024 * 1024;
+    const MAX_LOCAL_PHOTO_BYTES = 2 * 1024 * 1024; // 2MB
     const ALLOWED_PHOTO_TYPES = new Set([
       "image/jpeg",
       "image/png",
@@ -322,7 +338,7 @@
     }
 
     function triggerPhotoUpload() {
-      document.getElementById("photoFileInput").click();
+      document.getElementById("profilePhotoInput").click();
     }
 
     function renderAvatar(photoURL, username) {
@@ -345,19 +361,19 @@
       container.appendChild(letter);
     }
 
-    document.getElementById("photoFileInput").addEventListener("change", (event) => {
+    document.getElementById("profilePhotoInput").addEventListener("change", (event) => {
       const file = event.target.files && event.target.files[0];
       event.target.value = "";
 
       if (!file) return;
 
-      if (!ALLOWED_PHOTO_TYPES.has(file.type)) {
-        setStatus("photoStatus", "Choose a JPEG, PNG, WebP, or GIF image.", "var(--danger)");
+      if (!ALLOWED_PHOTO_TYPES.has(file.type) && !file.type.startsWith("image/")) {
+        setStatus("photoStatus", "Choose a valid image file.", "var(--danger)");
         return;
       }
 
       if (file.size > MAX_LOCAL_PHOTO_BYTES) {
-        setStatus("photoStatus", "Image must be 1 MB or smaller.", "var(--danger)");
+        setStatus("photoStatus", "Image must be 2 MB or smaller.", "var(--danger)");
         return;
       }
 
@@ -370,7 +386,7 @@
         }
 
         try {
-          localStorage.setItem("wall_photo", reader.result);
+          localStorage.setItem("cpm_profile_photo", reader.result);
           renderAvatar(reader.result, localStorage.getItem("wall_user") || "");
           setStatus(
             "photoStatus",
@@ -392,7 +408,7 @@
     });
 
     function clearLocalPhoto() {
-      localStorage.removeItem("wall_photo");
+      localStorage.removeItem("cpm_profile_photo");
       renderAvatar("", localStorage.getItem("wall_user") || "");
       setStatus("photoStatus", "Local photo removed.", "var(--success-bright)");
     }
@@ -432,7 +448,7 @@
           data.isVip ? "VIP Member" : "Standard Member";
 
         localStorage.setItem("wall_user", data.username);
-        const localPhoto = localStorage.getItem("wall_photo") || "";
+        const localPhoto = localStorage.getItem("cpm_profile_photo") || "";
         renderAvatar(localPhoto, data.username);
 
         const vipSection = document.getElementById("vipSection");

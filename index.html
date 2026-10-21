@@ -595,17 +595,29 @@ body {
   gap: 8px;
 }
 .privacy-modal-box h3 { color: var(--accent); font-size: 1rem; margin-bottom: 4px; margin-top: 0; }
+
+@keyframes pulse {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
 </style>
 </head>
 <body>
 <div class="container">
   <div class="header">
     <div class="header-left-pill">
-      <span class="dot"> </span>
-      <span>Lobby Chat | <span id="onlineCount">1 Online</span></span>
+      <span style="display:flex;align-items:center;gap:6px;">
+        <span style="width:8px;height:8px;background:#22c55e;border-radius:50%;display:inline-block;animation:pulse 1.5s infinite;"></span>
+        <span id="onlineCountText">1 Online</span>
+      </span>
     </div>
     <div class="header-center-chip" onclick="window.location.href='/settings'">
-      <div class="header-avatar" id="headerAvatarJ">J</div>
+      <div style="position: relative; display: inline-flex;" onclick="event.stopPropagation(); document.getElementById('profilePhotoInput').click();">
+        <div class="header-avatar" id="headerAvatarJ">J</div>
+        <div style="position:absolute; bottom:-4px; right:-4px; width:24px; height:24px; background:white; color:black; border:2px solid #0f172a; border-radius:50%; display:flex; justify-content:center; align-items:center; font-weight:bold; font-size:16px; cursor:pointer; line-height:1;">+</div>
+      </div>
+      <input type="file" id="profilePhotoInput" accept="image/*" hidden>
       <div class="header-username" id="topUsername">@user</div>
       <span style="font-size:10px; color:#fef08a;"> </span>
     </div>
@@ -773,7 +785,7 @@ async function verifyAuthAndProfile() {
       
       document.getElementById('topUsername').textContent = '@' + escapeHtml(currentUser);
       
-      const cachedPhoto = data.photoURL || localStorage.getItem('wall_photo') || '';
+      const cachedPhoto = data.photoURL || localStorage.getItem('cpm_profile_photo') || '';
       const avatarDiv = document.getElementById('headerAvatarJ');
       if (cachedPhoto) {
         avatarDiv.innerHTML = DOMPurify.sanitize(`<img src="${cachedPhoto}" style="width:100%;height:100%;object-fit:cover;">`);
@@ -797,6 +809,28 @@ async function verifyAuthAndProfile() {
 }
 verifyAuthAndProfile();
 
+// Photo Upload Logic for Header Avatar
+const photoInput = document.getElementById('profilePhotoInput');
+if (photoInput) {
+  photoInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) return alert("Image must be 2MB or smaller.");
+    
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const dataURL = ev.target.result;
+      try {
+        localStorage.setItem('cpm_profile_photo', dataURL);
+        document.getElementById('headerAvatarJ').innerHTML = DOMPurify.sanitize(`<img src="${dataURL}" style="width:100%;height:100%;object-fit:cover;">`);
+      } catch (err) {
+        alert("Browser storage is full. Cannot save photo.");
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 const feedEl = document.getElementById('feed');
 const jumpBtn = document.getElementById('jumpBtn');
 const typingEl = document.getElementById('typing');
@@ -807,7 +841,7 @@ const sendBtn = document.getElementById('sendBtn');
 const charCount = document.getElementById('charCount');
 const wallSearchInput = document.getElementById('wallSearch');
 const clearSearchBtn = document.getElementById('clearSearch');
-const onlineCountEl = document.getElementById('onlineCount');
+const onlineCountEl = document.getElementById('onlineCountText');
 const alertBtn = document.getElementById('alertBtn');
 const cooldownWrap = document.getElementById('cooldownWrap');
 const cooldownBar = document.getElementById('cooldownBar');

@@ -17,6 +17,22 @@
     {
       "source": "/terms/",
       "destination": "/terms.html"
+    },
+    {
+      "source": "/settings",
+      "destination": "/settings.html"
+    },
+    {
+      "source": "/settings/",
+      "destination": "/settings.html"
+    },
+    {
+      "source": "/sett",
+      "destination": "/settings.html"
+    },
+    {
+      "source": "/sett/",
+      "destination": "/settings.html"
     }
   ],
   "headers": [
