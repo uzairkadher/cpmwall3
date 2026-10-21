@@ -23,6 +23,7 @@ const RATE_WINDOW_MS = 60_000;
 
 const LINK_REGEX =
   /(https?:\/\/|www\.|discord\.gg|t\.me|telegram\.me|chat\.whatsapp\.com|\.com|\.gg|\.xyz|\.top)/i;
+
 const STATIC_BLOCKED_WORDS = [
   "free coins", "hack cpm", "mod apk", "cpm hack",
   "coin generator", "buy followers", "free w16",
@@ -35,7 +36,6 @@ function getDb() {
   if (!process.env.FIREBASE_SERVICE_KEY) {
     throw new Error("Firebase service configuration is missing.");
   }
-
   if (!admin.apps.length) {
     let serviceAccount;
     try {
@@ -103,17 +103,14 @@ function parseUserAgent(ua = "") {
   if (/windows nt 10/i.test(ua)) os = "Windows 10/11";
   else if (/android/i.test(ua)) os = "Android";
   else if (/iphone|ipad/i.test(ua)) os = "iOS";
-
   let browser = "Browser";
   if (/instagram/i.test(ua)) browser = "Instagram App";
   else if (/whatsapp/i.test(ua)) browser = "WhatsApp App";
   else if (/edg\//i.test(ua)) browser = "Edge";
   else if (/chrome\//i.test(ua)) browser = "Chrome";
   else if (/safari\//i.test(ua)) browser = "Safari";
-
   let device = /mobile|android|iphone|ipad/i.test(ua) ? "Mobile" : "Desktop";
   if (/iphone/i.test(ua)) device = "iPhone";
-
   return { os, browser, device };
 }
 
@@ -129,7 +126,6 @@ async function containsBlockedContent(db, text) {
           word => typeof word === "string" && word.length > 0
         )
       : [];
-
     const lower = text.toLowerCase();
     return [...STATIC_BLOCKED_WORDS, ...dynamicWords].some(
       word => lower.includes(word.toLowerCase())
@@ -141,37 +137,19 @@ async function containsBlockedContent(db, text) {
   }
 }
 
-async function sendWebhookAlert(message) {
-  const webhookUrl = process.env.ALERT_WEBHOOK_URL;
-  if (!webhookUrl) return;
-  try {
-    await fetch(webhookUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ content: `Security alert: ${message}` }),
-      signal: AbortSignal.timeout(5000)
-    });
-  } catch {
-    // Alert delivery failure must not expose server details.
-  }
-}
-
 async function askApexRacer(db, username, userMessage) {
   const apiKey = process.env.GEMINI_API_KEY;
   const fallbackReply =
     "I'm under the hood right now! Double-check your gear ratios and tire pressure, I'll be back soon.";
   if (!apiKey) return fallbackReply;
-
   let isThrottled = false;
   try {
     await db.runTransaction(async transaction => {
       const userRef = db.collection("rate_limits").doc(`gemini_user_${username}`);
       const globalRef = db.collection("rate_limits").doc("gemini_global");
-
       const [userSnap, globalSnap] = await transaction.getAll(userRef, globalRef);
       const now = Date.now();
       const windowMs = 60_000;
-
       let userCount = 0;
       let userStart = now;
       if (userSnap.exists) {
@@ -182,7 +160,6 @@ async function askApexRacer(db, username, userMessage) {
           userStart = start;
         }
       }
-
       let globalCount = 0;
       let globalStart = now;
       if (globalSnap.exists) {
@@ -193,17 +170,14 @@ async function askApexRacer(db, username, userMessage) {
           globalStart = start;
         }
       }
-
       if (userCount >= 1 || globalCount >= 30) {
         isThrottled = true;
         return;
       }
-
       transaction.set(userRef, {
         count: userCount + 1,
         windowStart: admin.firestore.Timestamp.fromMillis(userStart)
       }, { merge: true });
-
       transaction.set(globalRef, {
         count: globalCount + 1,
         windowStart: admin.firestore.Timestamp.fromMillis(globalStart)
@@ -213,9 +187,7 @@ async function askApexRacer(db, username, userMessage) {
     console.error("Apex_Racer rate limit error:", err);
     isThrottled = true;
   }
-
   if (isThrottled) return fallbackReply;
-
   try {
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`,
@@ -271,7 +243,6 @@ function setCors(req, res) {
 
 export default async function handler(req, res) {
   setCors(req, res);
-
   if (req.method === "OPTIONS") {
     if (req.headers.origin && !isOriginAllowed(req.headers.origin)) {
       return res.status(403).end();
@@ -279,23 +250,19 @@ export default async function handler(req, res) {
     // Explicitly answer preflight requests with a 200 OK
     return res.status(200).end();
   }
-
   if (req.headers.origin && !isOriginAllowed(req.headers.origin)) {
     return res.status(403).json({ error: "Origin not allowed." });
   }
-
   if (!["GET", "POST"].includes(req.method)) {
     res.setHeader("Allow", "GET, POST, OPTIONS");
     return res.status(405).json({ error: "Method not allowed." });
   }
-
   let db;
   try {
     db = getDb();
   } catch {
     return res.status(500).json({ error: "Server configuration error." });
   }
-
   // Public post feed. Do not expose internal moderation or IP logs.
   if (req.method === "GET") {
     try {
@@ -304,7 +271,6 @@ export default async function handler(req, res) {
         .orderBy("createdAt", "desc")
         .limit(100)
         .get();
-
       const posts = snap.docs
         .map(doc => {
           const data = doc.data();
@@ -324,43 +290,35 @@ export default async function handler(req, res) {
           };
         })
         .filter(post => !post.isShadowbanned);
-
       return res.status(200).json(posts);
     } catch {
       return res.status(500).json({ error: "Could not load posts." });
     }
   }
-
   try {
     const authorization = req.headers.authorization || "";
     const tokenMatch = authorization.match(/^Bearer\s+(\S+)$/);
     if (!tokenMatch) {
       return res.status(401).json({ error: "Authentication required." });
     }
-
     let decoded;
     try {
       decoded = verifyJwt(tokenMatch[1]);
     } catch {
       return res.status(401).json({ error: "Invalid or expired session." });
     }
-
     const username =
       typeof decoded?.username === "string"
         ? decoded.username.toUpperCase()
         : "";
-
     if (!/^[A-Z0-9_.]{3,20}$/.test(username)) {
       return res.status(401).json({ error: "Invalid session." });
     }
-
     const userRef = db.collection("users").doc(username);
     const userSnap = await userRef.get();
-
     if (!userSnap.exists) {
       return res.status(401).json({ error: "Account not found." });
     }
-
     const userData = userSnap.data() || {};
     const isRealAdmin = userData.role === "ADMIN";
     const isVipUser =
@@ -368,13 +326,11 @@ export default async function handler(req, res) {
       true ||
       Boolean(userData.isVip);
     const isVerifiedUser = isVipUser || Boolean(userData.isVerified);
-
     const body =
       req.body && typeof req.body === "object" && !Array.isArray(req.body)
         ? req.body
         : {};
     const { action, postId, message, room, replyTo } = body;
-
     // Administrative actions require the role stored in Firestore.
     // The username "ADMIN" alone does not grant privileges.
     if (action === "delete") {
@@ -390,7 +346,6 @@ export default async function handler(req, res) {
       await batch.commit();
       return res.status(200).json({ success: true });
     }
-
     if (action === "pin") {
       if (!isRealAdmin) {
         return res.status(403).json({ error: "Admin permission required." });
@@ -408,12 +363,10 @@ export default async function handler(req, res) {
       }, { merge: true });
       return res.status(200).json({ success: true });
     }
-
     const rawIp = getClientIp(req);
     const ipKey = getSafeIpKey(rawIp);
     const subnet = getSubnet24(rawIp);
     const fingerprint = getDeviceFingerprint(req.headers);
-
     if (action === "like") {
       if (!validDocumentId(postId)) {
         return res.status(400).json({ error: "Invalid post ID." });
@@ -423,7 +376,6 @@ export default async function handler(req, res) {
       // The original increment endpoint allowed unlimited repeat likes.
       // Use a per-user marker to prevent repeated likes from this account.
       const likeRef = postRef.collection("likes").doc(username);
-
       try {
         await db.runTransaction(async transaction => {
           const postSnap = await transaction.get(postRef);
@@ -455,11 +407,9 @@ export default async function handler(req, res) {
       }
       return res.status(200).json({ success: true });
     }
-
     if (action && action !== "post") {
       return res.status(400).json({ error: "Unknown action." });
     }
-
     if (typeof message !== "string") {
       return res.status(400).json({ error: "Message required." });
     }
@@ -467,14 +417,12 @@ export default async function handler(req, res) {
     if (!cleanMsg) {
       return res.status(400).json({ error: "Message cannot be empty." });
     }
-
     const maxChars = isVipUser ? MAX_VIP_CHARS : MAX_STANDARD_CHARS;
     if (cleanMsg.length > maxChars) {
       return res.status(400).json({
         error: `Message exceeds the ${maxChars}-character limit.`
       });
     }
-
     const pinnedRef = db.collection("pinned").doc("current");
     const [
       legacyBanSnap,
@@ -495,19 +443,15 @@ export default async function handler(req, res) {
       db.collection("shadowbanned").doc(ipKey).get(),
       pinnedRef.get()
     ]);
-
     const pinnedData = pinnedSnap.exists ? pinnedSnap.data() : {};
-
     if (pinnedData.chatLocked && !isRealAdmin) {
       return res.status(403).json({ error: "Chat is locked." });
     }
-
     if (pinnedData.raidMode && !isVerifiedUser && !isRealAdmin) {
       return res.status(403).json({
         error: "Only verified and VIP users can post during raid mode."
       });
     }
-
     if (!isRealAdmin) {
       if (userData.isBanned) {
         const until = userData.bannedUntil?.toDate?.();
@@ -517,26 +461,22 @@ export default async function handler(req, res) {
           });
         }
       }
-
       const activeIpBan = [legacyBanSnap, adminBanSnap].find(snap => {
         if (!snap.exists) return false;
         const until = snap.data().bannedUntil?.toDate?.();
         if (!until || until > new Date()) return true;
         return false;
       });
-
       if (activeIpBan) {
         return res.status(403).json({
           error: "Posting is restricted for this network."
         });
       }
-
       if (fingerprintBanSnap.exists) {
         return res.status(403).json({
           error: "This device is restricted from posting."
         });
       }
-
       if (
         subnetBanSnap?.exists &&
         !whitelistSnap.exists
@@ -546,7 +486,6 @@ export default async function handler(req, res) {
         });
       }
     }
-
     let isBlocked;
     try {
       isBlocked = await containsBlockedContent(db, cleanMsg);
@@ -555,22 +494,18 @@ export default async function handler(req, res) {
         error: "Moderation is temporarily unavailable. Please retry."
       });
     }
-
     if (isBlocked && !isRealAdmin) {
       const strikeRef = db.collection("strikes").doc(ipKey);
       let strikeCount = 0;
-
       await db.runTransaction(async transaction => {
         const snap = await transaction.get(strikeRef);
         strikeCount = (snap.exists ? Number(snap.data().count) || 0 : 0) + 1;
-
         transaction.set(strikeRef, {
           ip: rawIp,
           username,
           count: strikeCount,
           lastStrikeAt: admin.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
-
         if (strikeCount >= 3) {
           transaction.set(db.collection("banned").doc(ipKey), {
             ip: rawIp,
@@ -582,36 +517,27 @@ export default async function handler(req, res) {
           });
         }
       });
-
       if (strikeCount >= 3) {
-        await sendWebhookAlert(
-          `Account ${username} was restricted after repeated content violations.`
-        );
         return res.status(403).json({
           error: "Posting suspended after repeated content violations."
         });
       }
-
       return res.status(400).json({
         error: `Message blocked. Strike ${strikeCount}/3.`
       });
     }
-
     const finalRoom =
       room === "vip" && isVipUser
         ? "vip"
         : room === "market"
           ? "market"
           : "public";
-
     const postRef = db.collection("posts").doc();
     const ipLogRef = db.collection("ip_logs").doc(postRef.id);
     const rateRef = db.collection("rate_limits").doc(ipKey);
-
     const userAgent = parseUserAgent(
       String(req.headers["user-agent"] || "")
     );
-
     // Atomically check and increment the persistent Firestore rate limit.
     // This prevents concurrent requests from bypassing the five-post cap.
     await db.runTransaction(async transaction => {
@@ -627,7 +553,6 @@ export default async function handler(req, res) {
         Math.min(300, Number(pinnedData.slowModeSeconds) || 10)
       );
       const lastPostAt = data.lastPostAt?.toMillis?.() || 0;
-
       if (!isRealAdmin && count >= RATE_LIMIT) {
         const error = new Error("RATE_LIMIT");
         error.retryAfter = Math.max(
@@ -636,7 +561,6 @@ export default async function handler(req, res) {
         );
         throw error;
       }
-
       if (
         !isRealAdmin &&
         !isVipUser &&
@@ -649,7 +573,6 @@ export default async function handler(req, res) {
         );
         throw error;
       }
-
       transaction.set(postRef, {
         name: username,
         userId: username,
@@ -668,7 +591,6 @@ export default async function handler(req, res) {
             }
           : null
       });
-
       transaction.set(ipLogRef, {
         postId: postRef.id,
         ip: rawIp,
@@ -683,7 +605,6 @@ export default async function handler(req, res) {
         fingerprint,
         createdAt: admin.firestore.FieldValue.serverTimestamp()
       });
-
       if (!isRealAdmin) {
         transaction.set(rateRef, {
           count: count + 1,
@@ -694,7 +615,6 @@ export default async function handler(req, res) {
         }, { merge: true });
       }
     });
-
     if (cleanMsg.includes("@Apex_Racer")) {
       const aiReply = await askApexRacer(db, username, cleanMsg);
       await db.collection("posts").add({
@@ -712,12 +632,10 @@ export default async function handler(req, res) {
         replyTo: { name: username, text: cleanMsg }
       });
     }
-
     return res.status(200).json({
       success: true,
       isShadowbanned: shadowSnap.exists
     });
-
   } catch (error) {
     if (error.message === "RATE_LIMIT" || error.message === "SLOW_MODE") {
       const retryAfter = Math.max(1, Number(error.retryAfter) || 1);
@@ -729,7 +647,6 @@ export default async function handler(req, res) {
             : `Slow mode active. Please wait ${retryAfter} seconds.`
       });
     }
-
     console.error("Post API failure:", error.message || "Unknown error");
     return res.status(500).json({ error: "An internal server error occurred." });
   }

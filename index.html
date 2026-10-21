@@ -595,7 +595,6 @@ body {
   gap: 8px;
 }
 .privacy-modal-box h3 { color: var(--accent); font-size: 1rem; margin-bottom: 4px; margin-top: 0; }
-
 @keyframes pulse {
   0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
   70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
@@ -622,44 +621,35 @@ body {
       <span style="font-size:10px; color:#fef08a;"> </span>
     </div>
     <div class="header-right-actions">
-      <button id="alertBtn" type="button" class="icon-btn" onclick="toggleAlerts()" title="Alerts"> </button>
-      <button id="soundToggle" type="button" class="icon-btn active" onclick="cycleSoundFX()" title="Sound"> </button>
+      <button id="soundToggle" type="button" class="icon-btn active" onclick="cycleSoundFX()" title="Sound">🔊</button>
     </div>
   </div>
-
   <div id="announcementBanner" class="announcement-banner"></div>
-
   <div class="room-bar">
-    <button id="tabPublic" type="button" class="room-tab active" onclick="switchRoom('public')">  Public Wall</button>
-    <button id="tabMarket" type="button" class="room-tab market" onclick="switchRoom('market')">  Marketplace</button>
-    <button id="tabVip" type="button" class="room-tab vip" onclick="switchRoom('vip')" style="display:none;">  VIP Lounge</button>
-    <button id="tabAdmin" type="button" class="room-tab" onclick="window.location.href='/admin'" style="display:none; background:linear-gradient(135deg, #7f1d1d, #450a0a); border-color:#ef4444; color:#fca5a5;">  Admin Panel</button>
+    <button id="tabPublic" type="button" class="room-tab active" onclick="switchRoom('public')">🌐 Public Wall</button>
+    <button id="tabMarket" type="button" class="room-tab market" onclick="switchRoom('market')">🛒 Marketplace</button>
+    <button id="tabVip" type="button" class="room-tab vip" onclick="switchRoom('vip')" style="display:none;">💎 VIP Lounge</button>
+    <button id="tabAdmin" type="button" class="room-tab" onclick="window.location.href='/admin'" style="display:none; background:linear-gradient(135deg, #7f1d1d, #450a0a); border-color:#ef4444; color:#fca5a5;">🛡️ Admin Panel</button>
   </div>
-
   <div id="pinnedBox" class="pinned"></div>
-
   <div class="social">
-    <button type="button" class="sbtn" style="background:#059669;" onclick="openTipModal()">  Tip Jar</button>
-    <button type="button" class="sbtn" style="background:#1d9bf0;" onclick="shareSite()">  Share</button>
+    <button type="button" class="sbtn" style="background:#059669;" onclick="openTipModal()">☕ Tip Jar</button>
+    <button type="button" class="sbtn" style="background:#1d9bf0;" onclick="shareSite()">📤 Share</button>
     <a class="sbtn" style="background:linear-gradient(45deg,#f09433,#dc2743)" href="https://www.instagram.com/cpmwall?srtk=MWJtOWdkYXJyc3Nndg==" target="_blank" rel="noopener noreferrer">IG Profile</a>
     <a class="sbtn" style="background:#e1306c" href="https://ig.me/j/cg7TKtGMHAtXh-Hz/" target="_blank" rel="noopener noreferrer">IG Group</a>
     <a class="sbtn" style="background:#25d366" href="https://wa.me/923558182875?text=Salam%20Jagga%20Bhai%2C%20I%20want%20to%20buy%20VIP" target="_blank" rel="noopener noreferrer">WhatsApp</a>
   </div>
-
   <div class="filter-row">
-    <input id="wallSearch" placeholder="  Search wall messages, drivers, or #tags..." oninput="handleWallSearch(this.value)">
-    <span id="clearSearch" class="clear-filter" onclick="clearSearchFilter()">  Clear</span>
+    <input id="wallSearch" placeholder="🔍 Search wall messages, drivers, or #tags..." oninput="handleWallSearch(this.value)">
+    <span id="clearSearch" class="clear-filter" onclick="clearSearchFilter()">✖ Clear</span>
   </div>
-
   <div id="feed" class="feed">Connecting to wall...</div>
-
-  <button id="jumpBtn" class="jump-btn" type="button" onclick="scrollToTop()">  New messages</button>
+  <button id="jumpBtn" class="jump-btn" type="button" onclick="scrollToTop()">⬇ New messages</button>
   <div id="typing" class="typing-box"></div>
-
   <div class="input-panel">
     <div id="replyingBar" class="replying-bar">
       <span id="replyingText">Replying to @user</span>
-      <span onclick="cancelReply()" style="cursor:pointer; font-weight:bold;"> </span>
+      <span onclick="cancelReply()" style="cursor:pointer; font-weight:bold;">✖</span>
     </div>
     
     <div class="chips-bar">
@@ -669,15 +659,13 @@ body {
       <button type="button" class="chip" onclick="addTag('#RoomCode')">#RoomCode</button>
       <button type="button" class="chip" onclick="addTag('#Trade')">#Trade</button>
     </div>
-
     <div class="emoji-row">
-      <button type="button" class="emoji-btn" onclick="addEmoji(' ')"> </button>
-      <button type="button" class="emoji-btn" onclick="addEmoji(' ')"> </button>
-      <button type="button" class="emoji-btn" onclick="addEmoji(' ')"> </button>
-      <button type="button" class="emoji-btn" onclick="addEmoji(' ')"> </button>
-      <button type="button" class="emoji-btn" onclick="addEmoji(' ')"> </button>
+      <button type="button" class="emoji-btn" onclick="addEmoji('🚗')">🚗</button>
+      <button type="button" class="emoji-btn" onclick="addEmoji('💨')">💨</button>
+      <button type="button" class="emoji-btn" onclick="addEmoji('🔥')">🔥</button>
+      <button type="button" class="emoji-btn" onclick="addEmoji('🤝')">🤝</button>
+      <button type="button" class="emoji-btn" onclick="addEmoji('💀')">💀</button>
     </div>
-
     <div class="input-row">
       <input id="msgInput" placeholder="Type message, room code, or ID..." maxlength="250" autocomplete="off">
     </div>
@@ -685,27 +673,23 @@ body {
     <div class="typing-progress-wrap">
       <div id="typingProgressBar" class="typing-progress-bar"></div>
     </div>
-
     <div id="cooldownWrap" class="cooldown-wrap">
       <div id="cooldownBar" class="cooldown-bar"></div>
     </div>
-
     <div class="input-bottom">
       <span id="charCount" class="char-num">0/250</span>
       <button id="sendBtn" class="send-btn" onclick="sendPost()">Post to Wall</button>
     </div>
   </div>
-
   <div class="footer">
     <a href="/privacy" onclick="openPrivacy()">Privacy Policy</a>
     <a href="/terms">Terms</a>
     <a onclick="shareSite()">Share Site</a>
   </div>
 </div>
-
 <div id="tipModal" class="modal-back">
   <div class="modal-window">
-    <h3>  Support CPM Community</h3>
+    <h3>☕ Support CPM Community</h3>
     <p style="font-size: 0.75rem; color: var(--muted); line-height: 1.35;">
       Tips keep our servers online and ad-free. Send a screenshot on WhatsApp after tipping to receive a permanent Verified Driver Badge.
     </p>
@@ -720,7 +704,6 @@ body {
     <button type="button" class="close-modal-btn" onclick="closeTipModal()">Close</button>
   </div>
 </div>
-
 <div id="privacyModal">
   <div class="privacy-modal-box">
     <h3>Privacy Policy</h3>
@@ -732,29 +715,23 @@ body {
     <button onclick="closePrivacy()" class="close-modal-btn" style="margin-top: 8px;">Close</button>
   </div>
 </div>
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, onSnapshot, query, orderBy, limit, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
 const _k1 = "AIza";
 const _k2 = "SyAOE8v7ANE6vvlHh2ZbiaJ6iHBN4voFcYM";
 const EXPECTED_PROJECT = "cpmwall3";
-
 const firebaseConfig = {
   apiKey: _k1 + _k2,
   authDomain: `${EXPECTED_PROJECT}.firebaseapp.com`,
   projectId: EXPECTED_PROJECT
 };
-
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-
 const token = localStorage.getItem('wall_token');
 let currentUser = localStorage.getItem('wall_user') || 'user';
 let isUserVip = false;
 let isUserAdmin = false;
-
 function escapeHtml(unsafe) {
   if (!unsafe) return '';
   return String(unsafe)
@@ -764,13 +741,11 @@ function escapeHtml(unsafe) {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 }
-
 async function verifyAuthAndProfile() {
   if (!token) {
     window.location.href = '/login';
     return;
   }
-
   try {
     const res = await fetch('/api/user/me', {
       headers: { 'Authorization': `Bearer ${token}` }
@@ -808,7 +783,6 @@ async function verifyAuthAndProfile() {
   } catch {}
 }
 verifyAuthAndProfile();
-
 // Photo Upload Logic for Header Avatar
 const photoInput = document.getElementById('profilePhotoInput');
 if (photoInput) {
@@ -830,7 +804,6 @@ if (photoInput) {
     reader.readAsDataURL(file);
   });
 }
-
 const feedEl = document.getElementById('feed');
 const jumpBtn = document.getElementById('jumpBtn');
 const typingEl = document.getElementById('typing');
@@ -842,7 +815,6 @@ const charCount = document.getElementById('charCount');
 const wallSearchInput = document.getElementById('wallSearch');
 const clearSearchBtn = document.getElementById('clearSearch');
 const onlineCountEl = document.getElementById('onlineCountText');
-const alertBtn = document.getElementById('alertBtn');
 const cooldownWrap = document.getElementById('cooldownWrap');
 const cooldownBar = document.getElementById('cooldownBar');
 const typingProgressBar = document.getElementById('typingProgressBar');
@@ -853,10 +825,8 @@ const tabMarket = document.getElementById('tabMarket');
 const tabVip = document.getElementById('tabVip');
 const tipModal = document.getElementById('tipModal');
 const privacyModal = document.getElementById('privacyModal');
-
 let currentRoom = 'public';
 let soundMode = localStorage.getItem('cpm_sound_mode') || 'bov';
-let alertsEnabled = localStorage.getItem('cpm_alerts') === 'true';
 let audioCtx = null;
 let isInitialLoad = true;
 let hasLoadedPosts = false;
@@ -868,20 +838,17 @@ let lastBotPing = 0;
 let lastPinnedText = '';
 let activeSearchQuery = '';
 let replyingToData = null;
-
 // Draft Logic Added
 window.saveDraft = () => localStorage.setItem('cpm_draft', msgInput.value);
 window.restoreDraft = () => {
   const draft = localStorage.getItem('cpm_draft');
   if (draft) { msgInput.value = draft; updateCharCounterDisplay(); }
 };
-
 function updateCharCounterDisplay() {
   const max = 250;
   const len = msgInput.value.length;
   charCount.textContent = `${len}/${max}`;
   const pct = Math.min(100, (len / max) * 100);
-  
   if (typingProgressBar) {
     typingProgressBar.style.width = `${pct}%`;
     if (pct > 90) {
@@ -896,7 +863,6 @@ function updateCharCounterDisplay() {
     }
   }
 }
-
 window.openTipModal = () => { tipModal.style.display = 'flex'; };
 window.closeTipModal = () => { tipModal.style.display = 'none'; };
 window.copyTip = (num, btn) => {
@@ -905,13 +871,11 @@ window.copyTip = (num, btn) => {
   btn.textContent = 'Copied!';
   setTimeout(() => { btn.textContent = orig; }, 1200);
 };
-
 window.openPrivacy = () => { privacyModal.classList.add('show'); };
 window.closePrivacy = () => { privacyModal.classList.remove('show'); };
 privacyModal.addEventListener('click', (e) => {
   if(e.target === privacyModal) closePrivacy();
 });
-
 window.switchRoom = (room) => {
   if (room === 'vip' && !isUserVip && !isUserAdmin) {
     alert('VIP Lounge is restricted to VIP members.');
@@ -921,14 +885,11 @@ window.switchRoom = (room) => {
   tabPublic.classList.remove('active');
   tabMarket.classList.remove('active');
   tabVip.classList.remove('active');
-  
   if (room === 'vip') tabVip.classList.add('active');
   else if (room === 'market') tabMarket.classList.add('active');
   else tabPublic.classList.add('active');
-  
   filterFeedByRoom();
 };
-
 function filterFeedByRoom() {
   const bubbles = feedEl.querySelectorAll('.bubble');
   let visibleCount = 0;
@@ -947,7 +908,6 @@ function filterFeedByRoom() {
       b.style.display = 'none';
     }
   });
-
   const emptyNotice = document.getElementById('emptyRoomNotice');
   if (visibleCount === 0) {
     if (!emptyNotice) {
@@ -961,12 +921,10 @@ function filterFeedByRoom() {
     emptyNotice.remove();
   }
 }
-
 function initAudio() {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   if (audioCtx.state === 'suspended') audioCtx.resume();
 }
-
 function playTurboBlowOff() {
   initAudio();
   const bufferSize = audioCtx.sampleRate * 0.35;
@@ -989,7 +947,6 @@ function playTurboBlowOff() {
   gain.connect(audioCtx.destination);
   noise.start();
 }
-
 function playAlertSound() {
   if (soundMode === 'mute') return;
   try {
@@ -997,66 +954,48 @@ function playAlertSound() {
     if (navigator.vibrate) navigator.vibrate(60);
   } catch {}
 }
-
 document.addEventListener('click', () => { initAudio(); }, { once: true });
-
 window.cycleSoundFX = () => {
   soundMode = soundMode === 'bov' ? 'mute' : 'bov';
   localStorage.setItem('cpm_sound_mode', soundMode);
   const btn = document.getElementById('soundToggle');
   btn.className = soundMode === 'bov' ? 'icon-btn active' : 'icon-btn';
 };
-
-window.toggleAlerts = async () => {
-  if (!('Notification' in window)) return alert('Notifications not supported.');
-  const res = await window.Notification.requestPermission();
-  if (res === 'granted') {
-    alertsEnabled = true;
-    alertBtn.className = 'icon-btn active';
-  }
-};
-
 async function pingHeartbeat() {
   if (!token) return;
   try {
-    const r = await fetch('/api/heartbeat', { 
-      method: 'POST', 
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` } 
-    });
+    const r = await fetch('/api/heartbeat', {
+       method: 'POST',
+       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
+     });
     const d = await r.json();
     if (d && d.online && onlineCountEl) onlineCountEl.textContent = `${d.online} Online`;
   } catch {}
 }
 pingHeartbeat();
 setInterval(pingHeartbeat, 30000);
-
 function timeAgo(date) {
   const seconds = Math.floor((new Date() - date) / 1000);
   if (seconds < 45) return 'Just now';
   if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
   return `${Math.floor(seconds / 3600)}h ago`;
 }
-
 window.setReplyTo = (name, text) => {
   replyingToData = { name, text };
   replyingText.textContent = `Replying to @${escapeHtml(name)}: "${escapeHtml(text.substring(0, 30))}..."`;
   replyingBar.style.display = 'flex';
   msgInput.focus();
 };
-
 window.cancelReply = () => {
   replyingToData = null;
   replyingBar.style.display = 'none';
 };
-
 function buildBubble(id, data, isTemporary) {
   if (data.isShadowbanned || data.shadowbanned) return null;
-
   const isMe = Boolean(currentUser && data.name && data.name.toUpperCase() === currentUser);
   const isBot = Boolean(data.isBot);
   const isAdminPost = (data.name && data.name.toUpperCase() === 'ADMIN' || data.isAdmin);
   const isVipPost = isAdminPost || Boolean(data.isVip);
-
   const bubble = document.createElement('div');
   let bubbleClasses = `bubble ${isBot ? 'bot' : isMe ? 'me' : ''} ${isVipPost ? 'vip-bubble' : ''}`;
   if (data.frame && ['gold-trim', 'neon-purple', 'carbon'].includes(data.frame)) {
@@ -1068,17 +1007,14 @@ function buildBubble(id, data, isTemporary) {
   bubble.setAttribute('data-room', data.room || 'public');
   bubble.setAttribute('data-text', (data.message || '').toLowerCase());
   bubble.setAttribute('data-name', (data.name || '').toLowerCase());
-
   if (data.replyTo) {
     const qEl = document.createElement('div');
     qEl.className = 'quoted-preview';
     qEl.textContent = `@${data.replyTo.name}: ${data.replyTo.text}`;
     bubble.appendChild(qEl);
   }
-
   const authorLine = document.createElement('div');
   authorLine.className = 'author-line';
-
   const author = document.createElement('div');
   author.className = `author ${isVipPost ? 'vip-glow' : ''}`;
   author.textContent = escapeHtml(data.name);
@@ -1099,26 +1035,21 @@ function buildBubble(id, data, isTemporary) {
     author.appendChild(vipTag);
   }
   authorLine.appendChild(author);
-
   const meta = document.createElement('div');
   meta.className = 'meta';
   meta.textContent = isTemporary ? 'Just now' : timeAgo(data.createdAt?.toDate ? data.createdAt.toDate() : new Date());
   authorLine.appendChild(meta);
-
   const bodyEl = document.createElement('div');
   bodyEl.className = 'body';
   bodyEl.textContent = data.message || '';
-
   bubble.appendChild(authorLine);
   bubble.appendChild(bodyEl);
-
   const actionsEl = document.createElement('div');
   actionsEl.className = 'bubble-actions';
-
   const likeBtn = document.createElement('button');
   likeBtn.type = 'button';
   likeBtn.className = `reaction-btn`;
-  likeBtn.innerHTML = DOMPurify.sanitize(`  <span id="like-${id}">${data.likes || 0}</span>`);
+  likeBtn.innerHTML = DOMPurify.sanitize(`👍 <span id="like-${id}">${data.likes || 0}</span>`);
   likeBtn.onclick = async () => {
     await fetch('/api/post', {
       method: 'POST',
@@ -1127,19 +1058,17 @@ function buildBubble(id, data, isTemporary) {
     }).catch(() => {});
   };
   actionsEl.appendChild(likeBtn);
-
   const replyBtn = document.createElement('button');
   replyBtn.type = 'button';
   replyBtn.className = 'action-icon-btn';
-  replyBtn.textContent = '  Reply';
+  replyBtn.textContent = '↩ Reply';
   replyBtn.onclick = () => setReplyTo(data.name, data.message);
   actionsEl.appendChild(replyBtn);
-
   if (isUserAdmin) {
     const delBtn = document.createElement('button');
     delBtn.type = 'button';
     delBtn.className = 'action-icon-btn delete';
-    delBtn.textContent = '  Delete';
+    delBtn.textContent = '🗑 Delete';
     delBtn.onclick = async () => {
       if (!confirm('Delete this message?')) return;
       try {
@@ -1159,7 +1088,7 @@ function buildBubble(id, data, isTemporary) {
     const pinBtn = document.createElement('button');
     pinBtn.type = 'button';
     pinBtn.className = 'action-icon-btn pin';
-    pinBtn.textContent = '  Announce';
+    pinBtn.textContent = '📌 Announce';
     pinBtn.onclick = async () => {
       try {
         const res = await fetch('/api/post', {
@@ -1175,40 +1104,34 @@ function buildBubble(id, data, isTemporary) {
     };
     actionsEl.appendChild(pinBtn);
   }
-
   bubble.appendChild(actionsEl);
   return bubble;
 }
-
 window.handleWallSearch = (val) => {
   activeSearchQuery = (val || '').trim().toLowerCase();
   clearSearchBtn.style.display = activeSearchQuery ? 'inline' : 'none';
   filterFeedByRoom();
 };
-
 window.clearSearchFilter = () => {
   wallSearchInput.value = '';
   handleWallSearch('');
 };
-
 window.scrollToTop = () => {
   feedEl.scrollTo({ top: 0, behavior: 'smooth' });
   jumpBtn.style.display = 'none';
 };
-
 feedEl.addEventListener('scroll', () => {
   if (feedEl.scrollTop < 60) jumpBtn.style.display = 'none';
 });
-
 onSnapshot(doc(db, "pinned", "current"), (snap) => {
   if (snap.exists()) {
     const d = snap.data();
     if (d.active && d.text) {
       if (d.isAnnouncement) {
-        announcementBanner.innerHTML = DOMPurify.sanitize(`  <b>Announcement from ${escapeHtml(d.name)}:</b> ${escapeHtml(d.text)}`);
+        announcementBanner.innerHTML = DOMPurify.sanitize(`🚨 <b>Announcement from ${escapeHtml(d.name)}:</b> ${escapeHtml(d.text)}`);
         announcementBanner.style.display = 'block';
       } else {
-        pinnedBox.innerHTML = DOMPurify.sanitize(`  <b>${escapeHtml(d.name)}:</b> ${escapeHtml(d.text)}`);
+        pinnedBox.innerHTML = DOMPurify.sanitize(`📌 <b>${escapeHtml(d.name)}:</b> ${escapeHtml(d.text)}`);
         pinnedBox.style.display = 'block';
       }
       return;
@@ -1217,7 +1140,6 @@ onSnapshot(doc(db, "pinned", "current"), (snap) => {
   pinnedBox.style.display = 'none';
   announcementBanner.style.display = 'none';
 }, () => {});
-
 const q = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(100));
 onSnapshot(q, (snap) => {
   if (snap.empty) {
@@ -1229,7 +1151,6 @@ onSnapshot(q, (snap) => {
   }
   const placeholder = document.getElementById('emptyRoomNotice');
   if (placeholder) placeholder.remove();
-
   if (isInitialLoad || !hasLoadedPosts) {
     feedEl.innerHTML = '';
     snap.docs.forEach(docSnap => {
@@ -1241,7 +1162,6 @@ onSnapshot(q, (snap) => {
     filterFeedByRoom();
     return;
   }
-
   snap.docChanges().forEach((change) => {
     if (change.type === 'added') {
       const id = change.doc.id;
@@ -1266,33 +1186,28 @@ onSnapshot(q, (snap) => {
   });
   filterFeedByRoom();
 }, () => {});
-
 msgInput.addEventListener('input', () => {
   updateCharCounterDisplay();
   saveDraft();
 });
-
 window.addTag = (tag) => {
   if (!msgInput.value.includes(tag)) msgInput.value += (msgInput.value ? ' ' : '') + tag;
   updateCharCounterDisplay();
   saveDraft();
   msgInput.focus();
 };
-
 window.tagBot = () => {
   if (!msgInput.value.includes('@Apex_Racer')) msgInput.value = '@Apex_Racer ' + msgInput.value;
   updateCharCounterDisplay();
   saveDraft();
   msgInput.focus();
 };
-
 window.addEmoji = (emoji) => {
   msgInput.value += emoji;
   updateCharCounterDisplay();
   saveDraft();
   msgInput.focus();
 };
-
 window.sendPost = async () => {
   if (!token) {
     window.location.href = '/login';
@@ -1300,18 +1215,15 @@ window.sendPost = async () => {
   }
   const sentText = msgInput.value;
   const message = sentText.trim();
-  
   if (!message || isPosting) return;
   if (message.length > 250) {
     alert("Message exceeds 250 characters.");
     return;
   }
-
   if (Date.now() - lastPostTime < 30000 && !isUserAdmin) {
     alert("Please wait 30 seconds before posting again.");
     return;
   }
-
   if (message.includes('@Apex_Racer')) {
     if (Date.now() - lastBotPing < 60000) {
       alert("Please wait 60s before pinging the bot again.");
@@ -1319,17 +1231,14 @@ window.sendPost = async () => {
     }
     lastBotPing = Date.now();
   }
-
   isPosting = true;
   sendBtn.disabled = true;
-
   try {
     const res = await fetch('/api/post', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify({ message, room: currentRoom, replyTo: replyingToData, color: 'default', frame: 'default' })
     });
-
     if (res.ok) {
       lastPostTime = Date.now();
       if (msgInput.value === sentText) {
@@ -1352,14 +1261,12 @@ window.sendPost = async () => {
     sendBtn.disabled = false;
   }
 };
-
-msgInput.addEventListener('keydown', (e) => { 
-  if (e.key === 'Enter' && !e.isComposing) {
+msgInput.addEventListener('keydown', (e) => {
+   if (e.key === 'Enter' && !e.isComposing) {
     e.preventDefault();
-    sendPost(); 
+    sendPost();
   }
 });
-
 window.shareSite = async () => {
   try {
     const shareData = { title: 'CPM Wall', url: window.location.href };
@@ -1371,7 +1278,6 @@ window.shareSite = async () => {
     }
   } catch {}
 };
-
 restoreDraft();
 </script>
 </body>
