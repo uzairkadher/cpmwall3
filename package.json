@@ -1,5 +1,11 @@
 {
+  "name": "cpmwall",
+  "version": "1.0.0",
   "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
   "dependencies": {
     "firebase-admin": "^12.0.0",
     "bcryptjs": "^2.4.3",
