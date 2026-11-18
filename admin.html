@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="color-scheme" content="dark">
+  <title>Flag Clash Arena — Admin Control Center</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/admin.css">
+</head>
+<body>
+
+<!-- ===== SERVER-AUTHENTICATED LOGIN GATE ===== -->
+<section id="auth-screen" class="auth-screen">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <div class="auth-logo">FCA</div>
+      <div>
+        <h1>Admin Control Center</h1>
+        <p>Flag Clash Arena · Operations Console</p>
+      </div>
+    </div>
+
+    <div id="auth-alert" class="auth-alert hidden"></div>
+
+    <form id="login-form" autocomplete="off">
+      <div class="form-group">
+        <label for="login-username">Administrator Username</label>
+        <input id="login-username" type="text" required autocomplete="username" placeholder="Enter admin username">
+      </div>
+      <div class="form-group">
+        <label for="login-password">Administrator Password</label>
+        <input id="login-password" type="password" required autocomplete="current-password" placeholder="Enter admin password">
+      </div>
+      <button id="login-submit" type="submit" class="btn btn-primary" style="width:100%;margin-top:6px">
+        Sign In to Control Center
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      <span>Protected via Cloudflare Pages Secrets</span>
+      <a href="/" target="_blank" rel="noopener">Open Audience Display →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== ADMIN OPERATIONS SHELL (REVEALED ONLY AFTER SERVER AUTH) ===== -->
+<div id="app-shell" class="app-shell hidden">
+  <header class="topbar">
+    <div class="topbar-left">
+      <button id="menu-toggle" class="menu-toggle" type="button">☰</button>
+      <div class="brand-title">FLAG CLASH <span>ADMIN OPS</span></div>
+      <span id="conn-pill" class="status-pill warn"><span class="status-dot"></span><span id="conn-label">Waiting for Audience Tab</span></span>
+      <span id="edition-pill" class="status-pill"><span id="top-edition">Classic · R0</span></span>
+    </div>
+    <div class="topbar-right">
+      <a href="/" target="_blank" rel="noopener" class="btn btn-sm">Audience Screen ↗</a>
+      <span id="session-pill" class="status-pill"><span id="session-timer">Session active</span></span>
+      <button id="estop-btn" type="button" class="btn btn-estop">EMERGENCY STOP</button>
+      <button id="logout-btn" type="button" class="btn btn-sm">Logout</button>
+    </div>
+  </header>
+
+  <nav id="sidebar" class="sidebar">
+    <div class="nav-group-label">Operations</div>
+    <button class="nav-item active" data-tab="dashboard">Dashboard</button>
+    <button class="nav-item" data-tab="battle">Live Battle Control</button>
+    <button class="nav-item" data-tab="countries">Country Management</button>
+    <button class="nav-item" data-tab="special">Special Match Control</button>
+
+    <div class="nav-group-label">Community</div>
+    <button class="nav-item" data-tab="audience">Audience &amp; Comments <span id="badge-pending-req" class="nav-badge">0</span></button>
+    <button class="nav-item" data-tab="supporters">Gifts &amp; Supporters</button>
+
+    <div class="nav-group-label">Competition</div>
+    <button class="nav-item" data-tab="tournaments">Tournaments &amp; Champ</button>
+    <button class="nav-item" data-tab="hof">Achievements &amp; HoF</button>
+
+    <div class="nav-group-label">System</div>
+    <button class="nav-item" data-tab="settings">Settings &amp; Balancing</button>
+    <button class="nav-item" data-tab="visual">Visual &amp; Audio</button>
+    <button class="nav-item" data-tab="preview">Live Preview</button>
+    <button class="nav-item" data-tab="backups">Backups &amp; Security</button>
+  </nav>
+
+  <main class="main-content">
+
+    <!-- 1. DASHBOARD -->
+    <section id="tab-dashboard" class="tab-panel">
+      <div class="section-header">
+        <div>
+          <h2>Operations Dashboard</h2>
+          <p>Real-time telemetry, queue overview, tournament status, and quick controls.</p>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-success" data-quick="battle.start">▶ Start New</button>
+          <button class="btn" data-quick="battle.pause">⏸ Pause</button>
+          <button class="btn btn-primary" data-quick="battle.resume">⏵ Resume</button>
+          <button class="btn btn-gold" data-quick="battle.restart">↻ Restart</button>
+          <button class="btn" data-quick="battle.skip">⏭ Skip Next</button>
+        </div>
+      </div>
+
+      <div id="estop-banner" class="notice notice-danger hidden">
+        <strong>EMERGENCY STOP ACTIVE:</strong> Active gameplay is halted, pending supporter effects were cancelled, and new matches are blocked. All saved competitive records are preserved. Click <strong>RESUME OPERATIONS</strong> in the top bar after reviewing.
+      </div>
+
+      <div class="grid grid-4" style="margin-bottom:16px">
+        <div class="card">
+          <div class="card-title">Game Status</div>
+          <div id="kpi-status" class="kpi-value kpi-emerald">RUNNING</div>
+          <div id="kpi-match-type" class="kpi-sub">Mode: Normal Competitive</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Edition &amp; Round</div>
+          <div id="kpi-edition" class="kpi-value kpi-cyan">Classic</div>
+          <div id="kpi-round" class="kpi-sub">Round 0 · 0.0s elapsed</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Arena Survivors</div>
+          <div id="kpi-alive" class="kpi-value kpi-gold">30 / 30</div>
+          <div id="kpi-event" class="kpi-sub">Active Event: None</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Queue &amp; Tournament</div>
+          <div id="kpi-queue" class="kpi-value">0 queued</div>
+          <div id="kpi-tourney" class="kpi-sub">Championship: Round 0/12</div>
+        </div>
+      </div>
+
+      <div class="grid grid-2">
+        <div class="card">
+          <div class="card-title">Recent Battle Results <span class="badge badge-cyan">Live</span></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Round</th><th>Edition</th><th>Winner</th><th>Type</th><th>Time</th></tr></thead>
+              <tbody id="dash-recent-body"><tr><td colspan="5" style="color:var(--text-muted)">No recent results yet.</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">System Health &amp; Upcoming Queue</div>
+          <div id="dash-health" style="margin-bottom:14px;font-size:13px;color:var(--text-secondary)"></div>
+          <div class="card-title" style="margin-top:12px">Upcoming Battle Queue</div>
+          <div id="dash-queue-list" style="font-size:13px;color:var(--text-secondary)">Queue is empty (automatic selection active).</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. LIVE BATTLE CONTROL -->
+    <section id="tab-battle" class="tab-panel hidden">
+      <div class="section-header">
+        <div>
+          <h2>Live Battle Control</h2>
+          <p>Control the active match, switch editions, trigger events, and manage the battle queue.</p>
+        </div>
+      </div>
+
+      <div class="grid grid-2" style="margin-bottom:16px">
+        <div class="card">
+          <div class="card-title">Match Transport &amp; Edition</div>
+          <div class="btn-group" style="margin-bottom:14px">
+            <button class="btn btn-success" data-quick="battle.start">▶ Start</button>
+            <button class="btn" data-quick="battle.pause">⏸ Pause</button>
+            <button class="btn btn-primary" data-quick="battle.resume">⏵ Resume</button>
+            <button class="btn btn-gold" data-quick="battle.restart">↻ Restart</button>
+            <button class="btn" data-quick="battle.skip">⏭ Skip Battle</button>
+          </div>
+          <div class="form-row">
+            <div class="form-group" style="flex:1">
+              <label for="battle-edition-select">Active Game Edition (13 Editions)</label>
+              <select id="battle-edition-select"></select>
+            </div>
+            <div class="form-group">
+              <button id="apply-edition-btn" class="btn btn-primary" type="button">Switch Edition</button>
+            </div>
+          </div>
+          <div class="toggle-row">
+            <div><span>Automatic Battles</span><small>Automatically advance to the next battle after victory screens</small></div>
+            <input id="toggle-auto-battle" type="checkbox" checked>
+          </div>
+          <div class="form-row">
+            <div class="form-group" style="flex:1">
+              <label for="battle-duration-input">Custom Battle Duration (20–180s)</label>
+              <input id="battle-duration-input" type="number" min="20" max="180" value="60">
+            </div>
+            <div class="form-group">
+              <label><input id="toggle-custom-dur" type="checkbox"> Enable Limit</label>
+            </div>
+            <div class="form-group">
+              <button id="save-duration-btn" class="btn" type="button">Apply Duration</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Trigger Special Events</div>
+          <p style="margin:0 0 10px;font-size:12px;color:var(--text-secondary)">Safely trigger supported engine events during an active round.</p>
+          <div id="event-trigger-grid" class="btn-group"></div>
+          <div class="card-title" style="margin-top:16px">Active Match Telemetry</div>
+          <div id="live-mode-telemetry" style="font-size:13px;color:var(--text-secondary)">Waiting for live engine telemetry...</div>
+        </div>
+      </div>
+
+      <div class="grid grid-2" style="margin-bottom:16px">
+        <div class="card">
+          <div class="card-title">Prepare Matchup &amp; Add to Battle Queue</div>
+          <div class="form-row">
+            <div class="form-group" style="flex:1">
+              <label for="q-edition">Edition</label>
+              <select id="q-edition"></select>
+            </div>
+            <div class="form-group" style="flex:1">
+              <label for="q-label">Match Label (optional)</label>
+              <input id="q-label" type="text" placeholder="e.g. Viewer Special">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="q-countries">Manually Pin Countries into Match (hold Ctrl/Cmd for multiple; remaining slots auto-filled to 30)</label>
+            <select id="q-countries" multiple size="5"></select>
+          </div>
+          <div class="btn-group">
+            <button id="btn-launch-now" class="btn btn-primary" type="button">Launch Immediately</button>
+            <button id="btn-add-queue" class="btn btn-gold" type="button">+ Add to Battle Queue</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Battle Queue <button id="btn-clear-queue" class="btn btn-sm btn-danger" type="button">Clear Queue</button></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>#</th><th>Label</th><th>Edition</th><th>Type</th><th>Actions</th></tr></thead>
+              <tbody id="queue-table-body"><tr><td colspan="5" style="color:var(--text-muted)">No queued matchups.</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Live Arena Combatants (Health, Shields, Cooldowns &amp; Status)</div>
+        <div class="table-wrap" style="max-height:280px;overflow-y:auto">
+          <table>
+            <thead><tr><th>Country</th><th>Role / Team</th><th>HP / Status</th><th>Shield (s)</th><th>Supporter Boost</th></tr></thead>
+            <tbody id="live-flags-body"><tr><td colspan="5" style="color:var(--text-muted)">Connect audience display to view live combatants.</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. COUNTRY MANAGEMENT -->
+    <section id="tab-countries" class="tab-panel hidden">
+      <div class="section-header">
+        <div>
+          <h2>Country Management</h2>
+          <p>Enable/disable eligible countries, manage custom pools, feature nations, and control random selection.</p>
+        </div>
+        <div class="btn-group">
+          <button id="btn-save-countries" class="btn btn-primary" type="button">Save Country Config</button>
+        </div>
+      </div>
+
+      <div class="notice">
+        <strong>Permanent Exclusion Policy Active:</strong> Israel and its flag are permanently excluded from all country pools, selections, random generation, statistics, events, imports, and API endpoints. At least 30 eligible countries must remain enabled for arena rounds.
+      </div>
+
+      <div class="grid grid-3" style="margin-bottom:16px">
+        <div class="card">
+          <div class="card-title">Random Selection &amp; Duplicates</div>
+          <div class="form-group">
+            <label for="country-random-mode">Random Selection Mode</label>
+            <select id="country-random-mode">
+              <option value="balanced">Balanced Rotation Pool</option>
+              <option value="pure_random">Pure Random Draw</option>
+            </select>
+          </div>
+          <div class="toggle-row">
+            <div><span>Prevent Back-to-Back Duplicates</span><small>Avoid repeating the previous winner immediately</small></div>
+            <input id="toggle-prevent-dup" type="checkbox" checked>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Country Pools</div>
+          <div class="form-group">
+            <label for="active-pool-select">Active Country Pool</label>
+            <select id="active-pool-select"><option value="">All Enabled Countries (Default)</option></select>
+          </div>
+          <div class="form-row">
+            <div class="form-group" style="flex:1">
+              <label for="new-pool-name">Save Current Enabled as Pool</label>
+              <input id="new-pool-name" type="text" placeholder="e.g. Asia & Europe Pool">
+            </div>
+            <div class="form-group">
+              <button id="btn-create-pool" class="btn btn-gold" type="button">Save Pool</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Pool Summary</div>
+          <div id="country-summary" style="font-size:13px;color:var(--text-secondary)">Loading eligible countries...</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          Eligible Countries (55 Nations)
+          <input id="country-search" type="text" placeholder="Filter country..." style="max-width:220px">
+        </div>
+        <div id="country-grid" class="country-grid"></div>
+      </div>
+    </section>
+
+    <!-- 4. SPECIAL MATCH CONTROL -->
+    <section id="tab-special" class="tab-panel hidden">
+      <div class="section-header">
+        <div>
+          <h2>Special Match Control</h2>
+          <p>Clearly separate Normal Competitive Battles from Operator-Controlled Showcase Matches.</p>
+        </div>
+      </div>
+
+      <div class="grid grid-2" style="margin-bottom:16px">
+        <div class="card">
+          <div class="card-title">A. Normal Competitive Battles <span class="badge badge-emerald">Engine Decides Winner</span></div>
+          <p style="font-size:13px;color:var(--text-secondary);margin-top:0">
+            The physics engine determines the winner with zero secret manipulation. Results count toward competitive statistics, achievements, and championship records. Supporters may trigger predefined, bounded advantages below.
+          </p>
+          <div class="toggle-row">
+            <div><span>Allow Bounded Supporter Advantages</span><small>Logged in supporter history; strictly capped per round</small></div>
+            <input id="sup-lim-enabled" type="checkbox" checked>
+          </div>
+          <div class="form-row">
+            <div class="form-group" style="flex:1">
+              <label for="sup-lim-round">Max Effects / Round (0–10)</label>
+              <input id="sup-lim-round" type="number" min="0" max="10" value="4">
+            </div>
+            <div class="form-group" style="flex:1">
+              <label for="sup-lim-country">Max Effects / Country (0–3)</label>
+              <input id="sup-lim-country" type="number" min="0" max="3" value="2">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group" style="flex:1">
+              <label for="sup-lim-shield">Max Shield Duration (1–6s)</label>
+              <input id="sup-lim-shield" type="number" min="1" max="6" value="4">
+            </div>
+            <div class="form-group" style="flex:1">
+              <label for="sup-lim-cd">Cooldown Between Effects (s)</label>
+              <input id="sup-lim-cd" type="number" min="1" max="30" value="6">
+            </div>
+          </div>
+          <button id="btn-save-sup-limits" class="btn btn-primary" type="button">Save Competitive Limits</button>
+        </div>
+
+        <div class="card">
+          <div class="card-title">B. Operator-Controlled Showcase Match <span class="badge badge-crimson">Separate Records</span></div>
+          <div class="notice notice-warn">
+            Showcase matches visibly display <strong>"OPERATOR-CONTROLLED SHOWCASE"</strong> on screen and are stored separately. They NEVER count toward competitive win rates, achievements, or championship standings.
+          </div>
+          <div class="form-group">
+            <label for="showcase-winner-select">Select Showcase Winning Country</label>
+            <select id="showcase-winner-select"></select>
+          </div>
+          <div class="form-group">
+            <label for="showcase-edition-select">Edition for Showcase Match</label>
+            <select id="showcase-edition-select"></select>
+          </div>
+          <div class="btn-group">
+            <button id="btn-start-showcase" class="btn btn-danger" type="button">Launch Operator-Controlled Showcase</button>
+            <button id="btn-queue-showcase" class="btn btn-gold" type="button">+ Queue Showcase Match</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Isolated Showcase Match History <span class="badge badge-muted">Excluded from Competitive Stats</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Timestamp</th><th>Edition</th><th>Selected Winner</th><th>Duration</th><th>Eliminations</th></tr></thead>
+            <tbody id="showcase-results-body"><tr><td colspan="5" style="color:var(--text-muted)">No showcase matches recorded yet.</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. AUDIENCE & COMMENT MANAGEMENT -->
+    <section id="tab-audience" class="tab-panel hidden">
+      <div class="section-header">
+        <div>
+          <h2>Audience &amp; Comment Management</h2>
+          <p>Internal event interface prepared for future social platform adapters (no live external platform connected in this phase).</p>
+        </div>
+      </div>
+
+      <div class="notice">
+        <strong>Internal Event Bus Ready (Offline Mode):</strong> External social platform APIs are intentionally not connected in this phase. Use the internal form below to log viewer requests, moderate comments, approve matchups into the queue, or feature comments on screen.
+      </div>
+
+      <div class="grid grid-2" style="margin-bottom:16px">
+        <div class="card">
+          <div class="card-title">Log Viewer Request / Comment (Internal Bus)</div>
+          <div class="form-row">
+            <div class="form-group" style="flex:1">
+              <label for="aud-user">Viewer Username</label>
+              <input id="aud-user" type="text" placeholder="@viewer_name">
+            </div>
+            <div class="form-group" style="flex:1">
+              <label for="aud-country">Requested Country</label>
+              <select id="aud-country"></select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="aud-comment">Viewer Comment</label>
+            <input id="aud-comment" type="text" placeholder="Enter viewer comment or matchup request...">
+          </div>
+          <div class="btn-group">
+            <button id="btn-add-request" class="btn btn-primary" type="button">Add Viewer Request</button>
+            <button id="btn-clear-featured" class="btn" type="button">Clear Featured Overlay</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Moderation &amp; Blocked Usernames</div>
+          <div class="form-row">
+            <div class="form-group" style="flex:1">
+              <label for="mod-ban-user">Mute / Block Username</label>
+              <input id="mod-ban-user" type="text" placeholder="Username to mute">
+            </div>
+            <div class="form-group">
+              <button id="btn-ban-user" class="btn btn-danger" type="button">Mute User</button>
+            </div>
+          </div>
+          <div id="mod-banned-list" style="font-size:12px;color:var(--text-secondary)">No muted usernames.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Viewer Request Queue &amp; History</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Viewer</th><th>Country</th><th>Comment</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="audience-table-body"><tr><td colspan="5" style="color:var(--text-muted)">No viewer requests logged yet.</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. GIFTS & SUPPORTER MANAGEMENT -->
+    <section id="tab-supporters" class="tab-panel hidden">
+      <div class="section-header">
+        <div>
+          <h2>Gifts &amp; Supporter Management</h2>
+          <p>Internal supporter records, gift history, rankings, bounded gameplay boosts, and celebrations (no live gift API connected).</p>
+        </div>
+      </div>
+
+      <div class="grid grid-2" style="margin-bottom:16px">
+        <div class="card">
+          <div class="card-title">Record Gift &amp; Trigger Bounded Effect</div>
+          <div class="form-row">
+            <div class="form-group" style="flex:1">
+              <label for="sup-name">Supporter Name</label>
+              <input id="sup-name" type="text" placeholder="e.g. ArenaLegend">
+            </div>
+            <div class="form-group" style="flex:1">
+              <label for="sup-country">Supported Country</label>
+              <select id="sup-country"></select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group" style="flex:1">
+              <label for="sup-gift">Gift Name</label>
+              <input id="sup-gift" type="text" value="Golden Shield" placeholder="Gift label">
+            </div>
+            <div class="form-group" style="width:110px">
+              <label for="sup-value">Points / Value</label>
+              <input id="sup-value" type="number" min="1" max="100000" value="100">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="sup-effect">Predefined Bounded Effect (Normal Competitive Only)</label>
+            <select id="sup-effect">
+              <option value="none">Record Gift Only (No Gameplay Effect)</option>
+              <option value="shield_boost">Bounded Shield Boost (max 4s)</option>
+              <option value="speed_boost">Bounded Speed Boost (+20% for 4s)</option>
+              <option value="recovery_nudge">Bounded Recovery Nudge</option>
+            </select>
+          </div>
+          <div class="btn-group">
+            <button id="btn-record-gift" class="btn btn-gold" type="button">Record Gift &amp; Apply</button>
+            <button id="btn-celebrate-top" class="btn btn-primary" type="button">Trigger Top Supporter Celebration</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Supporter Rankings (Top Supporters)</div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Rank</th><th>Supporter</th><th>Favorite Country</th><th>Total Points</th><th>Gifts</th></tr></thead>
+              <tbody id="supporter-rank-body"><tr><td colspan="5" style="color:var(--text-muted)">No supporters recorded yet.</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Gift &amp; Supporter Action History</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Time</th><th>Supporter</th><th>Country</th><th>Gift</th><th>Effect</th><th>Value</th></tr></thead>
+            <tbody id="supporter-hist-body"><tr><td colspan="6" style="color:var(--text-muted)">No gift history yet.</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. TOURNAMENTS & CHAMPIONSHIP -->
+    <section id="tab-tournaments" class="tab-panel hidden">
+      <div class="section-header">
+        <div>
+          <h2>Tournament &amp; Championship Management</h2>
+          <p>Integrated with Flag Clash Arena's built-in 12-Round Championship plus custom tournament scheduling.</p>
+        </div>
+      </div>
+
+      <div class="grid grid-2" style="margin-bottom:16px">
+        <div class="card">
+          <div class="card-title">Built-In World Championship (12-Round Points System)</div>
+          <div id="champ-status-box" style="margin-bottom:12px;font-size:13px;color:var(--text-secondary)"></div>
+          <div class="btn-group" style="margin-bottom:14px">
+            <button id="btn-launch-champ" class="btn btn-gold" type="button">Switch to Championship Edition</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>#</th><th>Country</th><th>Points</th><th>Wins</th></tr></thead>
+              <tbody id="champ-standings-body"><tr><td colspan="4" style="color:var(--text-muted)">No active tournament points yet.</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Custom Tournament Creator &amp; Schedule</div>
+          <div class="form-row">
+            <div class="form-group" style="flex:1">
+              <label for="tourn-name">Tournament Name</label>
+              <input id="tourn-name" type="text" placeholder="e.g. Continental Cup">
+            </div>
+            <div class="form-group" style="flex:1">
+              <label for="tourn-format">Format</label>
+              <select id="tourn-format">
+                <option value="points_series">Multi-Round Points Series</option>
+                <option value="single_elim">Single Elimination Bracket</option>
+                <option value="round_robin">Round Robin Showcase</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group" style="flex:1">
+              <label for="tourn-rounds">Scheduled Matches</label>
+              <input id="tourn-rounds" type="number" min="2" max="24" value="6">
+            </div>
+            <div class="form-group" style="flex:1">
+              <label for="tourn-edition">Match Edition</label>
+              <select id="tourn-edition"></select>
+            </div>
+          </div>
+          <div class="btn-group">
+            <button id="btn-create-tourn" class="btn btn-primary" type="button">Create &amp; Schedule Matches</button>
+            <button id="btn-tourn-toggle" class="btn btn-gold" type="button">Start / Pause</button>
+          </div>
+          <div id="custom-tourn-status" style="margin-top:12px;font-size:13px;color:var(--text-secondary)">No custom tournament scheduled.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Completed Tournament &amp; Champion History</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Tournament #</th><th>Champion</th><th>Top Standings</th></tr></thead>
+            <tbody id="tourney-history-body"><tr><td colspan="3" style="color:var(--text-muted)">No completed tournaments yet.</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. SETTINGS & BALANCING -->
+    <section id="tab-settings" class="tab-panel hidden">
+      <div class="section-header">
+        <div>
+          <h2>Game Settings &amp; Balancing</h2>
+          <p>Validated gameplay balance parameters with Classic Mode Physics Protection.</p>
+        </div>
+        <div class="btn-group">
+          <button id="btn-reset-balance" class="btn" type="button">Reset Defaults</button>
+          <button id="btn-save-balance" class="btn btn-primary" type="button">Save &amp; Apply Settings</button>
+        </div>
+      </div>
+
+      <div class="notice">
+        <strong>Classic Physics Protection:</strong> When enabled (default), Classic Edition always runs with unmodified 1.0x physics regardless of custom multipliers below.
+      </div>
+
+      <div class="grid grid-2">
+        <div class="card">
+          <div class="card-title">Physics &amp; Speed Parameters</div>
+          <div class="toggle-row">
+            <div><span>Lock Classic Mode Physics</span><small>Preserve pure unmodified Classic gameplay physics</small></div>
+            <input id="set-classic-lock" type="checkbox" checked>
+          </div>
+          <div class="form-group">
+            <label>Battle Speed Multiplier: <strong id="val-speed">1.00x</strong> (0.5x – 2.0x)</label>
+            <input id="set-speed" type="range" min="0.5" max="2.0" step="0.05" value="1">
+          </div>
+          <div class="form-group">
+            <label>Center Pull / Gravity: <strong id="val-pull">1.00x</strong> (0.5x – 2.0x)</label>
+            <input id="set-pull" type="range" min="0.5" max="2.0" step="0.05" value="1">
+          </div>
+          <div class="form-group">
+            <label>Paddle Rotation Speed: <strong id="val-rot">1.00x</strong> (0.5x – 2.0x)</label>
+            <input id="set-rot" type="range" min="0.5" max="2.0" step="0.05" value="1">
+          </div>
+          <div class="form-group">
+            <label for="set-difficulty">Difficulty Preset</label>
+            <select id="set-difficulty">
+              <option value="casual">Casual (0.88x Pace)</option>
+              <option value="normal" selected>Normal (1.00x Standard)</option>
+              <option value="intense">Intense (1.15x Pace)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Cooldowns, Boss Health, Events &amp; Comeback</div>
+          <div class="form-group">
+            <label>Shield Cooldown: <strong id="val-shcd">22s</strong> (6s – 60s)</label>
+            <input id="set-shcd" type="range" min="6" max="60" step="1" value="22">
+          </div>
+          <div class="form-group">
+            <label>Special Event Frequency: <strong id="val-evfreq">1.00x</strong> (0.25x – 2.5x)</label>
+            <input id="set-evfreq" type="range" min="0.25" max="2.5" step="0.05" value="1">
+          </div>
+          <div class="form-group">
+            <label>Boss Battle HP Multiplier: <strong id="val-bosshp">1.00x</strong> (0.5x – 3.0x)</label>
+            <input id="set-bosshp" type="range" min="0.5" max="3.0" step="0.1" value="1">
+          </div>
+          <div class="form-group">
+            <label>Boss Damage Multiplier: <strong id="val-bossdmg">1.00x</strong> (0.5x – 2.5x)</label>
+            <input id="set-bossdmg" type="range" min="0.5" max="2.5" step="0.1" value="1">
+          </div>
+          <div class="toggle-row">
+            <div><span>Comeback Mechanics</span><small>Subtle center-escape stability when ≤5 flags remain</small></div>
+            <input id="set-comeback" type="checkbox">
+          </div>
+          <div class="form-group">
+            <label>Comeback Strength: <strong id="val-cbstr">0.50</strong> (0.0 – 2.0)</label>
+            <input id="set-cbstr" type="range" min="0" max="2" step="0.1" value="0.5">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 9. VISUAL & AUDIO CONTROLS -->
+    <section id="tab-visual" class="tab-panel hidden">
+      <div class="section-header">
+        <div>
+          <h2>Visual &amp; Audio Controls</h2>
+          <p>Independent audio buses, particle performance limits, screen shake, hit-stop, and overlay visibility.</p>
+        </div>
+        <button id="btn-save-visual" class="btn btn-primary" type="button">Save Visual &amp; Audio</button>
+      </div>
+
+      <div class="grid grid-2">
+        <div class="card">
+          <div class="card-title">Effects &amp; Performance</div>
+          <div class="toggle-row">
+            <div><span>Particles &amp; Confetti</span><small>Toggle confetti and shockwave particles</small></div>
+            <input id="vis-particles" type="checkbox" checked>
+          </div>
+          <div class="form-group">
+            <label>Visual Effect Intensity: <strong id="val-fx">100%</strong></label>
+            <input id="vis-fx" type="range" min="0" max="100" step="5" value="100">
+          </div>
+          <div class="form-group">
+            <label>Screen Shake Intensity (capped at 8px): <strong id="val-shake">60%</strong></label>
+            <input id="vis-shake" type="range" min="0" max="100" step="5" value="60">
+          </div>
+          <div class="toggle-row">
+            <div><span>Hit-Stop Impact Freeze</span><small>Brief 28ms impact pause on eliminations</small></div>
+            <input id="vis-hitstop" type="checkbox" checked>
+          </div>
+          <div class="toggle-row">
+            <div><span>Slow Motion Events</span><small>Allow slow-motion time dilation effects</small></div>
+            <input id="vis-slowmo" type="checkbox" checked>
+          </div>
+          <div class="toggle-row">
+            <div><span>Victory Animations</span><small>Confetti and celebration bursts on win screen</small></div>
+            <input id="vis-vicanim" type="checkbox" checked>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Audio Mixer &amp; Screen Overlays</div>
+          <div class="toggle-row">
+            <div><span>Voice Announcer (TTS)</span><small>Enable or mute live speech commentary</small></div>
+            <input id="vis-announcer" type="checkbox" checked>
+          </div>
+          <div class="form-group">
+            <label>Sound Effects (SFX) Volume: <strong id="val-sfx">80%</strong></label>
+            <input id="vis-sfx" type="range" min="0" max="100" step="5" value="80">
+          </div>
+          <div class="form-group">
+            <label>Background Music Volume: <strong id="val-music">65%</strong></label>
+            <input id="vis-music" type="range" min="0" max="100" step="5" value="65">
+          </div>
+          <div class="card-title" style="margin-top:14px">Supported Screen Overlays</div>
+          <div class="toggle-row"><span>Featured Audience Comment Banner</span><input id="ov-comment" type="checkbox" checked></div>
+          <div class="toggle-row"><span>Top Supporter &amp; Celebration Banner</span><input id="ov-supporter" type="checkbox" checked></div>
+          <div class="toggle-row"><span>Showcase Watermark (Always Recommended)</span><input id="ov-showcase" type="checkbox" checked></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10. ACHIEVEMENTS & HALL OF FAME -->
+    <section id="tab-hof" class="tab-panel hidden">
+      <div class="section-header">
+        <div>
+          <h2>Achievements &amp; Hall of Fame</h2>
+          <p>Read-only protected competitive records, champion history, winning streaks, and achievements.</p>
+        </div>
+      </div>
+
+      <div class="notice">
+        <strong>Competitive Integrity Lock:</strong> Hall of Fame, Lifetime Wins, Streaks, and Achievement records are protected against manual edits and isolated from Operator-Controlled Showcase matches.
+      </div>
+
+      <div class="grid grid-2" style="margin-bottom:16px">
+        <div class="card">
+          <div class="card-title">Hall of Fame — Lifetime Competitive Wins</div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Rank</th><th>Country</th><th>Lifetime Wins</th><th>Win Rate</th><th>Champ Wins</th></tr></thead>
+              <tbody id="hof-table-body"><tr><td colspan="5" style="color:var(--text-muted)">No lifetime wins recorded yet.</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Unlocked Achievements &amp; Winning Streaks</div>
+          <div id="streak-summary" style="margin-bottom:12px;font-size:13px;color:var(--text-secondary)"></div>
+          <div class="table-wrap" style="max-height:320px;overflow-y:auto">
+            <table>
+              <thead><tr><th>Achievement</th><th>Country</th><th>Round</th></tr></thead>
+              <tbody id="ach-table-body"><tr><td colspan="3" style="color:var(--text-muted)">No achievements unlocked yet.</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 11. LIVE PREVIEW -->
+    <section id="tab-preview" class="tab-panel hidden">
+      <div class="section-header">
+        <div>
+          <h2>Isolated Live Preview</h2>
+          <p>Inspect overlays, announcements, showcase badges, and effects safely without modifying the active audience match.</p>
+        </div>
+      </div>
+
+      <div class="preview-layout">
+        <div class="preview-phone-frame">
+          <iframe id="preview-iframe" src="/?preview=1" title="Flag Clash Arena Live Preview"></iframe>
+        </div>
+        <div class="card">
+          <div class="card-title">Preview Sandbox Controls (Zero Impact on Live Match)</div>
+          <p style="font-size:13px;color:var(--text-secondary);margin-top:0">
+            This preview runs in isolated read-only sandbox mode (<code>/?preview=1</code>). Testing overlays or events here will never write to competitive storage or disrupt the audience display.
+          </p>
+          <div class="btn-group" style="margin-bottom:14px">
+            <button class="btn btn-danger" data-prev="showcase">Preview Showcase Badge</button>
+            <button class="btn btn-primary" data-prev="comment">Preview Featured Comment</button>
+            <button class="btn btn-gold" data-prev="celebration">Preview Supporter Boost</button>
+            <button class="btn" data-prev="announcement">Preview Announcement</button>
+            <button class="btn btn-success" data-prev="event">Preview Energy Burst FX</button>
+            <button class="btn" data-prev="clear">Clear Preview Overlays</button>
+          </div>
+          <div class="form-group">
+            <label for="prev-custom-text">Custom Preview Announcement Text</label>
+            <input id="prev-custom-text" type="text" value="FINAL SHOWDOWN INCOMING!">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 12. BACKUPS & SECURITY -->
+    <section id="tab-backups" class="tab-panel hidden">
+      <div class="section-header">
+        <div>
+          <h2>Backup, Data Management &amp; Security Audit</h2>
+          <p>Export/restore full snapshots, export battle history, run protected resets, and inspect administrator activity.</p>
+        </div>
+      </div>
+
+      <div class="grid grid-2" style="margin-bottom:16px">
+        <div class="card">
+          <div class="card-title">Backup &amp; Export</div>
+          <div class="btn-group" style="margin-bottom:14px">
+            <button id="btn-create-backup" class="btn btn-primary" type="button">Create Local Snapshot</button>
+            <button id="btn-export-backup" class="btn btn-gold" type="button">Download Full Backup (.json)</button>
+            <button id="btn-export-history-csv" class="btn" type="button">Export Battle History (.csv)</button>
+          </div>
+          <div class="form-group">
+            <label for="restore-file-input">Restore from Backup JSON (validates schema &amp; enforces Israel exclusion)</label>
+            <input id="restore-file-input" type="file" accept=".json">
+          </div>
+          <div id="backup-info" style="font-size:12px;color:var(--text-secondary)">No manual snapshot saved yet.</div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Selective Statistics Reset (Auto-Backup Before Reset)</div>
+          <p style="font-size:12px;color:var(--text-secondary);margin-top:0">
+            Destructive actions always create an automatic recovery backup first and require explicit typed confirmation.
+          </p>
+          <div class="form-group">
+            <label for="reset-scope">Select Data Scope to Reset</label>
+            <select id="reset-scope">
+              <option value="session">Current Session Stats Only</option>
+              <option value="showcase">Showcase Match History Only</option>
+              <option value="audience_supporters">Audience Requests &amp; Supporter History</option>
+              <option value="tournament">Active Championship Tournament Only</option>
+              <option value="all_stats">All Competitive Statistics &amp; Hall of Fame</option>
+            </select>
+          </div>
+          <button id="btn-selective-reset" class="btn btn-danger" type="button">Run Selective Reset...</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Server-Verified Administrator Activity History <button id="btn-refresh-audit" class="btn btn-sm" type="button">Refresh</button></div>
+        <div class="table-wrap" style="max-height:300px;overflow-y:auto">
+          <table>
+            <thead><tr><th>Timestamp</th><th>Admin</th><th>Action</th><th>Status</th><th>Details</th></tr></thead>
+            <tbody id="audit-table-body"><tr><td colspan="5" style="color:var(--text-muted)">Loading server audit log...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ===== CONFIRMATION MODAL ===== -->
+<div id="confirm-modal" class="modal-backdrop hidden">
+  <div class="modal-card">
+    <h3 id="modal-title">Confirm Action</h3>
+    <p id="modal-body"></p>
+    <div id="modal-type-wrap" class="form-group hidden">
+      <label id="modal-type-label" for="modal-type-input">Type CONFIRM to proceed</label>
+      <input id="modal-type-input" type="text" autocomplete="off">
+    </div>
+    <div class="modal-actions">
+      <button id="modal-cancel" class="btn" type="button">Cancel</button>
+      <button id="modal-confirm" class="btn btn-danger" type="button">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-stack" class="toast-stack"></div>
+
+<script src="/admin.js"></script>
+</body>
+</html>
