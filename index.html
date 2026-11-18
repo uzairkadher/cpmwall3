@@ -1,4 +1,30 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="color-scheme" content="dark"><title>Flag Clash Arena</title><link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet"><style>html,body{height:100%;margin:0;background:#000;overflow:hidden;color-scheme:dark}body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);box-sizing:border-box}canvas{display:block;width:100%;height:100%}</style></head><body><canvas id="c"></canvas><script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#070b1a">
+  <meta name="description" content="Flag Clash Arena — Live 30-country physics battle arena featuring 13 game editions including Survival Storm, King of the Arena, Team Wars, Boss Battle, Chaos Arena, and Power-Up Battle.">
+  <meta property="og:title" content="Flag Clash Arena">
+  <meta property="og:description" content="Live 30-country physics battle arena with 13 game editions.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Flag Clash Arena">
+  <meta name="twitter:description" content="Live 30-country physics battle arena with 13 game editions.">
+  <title>Flag Clash Arena</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
+  <style>
+    html,body{height:100%;margin:0;background:#000;overflow:hidden;color-scheme:dark}
+    body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);box-sizing:border-box}
+    canvas{display:block;width:100%;height:100%;touch-action:none;user-select:none;-webkit-user-select:none}
+  </style>
+</head>
+<body><canvas id="c"></canvas><script>
 const DATA=`India|h|F93,fff,138|008
 France|v|039,fff,E31
 Italy|v|009246,fff,CE2B37
@@ -2869,4 +2895,5 @@ ctx.restore()}
 if(!restore()){if(pendRecap){start();RS=pendRecap;rt='LAST STREAM RECAP';rcCmp=sessList[sessList.length-2]||null;conf=[];ph(6)}else next()}setInterval(save,2000);setInterval(saveS,10000);addEventListener('pagehide',saveS);addEventListener('pagehide',save);document.addEventListener('visibilitychange',()=>{if(document.hidden)save()});let last=performance.now();
 let acc=0;function loop(n){requestAnimationFrame(loop);const dt=Math.min(Math.max((n-last)/1000,0),.1);last=n;const mul=((ED.bt&&phase==0)?bsp(BEL()):1)*EV.slow*SD.slow*(ED.chaos?CHAOS.slow:1),MK=ED.bt?24:8;uK=1/mul;acc+=dt*mul;try{if(phase>=1&&performance.now()-winAt>DUR[phase]*1000+1000)fin();let k=0;while(acc>=1/120&&k<MK){step(1/120);acc-=1/120;k++}if(k>=MK)acc=0;draw()}catch(e){console.error(e);try{ctx.restore()}catch(_){}}}
 requestAnimationFrame(loop);
-</script></body></html>
+</script></body>
+</html>
