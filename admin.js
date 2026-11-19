@@ -687,7 +687,27 @@
     return found ? found.name : `#${id}`;
   }
 
-  // ===== NAVIGATION =====
+  // ===== NAVIGATION (MOBILE-ONLY DRAWER + BOTTOM NAV SYNC) =====
+  function setMobileDrawer(open) {
+    const sb = $('sidebar');
+    const bd = $('mobile-nav-backdrop');
+    if (sb) sb.classList.toggle('open', !!open);
+    if (bd) bd.classList.toggle('open', !!open);
+  }
+
+  function syncMobileBottomNav(tab) {
+    let matched = false;
+    document.querySelectorAll('.mbn-item').forEach((b) => {
+      const isMatch = b.dataset.mbnTab === tab;
+      if (isMatch) matched = true;
+      b.classList.toggle('active', isMatch);
+    });
+    if (!matched) {
+      const moreBtn = document.querySelector('.mbn-item[data-mbn-action="more"]');
+      if (moreBtn) moreBtn.classList.add('active');
+    }
+  }
+
   document.querySelectorAll('.nav-item').forEach((btn) => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.nav-item').forEach((b) => b.classList.remove('active'));
@@ -696,12 +716,20 @@
       document.querySelectorAll('.tab-panel').forEach((sec) => {
         sec.classList.toggle('hidden', sec.id !== `tab-${tab}`);
       });
-      $('sidebar').classList.remove('open');
+      setMobileDrawer(false);
+      syncMobileBottomNav(tab);
+      window.scrollTo({ top: 0, behavior: 'instant' });
     });
   });
 
   $('menu-toggle').addEventListener('click', () => {
-    $('sidebar').classList.toggle('open');
+    const sb = $('sidebar');
+    setMobileDrawer(!(sb && sb.classList.contains('open')));
+  });
+  $('drawer-close')?.addEventListener('click', () => setMobileDrawer(false));
+  $('mobile-nav-backdrop')?.addEventListener('click', () => setMobileDrawer(false));
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') setMobileDrawer(false);
   });
 
   // ===== QUICK BATTLE CONTROLS & EMERGENCY STOP =====
@@ -2132,8 +2160,8 @@
   document.querySelectorAll('.mbn-item').forEach((btn) => {
     btn.addEventListener('click', () => {
       if (btn.dataset.mbnAction === 'more') {
-        const sb = document.querySelector('.sidebar');
-        if (sb) sb.classList.toggle('open');
+        const sb = $('sidebar');
+        setMobileDrawer(!(sb && sb.classList.contains('open')));
         return;
       }
       const tab = btn.dataset.mbnTab;
