@@ -55,7 +55,9 @@
       <span id="edition-pill" class="status-pill"><span id="top-edition">Classic · R0</span></span>
     </div>
     <div class="topbar-right">
+      <a href="/?stream=1" target="_blank" rel="noopener" class="btn btn-sm btn-primary" title="Clean vertical audience display without debug/sound prompts">Stream-Safe Display ↗</a>
       <a href="/" target="_blank" rel="noopener" class="btn btn-sm">Audience Screen ↗</a>
+      <button id="undo-btn" type="button" class="btn btn-sm" disabled title="Undo last reversible configuration change">↶ Undo</button>
       <span id="session-pill" class="status-pill"><span id="session-timer">Session active</span></span>
       <button id="estop-btn" type="button" class="btn btn-estop">EMERGENCY STOP</button>
       <button id="logout-btn" type="button" class="btn btn-sm">Logout</button>
@@ -68,6 +70,7 @@
     <button class="nav-item" data-tab="battle">Live Battle Control</button>
     <button class="nav-item" data-tab="countries">Country Management</button>
     <button class="nav-item" data-tab="special">Special Match Control</button>
+    <button class="nav-item" data-tab="showdirector">Show Director</button>
 
     <div class="nav-group-label">Community</div>
     <button class="nav-item" data-tab="audience">Audience &amp; Comments <span id="badge-pending-req" class="nav-badge">0</span></button>
@@ -81,6 +84,7 @@
     <button class="nav-item" data-tab="settings">Settings &amp; Balancing</button>
     <button class="nav-item" data-tab="visual">Visual &amp; Audio</button>
     <button class="nav-item" data-tab="preview">Live Preview</button>
+    <button class="nav-item" data-tab="diagnostics">Diagnostics &amp; Perf <span id="badge-diag-count" class="nav-badge">0</span></button>
     <button class="nav-item" data-tab="backups">Backups &amp; Security</button>
   </nav>
 
@@ -678,6 +682,14 @@
             <div><span>Particles &amp; Confetti</span><small>Toggle confetti and shockwave particles</small></div>
             <input id="vis-particles" type="checkbox" checked>
           </div>
+          <div class="toggle-row">
+            <div><span>Reduced-Effects Mode</span><small>Caps particle counts &amp; secondary glow for low-power devices</small></div>
+            <input id="vis-reduced" type="checkbox">
+          </div>
+          <div class="toggle-row">
+            <div><span>Adaptive Visual Quality</span><small>Automatically scales effects if rolling FPS drops below 42</small></div>
+            <input id="vis-adaptive" type="checkbox" checked>
+          </div>
           <div class="form-group">
             <label>Visual Effect Intensity: <strong id="val-fx">100%</strong></label>
             <input id="vis-fx" type="range" min="0" max="100" step="5" value="100">
@@ -715,8 +727,12 @@
             <input id="vis-music" type="range" min="0" max="100" step="5" value="65">
           </div>
           <div class="card-title" style="margin-top:14px">Supported Screen Overlays</div>
+          <div class="toggle-row"><span>Top Arena HUD &amp; Counters</span><input id="ov-hud" type="checkbox" checked></div>
+          <div class="toggle-row"><span>Elimination Toasts</span><input id="ov-toasts" type="checkbox" checked></div>
           <div class="toggle-row"><span>Featured Audience Comment Banner</span><input id="ov-comment" type="checkbox" checked></div>
           <div class="toggle-row"><span>Top Supporter &amp; Celebration Banner</span><input id="ov-supporter" type="checkbox" checked></div>
+          <div class="toggle-row"><span>Next-Match Teaser ("NEXT UP")</span><input id="ov-teaser" type="checkbox" checked></div>
+          <div class="toggle-row"><span>Live Manual Audience Poll Bar</span><input id="ov-poll" type="checkbox" checked></div>
           <div class="toggle-row"><span>Showcase Watermark (Always Recommended)</span><input id="ov-showcase" type="checkbox" checked></div>
         </div>
       </div>
@@ -782,6 +798,8 @@
             <button class="btn btn-gold" data-prev="celebration">Preview Supporter Boost</button>
             <button class="btn" data-prev="announcement">Preview Announcement</button>
             <button class="btn btn-success" data-prev="event">Preview Energy Burst FX</button>
+            <button class="btn btn-gold" data-prev="intro">Preview Battle Intro</button>
+            <button class="btn btn-primary" data-prev="poll">Preview Poll Bar</button>
             <button class="btn" data-prev="clear">Clear Preview Overlays</button>
           </div>
           <div class="form-group">
@@ -835,12 +853,199 @@
         </div>
       </div>
 
-      <div class="card">
-        <div class="card-title">Server-Verified Administrator Activity History <button id="btn-refresh-audit" class="btn btn-sm" type="button">Refresh</button></div>
-        <div class="table-wrap" style="max-height:300px;overflow-y:auto">
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-title">Configuration Rollback History (Last 10 Reversible Snapshots)</div>
+        <p style="font-size:12px;color:var(--text-secondary);margin-top:0">Automatically recorded before reversible configuration changes (gameplay, visual, countries, queue, Show Director). Irreversible actions such as selective resets cannot be undone here.</p>
+        <div class="table-wrap" style="max-height:220px;overflow-y:auto">
           <table>
-            <thead><tr><th>Timestamp</th><th>Admin</th><th>Action</th><th>Status</th><th>Details</th></tr></thead>
-            <tbody id="audit-table-body"><tr><td colspan="5" style="color:var(--text-muted)">Loading server audit log...</td></tr></tbody>
+            <thead><tr><th>Saved At</th><th>Change Summary</th><th>Action</th></tr></thead>
+            <tbody id="rollback-table-body"><tr><td colspan="3" style="color:var(--text-muted)">No configuration snapshots recorded yet.</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Administrator Activity History (Server + Persistent Log) <button id="btn-refresh-audit" class="btn btn-sm" type="button">Refresh</button></div>
+        <div class="table-wrap" style="max-height:320px;overflow-y:auto">
+          <table>
+            <thead><tr><th>Timestamp</th><th>Admin</th><th>Action</th><th>Affected Item</th><th>Details / Change</th><th>Status</th></tr></thead>
+            <tbody id="audit-table-body"><tr><td colspan="6" style="color:var(--text-muted)">Loading server audit log...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- 13. SHOW DIRECTOR -->
+    <section id="tab-showdirector" class="tab-panel hidden">
+      <div class="section-header">
+        <div>
+          <h2>Show Director — Entertainment &amp; Pacing Control</h2>
+          <p>Direct battle introductions, special entertainment events, real rivalries, victory teasers, and manual audience polls without altering Classic physics.</p>
+        </div>
+        <div class="btn-group">
+          <button id="btn-sd-return-normal" class="btn btn-gold" type="button">Return Safely to Normal Gameplay</button>
+          <button id="btn-sd-save" class="btn btn-primary" type="button">Save Show Director Config</button>
+        </div>
+      </div>
+
+      <div class="grid grid-2" style="margin-bottom:16px">
+        <div class="card">
+          <div class="card-title">Battle Introductions &amp; Dramatic Pacing</div>
+          <div class="toggle-row">
+            <div><span>Battle Introductions</span><small>Brief non-blocking animated reveal at round start</small></div>
+            <input id="sd-intro-enabled" type="checkbox" checked>
+          </div>
+          <div class="form-row">
+            <div class="form-group" style="flex:1">
+              <label for="sd-intro-style">Presentation Style</label>
+              <select id="sd-intro-style">
+                <option value="auto">Auto (Matches Edition &amp; Streaks)</option>
+                <option value="dramatic">Dramatic Matchup Reveal</option>
+                <option value="rivalry">Rivalry Spotlight</option>
+                <option value="champion">Champion Defense</option>
+                <option value="mystery">Mystery Reveal</option>
+              </select>
+            </div>
+            <div class="form-group" style="flex:1">
+              <label>Intro Duration: <strong id="val-sd-dur">2.5s</strong> (1.5–4.0s)</label>
+              <input id="sd-intro-dur" type="range" min="1.5" max="4.0" step="0.1" value="2.5">
+            </div>
+          </div>
+          <div class="toggle-row">
+            <div><span>Rivalry &amp; Streak Storytelling</span><small>Announce real head-to-head rivalries &amp; champion streaks</small></div>
+            <input id="sd-rivalry" type="checkbox" checked>
+          </div>
+          <div class="toggle-row">
+            <div><span>Dramatic Moments (Final-5 / Critical Boss HP)</span><small>Subtle arena tension pulse during high-stakes moments</small></div>
+            <input id="sd-dramatic" type="checkbox" checked>
+          </div>
+          <div class="toggle-row">
+            <div><span>Next-Match Teaser ("NEXT UP" Hook)</span><small>Show upcoming match or champion teaser on victory screen</small></div>
+            <input id="sd-teaser" type="checkbox" checked>
+          </div>
+          <div class="toggle-row">
+            <div><span>Victory MVP Recognition</span><small>Display genuine round MVP (King Slayer, Boss Breaker, Streak)</small></div>
+            <input id="sd-mvp" type="checkbox" checked>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Special Entertainment Events (Fair &amp; Bounded)</div>
+          <p style="font-size:12px;color:var(--text-secondary);margin-top:0">Enable or disable each event individually, or trigger immediately. None of these events predetermine competitive winners.</p>
+          <div class="toggle-row">
+            <div><span>Golden Flag Event</span><small>Random survivor gets bounded 5s golden aura &amp; shield</small></div>
+            <div class="btn-group">
+              <input id="sd-ev-golden" type="checkbox" checked>
+              <button class="btn btn-sm btn-gold" data-sd-special="golden_flag" type="button">Trigger</button>
+            </div>
+          </div>
+          <div class="toggle-row">
+            <div><span>Revenge Match</span><small>Pits previous runner-up vs champion in Rivalry Edition</small></div>
+            <div class="btn-group">
+              <input id="sd-ev-revenge" type="checkbox" checked>
+              <button class="btn btn-sm btn-primary" data-sd-special="revenge_match" type="button">Launch</button>
+            </div>
+          </div>
+          <div class="toggle-row">
+            <div><span>Champion's Challenge</span><small>Spotlight defense for the current defending champion</small></div>
+            <div class="btn-group">
+              <input id="sd-ev-champ" type="checkbox" checked>
+              <button class="btn btn-sm btn-primary" data-sd-special="champions_challenge" type="button">Launch</button>
+            </div>
+          </div>
+          <div class="toggle-row">
+            <div><span>Underdog Challenge</span><small>Features lowest-win-rate eligible contenders</small></div>
+            <div class="btn-group">
+              <input id="sd-ev-underdog" type="checkbox" checked>
+              <button class="btn btn-sm btn-success" data-sd-special="underdog_challenge" type="button">Launch</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-2">
+        <div class="card">
+          <div class="card-title">Audience Voting Poll <span class="badge badge-muted">Manual / Offline — No Fake Votes</span></div>
+          <div class="form-row">
+            <div class="form-group" style="flex:1">
+              <label for="poll-opt-a">Option A (Country)</label>
+              <select id="poll-opt-a"></select>
+            </div>
+            <div class="form-group" style="flex:1">
+              <label for="poll-opt-b">Option B (Country)</label>
+              <select id="poll-opt-b"></select>
+            </div>
+          </div>
+          <div class="btn-group" style="margin-bottom:12px">
+            <button id="btn-poll-vote-a" class="btn btn-sm btn-primary" type="button">+1 Vote A (<span id="poll-cnt-a">0</span>)</button>
+            <button id="btn-poll-vote-b" class="btn btn-sm btn-gold" type="button">+1 Vote B (<span id="poll-cnt-b">0</span>)</button>
+            <button id="btn-poll-toggle" class="btn btn-sm btn-success" type="button">Show Poll on Screen</button>
+            <button id="btn-poll-queue" class="btn btn-sm" type="button">Queue Poll Winner</button>
+            <button id="btn-poll-reset" class="btn btn-sm btn-danger" type="button">Reset</button>
+          </div>
+          <div id="poll-status-text" style="font-size:12px;color:var(--text-secondary)">Poll is currently hidden.</div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Real Head-to-Head Rivalry Records <span class="badge badge-emerald">Competitive Only</span></div>
+          <div id="rivalry-champ-summary" style="font-size:12px;color:var(--text-secondary);margin-bottom:10px">No competitive defending champion recorded yet.</div>
+          <div class="table-wrap" style="max-height:220px;overflow-y:auto">
+            <table>
+              <thead><tr><th>Matchup</th><th>Record</th><th>Encounters</th></tr></thead>
+              <tbody id="rivalry-table-body"><tr><td colspan="3" style="color:var(--text-muted)">Play competitive rounds to build real rivalry records.</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 14. DIAGNOSTICS & PERFORMANCE -->
+    <section id="tab-diagnostics" class="tab-panel hidden">
+      <div class="section-header">
+        <div>
+          <h2>Performance Monitoring &amp; Error Diagnostics</h2>
+          <p>Live frame-rate telemetry, adaptive quality status, and deduplicated runtime error reporting.</p>
+        </div>
+        <div class="btn-group">
+          <button id="btn-diag-clear" class="btn" type="button">Clear Diagnostics</button>
+          <button id="btn-safe-reset" class="btn btn-danger" type="button">Safe Engine Recovery Reset</button>
+        </div>
+      </div>
+
+      <div id="perf-warn-banner" class="notice notice-warn hidden">
+        <strong>Performance Instability Detected:</strong> Rolling FPS dropped below 42 FPS or frame time exceeded 55ms. Adaptive Quality or Reduced-Effects Mode is recommended.
+      </div>
+
+      <div class="grid grid-4" style="margin-bottom:16px">
+        <div class="card">
+          <div class="card-title">Measured Frame Rate</div>
+          <div id="perf-fps" class="kpi-value kpi-emerald">-- FPS</div>
+          <div id="perf-frametime" class="kpi-sub">Avg --ms · Max --ms</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Adaptive Quality</div>
+          <div id="perf-quality" class="kpi-value kpi-cyan">FULL</div>
+          <div id="perf-reduced-sub" class="kpi-sub">Reduced-Effects: OFF</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Active Particles</div>
+          <div id="perf-particles" class="kpi-value kpi-gold">0</div>
+          <div class="kpi-sub">Confetti + Event FX</div>
+        </div>
+        <div class="card">
+          <div class="card-title">JS Heap Memory</div>
+          <div id="perf-memory" class="kpi-value">N/A</div>
+          <div class="kpi-sub">Browser-dependent metric</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Runtime Error &amp; Recovery Diagnostics (Deduplicated, Zero Secrets)</div>
+        <div class="table-wrap" style="max-height:320px;overflow-y:auto">
+          <table>
+            <thead><tr><th>System</th><th>Message</th><th>Detail</th><th>Count</th><th>Last Seen</th></tr></thead>
+            <tbody id="diag-table-body"><tr><td colspan="5" style="color:var(--text-muted)">No runtime errors or recovery warnings detected.</td></tr></tbody>
           </table>
         </div>
       </div>

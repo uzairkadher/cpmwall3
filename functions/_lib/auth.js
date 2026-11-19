@@ -298,6 +298,20 @@ export function containsBannedCountry(value) {
   return false;
 }
 
+const SECRET_KEY_RE = /(pass(word)?|secret|token|cookie|csrf|auth|key)/i;
+
+function sanitizeAuditValue(val) {
+  if (val === undefined || val === null) return null;
+  if (typeof val === 'string') return val.slice(0, 180);
+  if (typeof val === 'number' || typeof val === 'boolean') return val;
+  try {
+    const clean = JSON.stringify(val, (k, v) => (k && SECRET_KEY_RE.test(k) ? '[REDACTED]' : v));
+    return clean ? clean.slice(0, 220) : null;
+  } catch (_) {
+    return '[unserializable]';
+  }
+}
+
 export function logAudit(entry) {
   const safeEntry = {
     id: generateRandomId(8),
@@ -306,6 +320,10 @@ export function logAudit(entry) {
     action: String(entry.action || 'unknown').slice(0, 80),
     status: entry.status || 'ok',
     ip: entry.ip || 'unknown',
+    affectedItem: entry.affectedItem ? String(entry.affectedItem).slice(0, 100) : '',
+    previousValue: sanitizeAuditValue(entry.previousValue),
+    newValue: sanitizeAuditValue(entry.newValue),
+    reason: entry.reason ? String(entry.reason).slice(0, 180) : '',
     detail: entry.detail ? String(entry.detail).slice(0, 220) : ''
   };
   auditTrail.unshift(safeEntry);

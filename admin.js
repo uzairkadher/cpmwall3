@@ -15,6 +15,17 @@
   const BACKUP_KEY = 'fca_last_backup';
   const HIST_KEY = 'fca_match_history';
   const SHOW_KEY = 'fca_showcase_results';
+  const CFG_KEY = 'fca_admin_config';
+  const CFG_HIST_KEY = 'fca_config_history';
+  const ACT_LOG_KEY = 'fca_admin_activity_log';
+  const REVERSIBLE_ACTIONS = new Set([
+    'settings.update_gameplay',
+    'settings.update_visual_audio',
+    'country.update_config',
+    'battle.set_queue',
+    'supporter.update_limits',
+    'showdirector.update'
+  ]);
 
   const DEFAULT_EDITIONS = [
     { idx: 0, name: 'Classic' },
@@ -40,7 +51,8 @@
     { id: 'slow', label: 'Slow Motion' },
     { id: 'meteor', label: 'Meteor Shower' },
     { id: 'spot', label: 'Golden Spotlight' },
-    { id: 'burst', label: 'Energy Burst' }
+    { id: 'burst', label: 'Energy Burst' },
+    { id: 'golden_flag', label: 'Golden Flag' }
   ];
 
   const state = {
@@ -236,7 +248,52 @@
   });
 
   // Every administrative action is authorized on the server FIRST via /api/admin/action
-  async function execAdminAction(action, payload = {}, summary = '', dispatchToGame = true) {
+  function captureCurrentConfigSnapshot() {
+    const raw = readLS(CFG_KEY, null);
+    if (raw && typeof raw === 'object') return JSON.parse(JSON.stringify(raw));
+    const t = state.telemetry;
+    if (!t) return null;
+    return JSON.parse(JSON.stringify({
+      autoBattle: t.autoBattle,
+      nextMatchType: t.nextMatchType,
+      nextShowcaseWinner: t.nextShowcaseWinner,
+      battleQueue: t.battleQueue || [],
+      countryConfig: t.countryConfig || {},
+      supporterLimits: t.supporterLimits || {},
+      gameplay: t.gameplay || {},
+      visual: t.visual || {},
+      showDirector: t.showDirector || {}
+    }));
+  }
+
+  function pushReversibleSnapshot(action, summary, prevCfg) {
+    if (!prevCfg || !REVERSIBLE_ACTIONS.has(action)) return;
+    const entry = { id: 'cfg_' + Date.now(), at: new Date().toISOString(), action, summary: summary || action, config: prevCfg };
+    state.undoStack = state.undoStack || [];
+    state.undoStack.unshift(entry);
+    if (state.undoStack.length > 15) state.undoStack.length = 15;
+    const hist = readLS(CFG_HIST_KEY, []);
+    hist.unshift(entry);
+    writeLS(CFG_HIST_KEY, hist.slice(0, 10));
+    updateUndoButton();
+    renderRollbackTable();
+  }
+
+  function updateUndoButton() {
+    const btn = $('undo-btn');
+    if (!btn) return;
+    const top = (state.undoStack || [])[0];
+    btn.disabled = !top;
+    btn.title = top ? `Undo: ${top.summary}` : 'No reversible configuration change to undo';
+  }
+
+  function recordLocalActivity(entry) {
+    const list = readLS(ACT_LOG_KEY, []);
+    list.unshift(entry);
+    writeLS(ACT_LOG_KEY, list.slice(0, 200));
+  }
+
+  async function execAdminAction(action, payload = {}, summary = '', dispatchToGame = true, meta = {}) {
     if (!state.authenticated) {
       toast('Session expired. Please sign in again.', 'error');
       showAuthGate();
@@ -244,6 +301,8 @@
     }
 
     try {
+      const prevCfg = REVERSIBLE_ACTIONS.has(action) ? captureCurrentConfigSnapshot() : null;
+      const affectedItem = meta.affectedItem || action.split('.')[0];
       const res = await fetch('/api/admin/action', {
         method: 'POST',
         credentials: 'same-origin',
@@ -251,7 +310,15 @@
           'Content-Type': 'application/json',
           'X-FCA-Admin-CSRF': state.csrfToken
         },
-        body: JSON.stringify({ action, payload, summary })
+        body: JSON.stringify({
+          action,
+          payload,
+          summary,
+          affectedItem,
+          previousValue: meta.previousValue !== undefined ? meta.previousValue : undefined,
+          newValue: meta.newValue !== undefined ? meta.newValue : undefined,
+          reason: meta.reason || ''
+        })
       });
       const data = await res.json().catch(() => ({}));
       if (res.status === 401) {
@@ -264,6 +331,8 @@
         return { ok: false, error: data.error };
       }
 
+      if (prevCfg) pushReversibleSnapshot(action, summary, prevCfg);
+      if (data.audit) recordLocalActivity(data.audit);
       if (dispatchToGame && bc) {
         bc.postMessage({
           target: 'game',
@@ -330,7 +399,7 @@
   function populateCountrySelectors(countries) {
     const clean = countries.filter((c) => isAllowedCountryName(c.name));
     state.countries = clean;
-    const ids = ['q-countries', 'showcase-winner-select', 'aud-country', 'sup-country'];
+    const ids = ['q-countries', 'showcase-winner-select', 'aud-country', 'sup-country', 'poll-opt-a', 'poll-opt-b'];
     for (const id of ids) {
       const el = $(id);
       if (!el) continue;
@@ -474,6 +543,8 @@
     renderShowcaseHistory(d.showcaseResults || []);
     renderChampionship(d);
     renderHoF(d);
+    renderPerformanceAndDiagnostics(d);
+    renderRivalryRecords(d);
   }
 
   function hydrateFormControls(d) {
@@ -497,6 +568,8 @@
     }
     if (d.visual) {
       $('vis-particles').checked = d.visual.particlesEnabled !== false;
+      if ($('vis-reduced')) $('vis-reduced').checked = !!d.visual.reducedEffects;
+      if ($('vis-adaptive')) $('vis-adaptive').checked = d.visual.adaptiveQuality !== false;
       $('vis-fx').value = d.visual.fxIntensity ?? 100;
       $('vis-shake').value = d.visual.screenShake ?? 60;
       $('vis-hitstop').checked = d.visual.hitStopEnabled !== false;
@@ -505,8 +578,12 @@
       $('vis-announcer').checked = d.visual.announcerEnabled !== false;
       $('vis-sfx').value = d.visual.sfxVolume ?? 80;
       $('vis-music').value = d.visual.musicVolume ?? 65;
+      if ($('ov-hud')) $('ov-hud').checked = d.visual.overlays?.hud !== false;
+      if ($('ov-toasts')) $('ov-toasts').checked = d.visual.overlays?.toasts !== false;
       $('ov-comment').checked = d.visual.overlays?.featuredComment !== false;
       $('ov-supporter').checked = d.visual.overlays?.topSupporter !== false;
+      if ($('ov-teaser')) $('ov-teaser').checked = d.visual.overlays?.nextTeaser !== false;
+      if ($('ov-poll')) $('ov-poll').checked = d.visual.overlays?.poll !== false;
       $('ov-showcase').checked = d.visual.overlays?.showcaseBadge !== false;
       updateSliderLabels();
     }
@@ -520,6 +597,23 @@
     if (d.countryConfig) {
       $('country-random-mode').value = d.countryConfig.randomMode || 'balanced';
       $('toggle-prevent-dup').checked = d.countryConfig.preventDuplicates !== false;
+    }
+    if (d.showDirector) {
+      if ($('sd-intro-enabled')) $('sd-intro-enabled').checked = d.showDirector.introEnabled !== false;
+      if ($('sd-intro-style')) $('sd-intro-style').value = d.showDirector.introStyle || 'auto';
+      if ($('sd-intro-dur')) {
+        $('sd-intro-dur').value = d.showDirector.introDurationSec ?? 2.5;
+        $('val-sd-dur').textContent = Number($('sd-intro-dur').value).toFixed(1) + 's';
+      }
+      if ($('sd-rivalry')) $('sd-rivalry').checked = d.showDirector.rivalryAnnouncements !== false;
+      if ($('sd-dramatic')) $('sd-dramatic').checked = d.showDirector.dramaticAlerts !== false;
+      if ($('sd-teaser')) $('sd-teaser').checked = d.showDirector.nextMatchTeaser !== false;
+      if ($('sd-mvp')) $('sd-mvp').checked = d.showDirector.mvpBadge !== false;
+      const ee = d.showDirector.enabledEvents || {};
+      if ($('sd-ev-golden')) $('sd-ev-golden').checked = ee.golden_flag !== false;
+      if ($('sd-ev-revenge')) $('sd-ev-revenge').checked = ee.revenge_match !== false;
+      if ($('sd-ev-champ')) $('sd-ev-champ').checked = ee.champions_challenge !== false;
+      if ($('sd-ev-underdog')) $('sd-ev-underdog').checked = ee.underdog_challenge !== false;
     }
   }
 
@@ -1083,7 +1177,15 @@
 
   $('btn-celebrate-top').addEventListener('click', async () => {
     const data = readLS(SUP_KEY, { gifts: [] });
-    const top = data.gifts[0] || { supporter: 'Arena Supporter', country: 'Arena' };
+    const gifts = Array.isArray(data.gifts) ? data.gifts : [];
+    const totals = {};
+    for (const g of gifts) {
+      if (!totals[g.supporter]) totals[g.supporter] = { supporter: g.supporter, country: g.country, points: 0 };
+      totals[g.supporter].points += Number(g.value || 0);
+      totals[g.supporter].country = g.country;
+    }
+    const ranked = Object.values(totals).sort((a, b) => b.points - a.points);
+    const top = ranked[0] || { supporter: 'Arena Supporter', country: 'Arena' };
     const r = await execAdminAction(
       'supporter.celebrate',
       { supporterName: top.supporter, countryName: top.country, message: 'TOP SUPPORTER CELEBRATION!', topSupporter: top.supporter },
@@ -1157,7 +1259,8 @@
         countries: [],
         matchType: 'normal',
         showcaseWinner: -1,
-        label: `${name} · Match ${i}/${rounds}`
+        label: `${name} · Match ${i}/${rounds}`,
+        tournamentId: ct.id
       });
     }
     const nextQueue = [...state.battleQueue, ...scheduled];
@@ -1173,7 +1276,7 @@
     if (!ct) return toast('Create a custom tournament first.', 'error');
     ct.status = ct.status === 'active' ? 'paused' : 'active';
     writeLS(TOURN_CUSTOM_KEY, ct);
-    await execAdminAction(ct.status === 'active' ? 'tournament.start' : 'tournament.pause', { id: ct.id }, `Tournament ${ct.status}`, false);
+    await execAdminAction(ct.status === 'active' ? 'tournament.start' : 'tournament.pause', { id: ct.id }, `Tournament ${ct.status}`, true);
     renderCustomTournament();
     toast(`Tournament "${ct.name}" is now ${ct.status}.`, 'ok');
   });
@@ -1238,6 +1341,8 @@
   $('btn-save-visual').addEventListener('click', async () => {
     const payload = {
       particlesEnabled: $('vis-particles').checked,
+      reducedEffects: $('vis-reduced') ? $('vis-reduced').checked : false,
+      adaptiveQuality: $('vis-adaptive') ? $('vis-adaptive').checked : true,
       fxIntensity: Number($('vis-fx').value),
       screenShake: Number($('vis-shake').value),
       hitStopEnabled: $('vis-hitstop').checked,
@@ -1247,8 +1352,12 @@
       sfxVolume: Number($('vis-sfx').value),
       musicVolume: Number($('vis-music').value),
       overlays: {
+        hud: $('ov-hud') ? $('ov-hud').checked : true,
+        toasts: $('ov-toasts') ? $('ov-toasts').checked : true,
         featuredComment: $('ov-comment').checked,
         topSupporter: $('ov-supporter').checked,
+        nextTeaser: $('ov-teaser') ? $('ov-teaser').checked : true,
+        poll: $('ov-poll') ? $('ov-poll').checked : true,
         showcaseBadge: $('ov-showcase').checked
       }
     };
@@ -1410,7 +1519,8 @@
     renderBackupInfo();
     renderAudience();
     renderSupporters();
-    toast('Backup restored successfully. Reload the Audience Display tab to apply restored state.', 'ok');
+    await execAdminAction('recovery.reload_storage', {}, 'Reloading audience display after backup restore', true);
+    toast('Backup restored and audience display reloaded cleanly.', 'ok');
   });
 
   $('btn-selective-reset').addEventListener('click', async () => {
@@ -1449,31 +1559,39 @@
     renderAudience();
     renderSupporters();
     renderCustomTournament();
-    toast(`Selective reset (${scope}) completed. Pre-reset backup saved.`, 'ok');
+    await execAdminAction('recovery.reload_storage', {}, `Reloading audience display after ${scope} reset`, true);
+    toast(`Selective reset (${scope}) completed. Pre-reset backup saved and display synced.`, 'ok');
   });
 
   // ===== AUDIT LOG & SESSION TIMER =====
   async function refreshAuditLog() {
     if (!state.authenticated) return;
+    let serverRows = [];
     try {
       const res = await fetch('/api/admin/audit', { credentials: 'same-origin' });
-      if (!res.ok) return;
-      const data = await res.json();
-      const rows = data.audit || [];
-      $('audit-table-body').innerHTML = rows.length
-        ? rows
-            .map(
-              (a) => `<tr>
-            <td>${new Date(a.at).toLocaleString()}</td>
-            <td><strong>${escapeHtml(a.actor)}</strong></td>
-            <td><code>${escapeHtml(a.action)}</code></td>
-            <td><span class="badge ${a.status === 'ok' ? 'badge-emerald' : 'badge-crimson'}">${escapeHtml(a.status)}</span></td>
-            <td>${escapeHtml(a.detail || '—')}</td>
-          </tr>`
-            )
-            .join('')
-        : '<tr><td colspan="5" style="color:var(--text-muted)">No audit entries yet.</td></tr>';
+      if (res.ok) {
+        const data = await res.json();
+        serverRows = data.audit || [];
+      }
     } catch (_) {}
+    const localRows = readLS(ACT_LOG_KEY, []);
+    const seen = new Set();
+    const rows = [...serverRows, ...localRows].filter((r) => {
+      const k = r.id || (r.at + '|' + r.action);
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    }).sort((a, b) => new Date(b.at) - new Date(a.at)).slice(0, 120);
+    $('audit-table-body').innerHTML = rows.length
+      ? rows.map((a) => `<tr>
+          <td>${new Date(a.at).toLocaleString()}</td>
+          <td><strong>${escapeHtml(a.actor)}</strong></td>
+          <td><code>${escapeHtml(a.action)}</code></td>
+          <td>${escapeHtml(a.affectedItem || a.action.split('.')[0])}</td>
+          <td>${escapeHtml(a.detail || a.reason || '—')}</td>
+          <td><span class="badge ${a.status === 'ok' ? 'badge-emerald' : 'badge-crimson'}">${escapeHtml(a.status)}</span></td>
+        </tr>`).join('')
+      : '<tr><td colspan="6" style="color:var(--text-muted)">No audit entries yet.</td></tr>';
   }
 
   $('btn-refresh-audit').addEventListener('click', refreshAuditLog);
@@ -1496,6 +1614,222 @@
       $('conn-label').textContent = 'Audience Tab Disconnected';
     }
   }, 1000);
+
+
+  // ===== UNDO & CONFIGURATION ROLLBACK =====
+  function renderRollbackTable() {
+    const tb = $('rollback-table-body');
+    if (!tb) return;
+    const hist = readLS(CFG_HIST_KEY, []);
+    if (!hist.length) {
+      tb.innerHTML = '<tr><td colspan="3" style="color:var(--text-muted)">No configuration snapshots recorded yet.</td></tr>';
+      return;
+    }
+    tb.innerHTML = hist.map((h, i) => `<tr>
+      <td>${new Date(h.at).toLocaleString()}</td>
+      <td><strong>${escapeHtml(h.summary)}</strong> <small style="color:var(--text-muted)">(${escapeHtml(h.action)})</small></td>
+      <td><button type="button" class="btn btn-sm btn-gold" data-rb-idx="${i}">Rollback</button></td>
+    </tr>`).join('');
+    tb.querySelectorAll('[data-rb-idx]').forEach((b) => {
+      b.addEventListener('click', async () => {
+        const entry = hist[+b.dataset.rbIdx];
+        if (!entry || !entry.config) return;
+        const ok = await confirmDialog({
+          title: 'Rollback Configuration?',
+          body: `Restore settings saved at ${new Date(entry.at).toLocaleString()} before "${entry.summary}"?`,
+          confirmText: 'Rollback Settings'
+        });
+        if (!ok) return;
+        const r = await execAdminAction('config.rollback', { config: entry.config }, `Rolled back config to snapshot before "${entry.summary}"`, true, { affectedItem: 'configuration', reason: 'Operator rollback' });
+        if (r.ok) {
+          state.controlsHydrated = false;
+          toast('Configuration rolled back cleanly.', 'ok');
+        }
+      });
+    });
+  }
+
+  if ($('undo-btn')) {
+    $('undo-btn').addEventListener('click', async () => {
+      const stack = state.undoStack || [];
+      const top = stack[0];
+      if (!top) return toast('No reversible change to undo.', 'error');
+      const r = await execAdminAction('config.undo', { config: top.config }, `Undid "${top.summary}"`, true, { affectedItem: top.action.split('.')[0], reason: 'Operator undo' });
+      if (r.ok) {
+        stack.shift();
+        state.controlsHydrated = false;
+        updateUndoButton();
+        toast(`Undid: ${top.summary}`, 'ok');
+      }
+    });
+  }
+
+  // ===== SHOW DIRECTOR & MANUAL AUDIENCE POLL =====
+  if ($('sd-intro-dur')) {
+    $('sd-intro-dur').addEventListener('input', () => {
+      $('val-sd-dur').textContent = Number($('sd-intro-dur').value).toFixed(1) + 's';
+    });
+  }
+
+  if ($('btn-sd-save')) {
+    $('btn-sd-save').addEventListener('click', async () => {
+      const payload = {
+        introEnabled: $('sd-intro-enabled').checked,
+        introStyle: $('sd-intro-style').value,
+        introDurationSec: Number($('sd-intro-dur').value),
+        rivalryAnnouncements: $('sd-rivalry').checked,
+        dramaticAlerts: $('sd-dramatic').checked,
+        nextMatchTeaser: $('sd-teaser').checked,
+        mvpBadge: $('sd-mvp').checked,
+        enabledEvents: {
+          golden_flag: $('sd-ev-golden').checked,
+          revenge_match: $('sd-ev-revenge').checked,
+          champions_challenge: $('sd-ev-champ').checked,
+          underdog_challenge: $('sd-ev-underdog').checked
+        }
+      };
+      const r = await execAdminAction('showdirector.update', payload, 'Updated Show Director configuration', true, { affectedItem: 'showDirector' });
+      if (r.ok) toast('Show Director settings saved.', 'ok');
+    });
+  }
+
+  if ($('btn-sd-return-normal')) {
+    $('btn-sd-return-normal').addEventListener('click', async () => {
+      const r = await execAdminAction('showdirector.return_normal', {}, 'Returned safely to normal gameplay', true, { affectedItem: 'showDirector' });
+      if (r.ok) {
+        manualPoll.active = false;
+        renderPollStatus();
+        toast('Returned safely to normal gameplay.', 'ok');
+      }
+    });
+  }
+
+  document.querySelectorAll('[data-sd-special]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const specialType = btn.dataset.sdSpecial;
+      const r = await execAdminAction('showdirector.trigger_special', { specialType }, `Triggered Show Director event: ${specialType}`, true, { affectedItem: specialType });
+      if (r.ok) toast(`Triggered ${specialType.replace('_', ' ')}`, 'ok');
+    });
+  });
+
+  const manualPoll = { active: false, votesA: 0, votesB: 0 };
+  function renderPollStatus() {
+    if ($('poll-cnt-a')) $('poll-cnt-a').textContent = String(manualPoll.votesA);
+    if ($('poll-cnt-b')) $('poll-cnt-b').textContent = String(manualPoll.votesB);
+    if ($('btn-poll-toggle')) $('btn-poll-toggle').textContent = manualPoll.active ? 'Hide Poll from Screen' : 'Show Poll on Screen';
+    if ($('poll-status-text')) {
+      const aName = getCountryName(Number($('poll-opt-a')?.value || 0));
+      const bName = getCountryName(Number($('poll-opt-b')?.value || 0));
+      $('poll-status-text').textContent = manualPoll.active
+        ? `LIVE ON SCREEN: ${aName} (${manualPoll.votesA}) vs ${bName} (${manualPoll.votesB})`
+        : `Poll hidden · ${aName} (${manualPoll.votesA}) vs ${bName} (${manualPoll.votesB})`;
+    }
+  }
+  async function syncPollToGame() {
+    const optionA = getCountryName(Number($('poll-opt-a')?.value || 0));
+    const optionB = getCountryName(Number($('poll-opt-b')?.value || 0));
+    renderPollStatus();
+    await execAdminAction('audience.poll_update', {
+      active: manualPoll.active,
+      question: 'Audience Matchup Poll',
+      optionA,
+      optionB,
+      votesA: manualPoll.votesA,
+      votesB: manualPoll.votesB
+    }, `Updated manual poll (${optionA}: ${manualPoll.votesA}, ${optionB}: ${manualPoll.votesB})`, true, { affectedItem: 'audience_poll' });
+  }
+  if ($('btn-poll-vote-a')) $('btn-poll-vote-a').addEventListener('click', () => { manualPoll.votesA++; syncPollToGame(); });
+  if ($('btn-poll-vote-b')) $('btn-poll-vote-b').addEventListener('click', () => { manualPoll.votesB++; syncPollToGame(); });
+  if ($('btn-poll-toggle')) $('btn-poll-toggle').addEventListener('click', () => { manualPoll.active = !manualPoll.active; syncPollToGame(); });
+  if ($('btn-poll-reset')) $('btn-poll-reset').addEventListener('click', () => { manualPoll.votesA = 0; manualPoll.votesB = 0; manualPoll.active = false; syncPollToGame(); });
+  if ($('btn-poll-queue')) {
+    $('btn-poll-queue').addEventListener('click', async () => {
+      const idA = Number($('poll-opt-a').value);
+      const idB = Number($('poll-opt-b').value);
+      const winId = manualPoll.votesB > manualPoll.votesA ? idB : idA;
+      const winName = getCountryName(winId);
+      const nextQueue = [...state.battleQueue, {
+        id: String(Date.now()),
+        editionIdx: state.telemetry?.editionIdx || 0,
+        countries: [winId],
+        matchType: 'normal',
+        showcaseWinner: -1,
+        label: `Audience Poll Winner: ${winName}`
+      }];
+      const r = await execAdminAction('battle.set_queue', { queue: nextQueue }, `Queued poll winner (${winName})`);
+      if (r.ok) {
+        state.battleQueue = nextQueue;
+        renderQueueTable();
+        toast(`Queued poll winner: ${winName}`, 'ok');
+      }
+    });
+  }
+
+  function renderRivalryRecords(d) {
+    const rh = d.rivalryHistory;
+    if (!rh || !$('rivalry-table-body')) return;
+    const champName = rh.defendingChamp >= 0 ? getCountryName(rh.defendingChamp) : 'None yet';
+    $('rivalry-champ-summary').innerHTML = `Defending Competitive Champion: <strong style="color:var(--accent-gold)">${escapeHtml(champName)}</strong> (${rh.defendingStreak || 0}x streak) · Last Runner-Up: <strong>${rh.lastRunnerUp >= 0 ? escapeHtml(getCountryName(rh.lastRunnerUp)) : 'None'}</strong>`;
+    const pairs = Object.values(rh.pairs || {}).sort((a, b) => b.matches - a.matches).slice(0, 12);
+    $('rivalry-table-body').innerHTML = pairs.length
+      ? pairs.map((p) => `<tr>
+          <td><strong>${escapeHtml(getCountryName(p.a))}</strong> vs <strong>${escapeHtml(getCountryName(p.b))}</strong></td>
+          <td style="color:var(--accent-gold)">${p.winsA} – ${p.winsB}</td>
+          <td>${p.matches}</td>
+        </tr>`).join('')
+      : '<tr><td colspan="3" style="color:var(--text-muted)">Play competitive rounds to build real rivalry records.</td></tr>';
+  }
+
+  // ===== PERFORMANCE MONITORING & DIAGNOSTICS =====
+  function renderPerformanceAndDiagnostics(d) {
+    const p = d.perf;
+    if (p && $('perf-fps')) {
+      $('perf-fps').textContent = `${p.fps} FPS`;
+      $('perf-fps').className = 'kpi-value ' + (p.unstable ? 'kpi-crimson' : 'kpi-emerald');
+      $('perf-frametime').textContent = `Avg ${p.avgFrameMs}ms · Max ${p.maxFrameMs}ms`;
+      $('perf-quality').textContent = p.adaptiveLevel || 'FULL';
+      $('perf-reduced-sub').textContent = `Reduced-Effects: ${d.visual?.reducedEffects ? 'ON' : 'OFF'} · Adaptive: ${d.visual?.adaptiveQuality !== false ? 'ON' : 'OFF'}`;
+      $('perf-particles').textContent = String(p.activeParticles || 0);
+      $('perf-memory').textContent = p.memoryMB !== null && p.memoryMB !== undefined ? `${p.memoryMB} MB` : 'N/A';
+      if ($('perf-warn-banner')) $('perf-warn-banner').classList.toggle('hidden', !p.unstable);
+    }
+    const diags = Array.isArray(d.diagnostics) ? d.diagnostics : [];
+    if ($('badge-diag-count')) $('badge-diag-count').textContent = String(diags.length);
+    if ($('diag-table-body')) {
+      $('diag-table-body').innerHTML = diags.length
+        ? diags.map((x) => `<tr>
+            <td><code>${escapeHtml(x.system)}</code></td>
+            <td>${escapeHtml(x.message)}</td>
+            <td style="color:var(--text-secondary)">${escapeHtml(x.detail || '—')}</td>
+            <td><span class="badge badge-crimson">${x.count}x</span></td>
+            <td>${new Date(x.lastAt).toLocaleTimeString()}</td>
+          </tr>`).join('')
+        : '<tr><td colspan="5" style="color:var(--text-muted)">No runtime errors or recovery warnings detected.</td></tr>';
+    }
+  }
+
+  if ($('btn-diag-clear')) {
+    $('btn-diag-clear').addEventListener('click', async () => {
+      const r = await execAdminAction('diagnostics.clear', {}, 'Cleared engine diagnostics log');
+      if (r.ok) toast('Diagnostics log cleared.', 'ok');
+    });
+  }
+
+  if ($('btn-safe-reset')) {
+    $('btn-safe-reset').addEventListener('click', async () => {
+      const ok = await confirmDialog({
+        title: 'Run Safe Engine Recovery Reset?',
+        body: 'This clears only the transient in-progress round state (fca_state) and starts a fresh round cleanly. All lifetime stats, achievements, and championship records are preserved.',
+        confirmText: 'Run Safe Recovery Reset'
+      });
+      if (!ok) return;
+      const r = await execAdminAction('recovery.safe_reset', {}, 'Executed safe engine recovery reset');
+      if (r.ok) toast('Safe engine recovery reset completed.', 'ok');
+    });
+  }
+
+  renderRollbackTable();
+  updateUndoButton();
 
   // Boot
   checkSession();

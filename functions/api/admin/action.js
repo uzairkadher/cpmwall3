@@ -44,7 +44,16 @@ const ALLOWED_ACTIONS = new Set([
   'backup.restore',
   'backup.selective_reset',
   'emergency.stop',
-  'emergency.resume'
+  'emergency.resume',
+  'showdirector.update',
+  'showdirector.trigger_special',
+  'showdirector.return_normal',
+  'audience.poll_update',
+  'diagnostics.clear',
+  'recovery.reload_storage',
+  'recovery.safe_reset',
+  'config.undo',
+  'config.rollback'
 ]);
 
 function validateBounds(action, payload) {
@@ -162,6 +171,10 @@ export async function onRequestPost({ request, env }) {
     action,
     status: 'ok',
     ip: getClientIp(request),
+    affectedItem: typeof body?.affectedItem === 'string' ? body.affectedItem : '',
+    previousValue: body?.previousValue,
+    newValue: body?.newValue,
+    reason: typeof body?.reason === 'string' ? body.reason : '',
     detail: typeof body?.summary === 'string' ? body.summary : ''
   });
 

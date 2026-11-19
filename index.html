@@ -191,6 +191,9 @@ g.strokeStyle='#fff';g.lineWidth=Math.max(2,.05*S);g.beginPath();g.arc(S/2,S/2,.
 const gs=i=>spr[i]||(spr[i]=mk(C[i],Math.ceil(2*rr*R*sc*dpr)));
 // audio
 const IS_PREVIEW=(()=>{try{return new URLSearchParams(location.search).get('preview')==='1'}catch(e){return false}})();
+const IS_STREAM_SAFE=(()=>{try{return new URLSearchParams(location.search).get('stream')==='1'}catch(e){return false}})();
+const BOOT_WARNINGS=[];
+function quarantineStorageKey(key,raw,reason){try{if(!IS_PREVIEW&&raw&&typeof raw==='string'){localStorage.setItem('fca_quarantine_'+key,JSON.stringify({at:new Date().toISOString(),key,reason,raw:raw.slice(0,20000)}))}}catch(_){}BOOT_WARNINGS.push({system:'storage_recovery',key,reason,at:new Date().toISOString()});}
 let AC=null,MG,MUSIC_G=null,SFX_G=null,stp=0,nT=0;
 const mf=n=>440*Math.pow(2,(n-69)/12);
 function getAudioBus(bus){return bus==='music'?(MUSIC_G||MG):(SFX_G||MG)}
@@ -543,7 +546,7 @@ const DUR={1:8,2:12,3:7,4:4.5,5:8,6:13};
 const MS=[{m:50,n:'BRONZE',c:'#cd7f32',d:6,t:'Bronze: a great start!'},{m:100,n:'SILVER',c:'#cfd8e3',d:7,t:'Silver: the legend grows!'},{m:250,n:'GOLD',c:'#ffd23f',d:8,t:'Gold: a golden era!'},{m:500,n:'LEGENDARY',c:'#b86bff',d:10,t:'The arena trembles!'},{m:1000,n:'ULTIMATE',c:'#ff4d6d',d:12,t:'1,000 rounds of glory!'}];
 const EDT=['CLASSIC EDITION BEGINS!','RIVALRY EDITION BEGINS!','EXTREME SURVIVAL ACTIVATED!','ENTERING MYSTERY MODE!','WORLD CHAMPIONSHIP FINALS!','60-SECOND BATTLE BEGINS!','SURVIVAL STORM BEGINS!','KING OF THE ARENA BEGINS!','TEAM WARS BEGINS!','SUDDEN DEATH ACTIVATED!','BOSS BATTLE BEGINS!','ENTERING CHAOS ARENA!','POWER-UP BATTLE BEGINS!'],EDC=['#22d3ee','#ff4d6d','#ff9f1c','#b86bff','#ffd23f','#ff2bd6','#38bdf8','#ffd23f','#ff4d6d','#ff2a4b','#f59e0b','#d946ef','#10b981'];
 let life={r:0,w:{}},msDone=[],edSeen=-1,qs=[],trans=null,msCur=null,achievementRecords=[];
-try{const o=JSON.parse(LS.get('fca_life')||'null');if(o&&o.w&&typeof o.w==='object'&&!Array.isArray(o.w)){life.w=cleanCountryCounts(o.w);const sum=Object.values(life.w).reduce((a,b)=>a+b,0);life.r=Math.max(sum,Number.isSafeInteger(+o.r)&&+o.r>=0?+o.r:0)}}catch(e){}
+let _lifeCorrupt=false;try{const _rl=LS.get('fca_life');const o=JSON.parse(_rl||'null');if(o&&o.w&&typeof o.w==='object'&&!Array.isArray(o.w)){life.w=cleanCountryCounts(o.w);const sum=Object.values(life.w).reduce((a,b)=>a+b,0);life.r=Math.max(sum,Number.isSafeInteger(+o.r)&&+o.r>=0?+o.r:0)}}catch(e){_lifeCorrupt=true;quarantineStorageKey('fca_life',LS.get('fca_life'),'Corrupted fca_life JSON quarantined on boot')}
 try{const o=JSON.parse(LS.get('fca_ms')||'[]');if(Array.isArray(o))msDone=o.filter(x=>MS.some(m=>m.m===x))}catch(e){}
 const ACHIEVEMENTS=[['first','FIRST VICTORY','Wins a first round','#22d3ee'],['wins10','TEN-TIME CHAMPION','Wins 10 rounds','#ffd23f'],['wins25','25-TIME CHAMPION','Wins 25 rounds','#ffd23f'],['wins50','50-TIME CHAMPION','Wins 50 rounds','#ff9f1c'],['wins100','CENTURY CLUB','Wins 100 rounds','#b86bff'],['streak3','THREE-PEAT','Wins 3 rounds in a row','#80ed99'],['streak5','FIVE IN A ROW','Wins 5 rounds in a row','#80ed99'],['streak10','UNSTOPPABLE','Wins 10 rounds in a row','#ff4d6d'],['comeback','COMEBACK KING','Wins after 40 consecutive losses','#22d3ee'],['giant','GIANT KILLER','Defeats the established session leader','#ff4d6d'],['iron','IRON FLAG','Reaches the final twenty for 5 consecutive rounds','#b86bff'],['tournament','TOURNAMENT CHAMPION','Wins a 12-round Championship tournament','#ffd23f']];
 try{const o=JSON.parse(LS.get('fca_achievements')||'[]');if(Array.isArray(o)){const seen=new Set();achievementRecords=o.filter(x=>{if(!x||!ACHIEVEMENTS.some(a=>a[0]===x.k)||!APPS.has(+x.c))return false;const k=x.k+':'+(+x.c);if(seen.has(k))return false;seen.add(k);return true}).map(x=>({k:x.k,c:+x.c,at:Number.isSafeInteger(+x.at)&&+x.at>=0?+x.at:0,round:Number.isSafeInteger(+x.round)&&+x.round>=0?+x.round:0})).slice(-1000)}}catch(e){}
@@ -564,7 +567,7 @@ const summ=o=>{const t=Object.entries(o.w).sort((x,y)=>y[1]-x[1])[0];return{id:o
 let S=NEWS(),sessList=[],pendRecap=null,RS=null,rt='',rcCmp=null,awd=null,domLine='',snap=null;
 try{sessList=JSON.parse(LS.get('fca_sessions')||'[]');if(!Array.isArray(sessList))sessList=[]}catch(e){sessList=[]}
 try{const o=JSON.parse(LS.get('fca_sess')||'null');if(o&&o.w&&typeof o.w=='object'&&Array.isArray(o.hrc)){if(Date.now()-o.last>1800000){if(o.rounds>0){sessList.push(summ(o));sessList=sessList.slice(-20);LS.set('fca_sessions',JSON.stringify(sessList));pendRecap=o}}else S=Object.assign(NEWS(),o)}}catch(e){}
-const saveS=()=>{S.last=Date.now();LS.set('fca_sess',JSON.stringify(S))};saveS();LS.set('fca_life',JSON.stringify(life));LS.set('fca_achievements',JSON.stringify(achievementRecords));saveTournament();saveKingStats();saveTeamStats();saveSuddenStats();saveBossStats();saveChaosStats();savePowerStats();
+const saveS=()=>{S.last=Date.now();LS.set('fca_sess',JSON.stringify(S))};saveS();if(!_lifeCorrupt)LS.set('fca_life',JSON.stringify(life));LS.set('fca_achievements',JSON.stringify(achievementRecords));saveTournament();saveKingStats();saveTeamStats();saveSuddenStats();saveBossStats();saveChaosStats();savePowerStats();
 function judge(){const w=wIdx,inR=new Set(F.map(f=>f.c)),sw0=S.w[w]||0,ls0=S.ls[w]||0,se=Object.entries(S.w).sort((x,y)=>y[1]-x[1]),lead=se[0]&&se[0][1]>=3?+se[0][0]:-1,mx=Math.max(0,...Object.values(life.w)),sg=mx-((life.w[w]||1)-1);
 S.rounds++;S.elim+=outs.length;S.w[w]=sw0+1;
 if(S.cs.c==w)S.cs.n++;else S.cs={c:w,n:1};if(S.cs.n>S.sb.n)S.sb={c:w,n:S.cs.n};
@@ -639,18 +642,19 @@ if(rivalLine)return say(rivalLine,2);
 if(outs.length==1)return say(pk(['First one out! '+n,'And we have our first elimination: '+n+' is out']),2);
 if(L<=4)return say(pk([L+' flags left! '+n+' is out','Getting tense! '+n+' is out']),2);
 say(rnd()<.4?pk([n+' falls into the hole','Goodbye '+n,n+' has been eliminated','Oh no, '+n+' is gone']):n+' is out',1)}
-function save(){try{if(!F||phase>0)return;LS.set('fca_state',JSON.stringify({ts:Date.now(),ei:curEi,round,el:(Date.now()-rStart)/1000,pool,wIdx,t,a,outs,lastE,nextShield,nextTalk,storm:ED.storm?STORM.serialize():null,king:ED.king?KING.serialize():null,team:ED.team?TEAM.serialize():null,sudden:ED.sudden?SUDDEN.serialize():null,boss:ED.boss?BOSS.serialize():null,chaos:ED.chaos?CHAOS.serialize():null,power:ED.power?POWER.serialize():null,F:F.map(f=>({c:f.c,x:f.x,y:f.y,vx:f.vx,vy:f.vy,sp:f.sp,on:f.on,sh:f.sh,dg:f.dg||0,inDanger:f.inDanger?1:0,lhb:f.lastHitBy??-1,lha:f.lastHitAt??-99,tm:ED.team&&f.team!==undefined?f.team:-1,pu:ED.power&&f.pu?{t:f.pu.t,r:f.pu.r,d:f.pu.d}:null,puc:ED.power?f.puCount||0:0,pcd:ED.power?f.puCd||0:0}))}))}catch(e){}}
-function restore(){try{const s=JSON.parse(LS.get('fca_state')||'null');
+function save(){try{if(!F||phase>0)return;const _adm=window.__FCA_ADM__;LS.set('fca_state',JSON.stringify({v:2,ts:Date.now(),ei:curEi,round,el:(Date.now()-rStart)/1000,mt:_adm?_adm.activeMatchType:'normal',sw:_adm?_adm.activeShowcaseWinner:-1,md:_adm?_adm.activeMatchDuration:0,pool,wIdx,t,a,outs,lastE,nextShield,nextTalk,storm:ED.storm?STORM.serialize():null,king:ED.king?KING.serialize():null,team:ED.team?TEAM.serialize():null,sudden:ED.sudden?SUDDEN.serialize():null,boss:ED.boss?BOSS.serialize():null,chaos:ED.chaos?CHAOS.serialize():null,power:ED.power?POWER.serialize():null,F:F.map(f=>({c:f.c,x:f.x,y:f.y,vx:f.vx,vy:f.vy,sp:f.sp,on:f.on,sh:f.sh,dg:f.dg||0,inDanger:f.inDanger?1:0,lhb:f.lastHitBy??-1,lha:f.lastHitAt??-99,tm:ED.team&&f.team!==undefined?f.team:-1,pu:ED.power&&f.pu?{t:f.pu.t,r:f.pu.r,d:f.pu.d}:null,puc:ED.power?f.puCount||0:0,pcd:ED.power?f.puCd||0:0}))}))}catch(e){if(window.__FCA_ADM__&&window.__FCA_ADM__.recordDiagnostic)window.__FCA_ADM__.recordDiagnostic('storage_recovery','State save failed',e.message)}}
+function restore(){const _rawState=LS.get('fca_state');if(!_rawState)return false;try{const s=JSON.parse(_rawState);
 const fair=isFairEd(EDS[s?.ei]);
-if(!s||Date.now()-s.ts>600000||!Array.isArray(s.F)||s.F.length!=N||new Set(s.F.map(f=>f.c)).size!=N||!s.F.every(f=>APPS.has(f.c))||(!fair&&s.F[0].c!=s.wIdx)||!Array.isArray(s.outs)||!Array.isArray(s.pool))return false;
-if(!s.F.every(f=>f.c>=0&&f.c<C.length&&isFinite(f.x+f.y+f.vx+f.vy+f.sp+f.sh))||(!fair&&!s.F[0].on)||(fair&&!s.F.some(f=>f.on))||![s.t,s.a,s.lastE,s.nextShield,s.nextTalk,s.round].every(isFinite))return false;
+if(!s||Date.now()-s.ts>600000||!Array.isArray(s.F)||s.F.length!=N||new Set(s.F.map(f=>f.c)).size!=N||!s.F.every(f=>APPS.has(f.c))||(!fair&&s.F[0].c!=s.wIdx)||!Array.isArray(s.outs)||!Array.isArray(s.pool)){if(s&&Date.now()-s.ts<=600000)quarantineStorageKey('fca_state',_rawState,'Invalid or inconsistent saved round state');return false;}
+if(!s.F.every(f=>f.c>=0&&f.c<C.length&&isFinite(f.x+f.y+f.vx+f.vy+f.sp+f.sh))||(!fair&&!s.F[0].on)||(fair&&!s.F.some(f=>f.on))||![s.t,s.a,s.lastE,s.nextShield,s.nextTalk,s.round].every(isFinite)){quarantineStorageKey('fca_state',_rawState,'Non-finite physics values in saved round state');return false;}
+window.__FCA_RESTORED_META__={mt:s.mt==='showcase'?'showcase':'normal',sw:APPS.has(+s.sw)?+s.sw:-1,md:Number(s.md)||0};if(window.__FCA_ADM__){window.__FCA_ADM__.activeMatchType=window.__FCA_RESTORED_META__.mt;window.__FCA_ADM__.activeShowcaseWinner=window.__FCA_RESTORED_META__.sw;window.__FCA_ADM__.activeMatchDuration=window.__FCA_RESTORED_META__.md;}
 const ei=EDS[s.ei]?s.ei:0;ED=EDS[ei];curEi=lastEd=ei;round=s.round;pool=s.pool.filter(i=>APPS.has(i));wIdx=s.wIdx;t=s.t;a=s.a;outs=s.outs;lastE=s.lastE;nextShield=s.nextShield;nextTalk=s.nextTalk;
-F=s.F.map(f=>({c:f.c,x:f.x,y:f.y,vx:f.vx,vy:f.vy,sp:f.sp,on:f.on?1:0,h:0,sh:ED.sudden?0:f.sh,dg:ED.storm&&isFinite(+f.dg)?Math.max(0,+f.dg):0,inDanger:!!(ED.storm&&f.inDanger),stElim:null,lastHitBy:APPS.has(+f.lhb)?+f.lhb:-1,lastHitAt:isFinite(+f.lha)?+f.lha:-99,team:ED.team&&(f.tm===0||f.tm===1)?f.tm:-1,pu:ED.power&&f.pu&&POWER_IDS.has(f.pu.t)&&isFinite(+f.pu.r)&&+f.pu.r>0?{t:f.pu.t,r:+f.pu.r,d:Math.max(.5,+f.pu.d||4)}:null,puCount:ED.power?safeInt(f.puc,100):0,puCd:ED.power&&isFinite(+f.pcd)?Math.max(0,+f.pcd):0}));phase=0;wt=0;toast=null;conf=[];cap=null;flash=0;banner=null;wspr=null;wHole=0;winCap='';ann=null;showdown=null;showdownDone=false;snap=null;forced=false;rStart=Date.now()-(+s.el||0)*1000;binit(+s.el||0);EV.reset();STORM.reset();KING.reset();TEAM.reset();SUDDEN.reset();BOSS.reset();CHAOS.reset();POWER.reset();if(ED.storm&&s.storm)STORM.deserialize(s.storm);if(ED.king&&s.king)KING.deserialize(s.king);if(ED.team&&s.team)TEAM.deserialize(s.team);if(ED.sudden&&s.sudden)SUDDEN.deserialize(s.sudden);if(ED.boss&&s.boss)BOSS.deserialize(s.boss);if(ED.chaos&&s.chaos)CHAOS.deserialize(s.chaos);if(ED.power&&s.power)POWER.deserialize(s.power);return true}catch(e){return false}}
+F=s.F.map(f=>({c:f.c,x:f.x,y:f.y,vx:f.vx,vy:f.vy,sp:f.sp,on:f.on?1:0,h:0,sh:ED.sudden?0:f.sh,dg:ED.storm&&isFinite(+f.dg)?Math.max(0,+f.dg):0,inDanger:!!(ED.storm&&f.inDanger),stElim:null,lastHitBy:APPS.has(+f.lhb)?+f.lhb:-1,lastHitAt:isFinite(+f.lha)?+f.lha:-99,team:ED.team&&(f.tm===0||f.tm===1)?f.tm:-1,pu:ED.power&&f.pu&&POWER_IDS.has(f.pu.t)&&isFinite(+f.pu.r)&&+f.pu.r>0?{t:f.pu.t,r:+f.pu.r,d:Math.max(.5,+f.pu.d||4)}:null,puCount:ED.power?safeInt(f.puc,100):0,puCd:ED.power&&isFinite(+f.pcd)?Math.max(0,+f.pcd):0}));phase=0;wt=0;toast=null;conf=[];cap=null;flash=0;banner=null;wspr=null;wHole=0;winCap='';ann=null;showdown=null;showdownDone=false;snap=null;forced=false;rStart=Date.now()-(+s.el||0)*1000;binit(+s.el||0);EV.reset();STORM.reset();KING.reset();TEAM.reset();SUDDEN.reset();BOSS.reset();CHAOS.reset();POWER.reset();if(ED.storm&&s.storm)STORM.deserialize(s.storm);if(ED.king&&s.king)KING.deserialize(s.king);if(ED.team&&s.team)TEAM.deserialize(s.team);if(ED.sudden&&s.sudden)SUDDEN.deserialize(s.sudden);if(ED.boss&&s.boss)BOSS.deserialize(s.boss);if(ED.chaos&&s.chaos)CHAOS.deserialize(s.chaos);if(ED.power&&s.power)POWER.deserialize(s.power);return true}catch(e){quarantineStorageKey('fca_state',_rawState,'Malformed JSON in saved round state');return false}}
 let hitT=0,sayT=0,forced=false,rStart=Date.now(),ann=null,showdown=null,showdownDone=false,winCap='',wHole=0,lastChamp=(v=>v===null||v===''?-1:+v)(LS.get('fca_last')),nextTalk=30,curEi=0,winAt=0,pool=[],F,t,a,phase,wt,toast,conf,outs,lastE,cap,flash,nextShield,banner,round=0,wIdx;
 function vRound(ids){return ids.length==N&&new Set(ids).size==N&&ids.every(i=>APPS.has(i)&&C[i].id===i&&C[i].n&&C[i].f)&&ids[0]===wIdx}
 function fixRound(ids){const u=[...new Set(ids.filter(i=>APPS.has(i)))].slice(0,N);if(u.length<N){const q=APP.filter(i=>!u.includes(i));for(let i=q.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[q[i],q[j]]=[q[j],q[i]]}while(u.length<N&&q.length)u.push(q.pop())}return u}
 function getEligibleCountries(){const adm=window.__FCA_ADM__;if(!adm||!adm.countryConfig)return APP.slice();const cfg=adm.countryConfig;const disabled=new Set((cfg.disabled||[]).map(Number));let list=APP.filter(i=>!disabled.has(i)&&validCountry(C[i]?.n));if(cfg.activePool&&Array.isArray(cfg.pools?.[cfg.activePool])&&cfg.pools[cfg.activePool].length>=N){const pl=cfg.pools[cfg.activePool].map(Number).filter(i=>APPS.has(i)&&!disabled.has(i)&&validCountry(C[i]?.n));if(pl.length>=N)list=pl}return list.length>=N?list:APP.slice()}
-function start(overrideOpts){const adm=window.__FCA_ADM__;if(adm&&adm.emergencyStop)return;tourneyJustCompleted=false;let queued=overrideOpts||null;if(!queued&&adm&&Array.isArray(adm.battleQueue)&&adm.battleQueue.length>0&&!IS_PREVIEW){queued=adm.battleQueue.shift();if(adm.saveConfig)adm.saveConfig()}
+function start(overrideOpts){const adm=window.__FCA_ADM__;if(adm&&adm.emergencyStop)return;tourneyJustCompleted=false;let queued=overrideOpts||null;if(!queued&&adm&&Array.isArray(adm.battleQueue)&&adm.battleQueue.length>0&&!IS_PREVIEW){const pausedTid=adm.getPausedTournamentId?adm.getPausedTournamentId():'';const qIdx=adm.battleQueue.findIndex(q=>!pausedTid||q.tournamentId!==pausedTid);if(qIdx>=0){queued=adm.battleQueue.splice(qIdx,1)[0];if(adm.saveConfig)adm.saveConfig()}}
 let ei=edIdx();if(queued&&Number.isInteger(queued.editionIdx)&&EDS[queued.editionIdx]){ei=queued.editionIdx;edForce=ei}
 ED=EDS[ei];curEi=ei;if(ED.n==='Championship'&&tourney.round===0&&tourney.results.length===0)tourneyResult=null;if(ei==4&&lastEd!=4&&tourney.round===0)tourneyResult=null;lastEd=ei;
 const eligible=getEligibleCountries();
@@ -670,7 +674,7 @@ if(ED.n=='Rivalry'){const pr=RIV.map(p=>p.map(ci));const wp=pr.find(p=>p.include
 if(ids.length<N){const rem=eligible.filter(i=>!ids.includes(i));for(let i=rem.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[rem[i],rem[j]]=[rem[j],rem[i]]}while(ids.length<N&&rem.length)ids.push(rem.pop())}
 ids.splice(0,ids.length,...fixRound(ids));if(!vRound(ids))console.error('Round validation FAILED',ids);
 F=ids.map(c=>{const an=rnd()*2*PI,d=Math.sqrt(rnd())*.8,h=rnd()*2*PI,sp=(.3+rnd()*.2)*ED.sp;return{c,x:Math.cos(an)*d,y:Math.sin(an)*d,vx:Math.cos(h)*sp,vy:Math.sin(h)*sp,sp,on:1,h:0,sh:0,dg:0,inDanger:false,stElim:null,lastHitBy:-1,lastHitAt:-99,team:-1,pu:null,puCount:0,puCd:0,supBoost:0}});
-t=0;a=0;phase=0;wt=0;toast=null;conf=[];outs=[];lastE=0;cap=null;flash=0;nextShield=(adm&&adm.gameplay&&!(ED.n==='Classic'&&adm.gameplay.classicPhysicsLock))?Math.max(6,Math.min(60,+adm.gameplay.shieldCooldown||12)):12;banner=null;round++;wspr=null;nextTalk=30;wHole=0;winCap='';ann=null;showdown=null;showdownDone=false;snap=null;forced=false;rStart=Date.now();binit(0);EV.reset();STORM.reset();KING.reset();TEAM.reset();SUDDEN.reset();BOSS.reset();CHAOS.reset();POWER.reset();if(ED.king)KING.startRound();if(ED.team)TEAM.startRound();if(ED.sudden)SUDDEN.startRound();if(ED.boss){BOSS.startRound();if(adm&&adm.gameplay&&adm.gameplay.bossHpMul&&!(ED.n==='Classic'&&adm.gameplay.classicPhysicsLock)){BOSS.maxHp=Math.round(BOSS.maxHp*Math.max(.5,Math.min(3,+adm.gameplay.bossHpMul)));BOSS.hp=BOSS.maxHp}}if(ED.chaos)CHAOS.startRound();if(ED.power)POWER.startRound();if(adm&&adm.broadcastState)adm.broadcastState();save()}
+t=0;a=0;phase=0;wt=0;toast=null;conf=[];outs=[];lastE=0;cap=null;flash=0;nextShield=(adm&&adm.gameplay&&!(ED.n==='Classic'&&adm.gameplay.classicPhysicsLock))?Math.max(6,Math.min(60,+adm.gameplay.shieldCooldown||12)):12;banner=null;round++;wspr=null;nextTalk=30;wHole=0;winCap='';ann=null;showdown=null;showdownDone=false;snap=null;forced=false;rStart=Date.now();binit(0);EV.reset();STORM.reset();KING.reset();TEAM.reset();SUDDEN.reset();BOSS.reset();CHAOS.reset();POWER.reset();if(ED.king)KING.startRound();if(ED.team)TEAM.startRound();if(ED.sudden)SUDDEN.startRound();if(ED.boss){BOSS.startRound();if(adm&&adm.gameplay&&adm.gameplay.bossHpMul&&!(ED.n==='Classic'&&adm.gameplay.classicPhysicsLock)){BOSS.maxHp=Math.round(BOSS.maxHp*Math.max(.5,Math.min(3,+adm.gameplay.bossHpMul)));BOSS.hp=BOSS.maxHp}}if(ED.chaos)CHAOS.startRound();if(ED.power)POWER.startRound();if(adm&&adm.onRoundStart)adm.onRoundStart(queued);if(adm&&adm.broadcastState)adm.broadcastState();save()}
 // ===== SURPRISE EVENT CONTROLLER (modifiers are multipliers only; all reset to 1) =====
 const SD={on:0,slow:1,hold:0};
 const EVDEF={
@@ -681,7 +685,8 @@ frenzy:{n:'PADDLE FRENZY',g:1,d:5,c:'#ff4d6d',s:'PADDLES SPIN FASTER!',say:'Padd
 slow:{n:'SLOW MOTION',g:1,d:4,c:'#22d3ee',s:'TIME SLOWS DOWN',say:'Slow motion'},
 meteor:{n:'METEOR SHOWER',g:0,d:7,c:'#ffb36b',s:'LOOK AT THE SKY!',say:'Meteor shower'},
 spot:{n:'GOLDEN SPOTLIGHT',g:0,d:6,c:'#ffd23f',s:'ALL EYES ON THE ARENA',say:'Golden spotlight'},
-burst:{n:'ENERGY BURST',g:0,d:2.5,c:'#ff2bd6',s:'SHOCKWAVE!',say:'Energy burst'}};
+burst:{n:'ENERGY BURST',g:0,d:2.5,c:'#ff2bd6',s:'SHOCKWAVE!',say:'Energy burst'},
+golden_flag:{n:'GOLDEN FLAG',g:1,d:6,c:'#ffd23f',s:'GOLDEN AURA PROTECTION!',say:'Golden Flag event! A random survivor receives golden protection!'}};
 // Classic, 60-Second Battle, and King of the Arena are intentionally absent: pure unmodified physics.
 const EVCFG={
 Rivalry:{min:12,max:20,first:15,vis:['meteor','spot','burst'],gp:['gravity','shield','speed'],pg:.5,mag:1},
@@ -692,12 +697,12 @@ Championship:{min:12,max:12,sched:[[15,'spot'],[32,'frenzy'],[50,'meteor'],[68,'
 const EV={sp:1,pull:1,rot:1,slow:1,act:null,pend:null,next:1e9,rt:0,si:0,hist:[],
 cfg(){return EVCFG[ED.n]||null},
 restore(){this.sp=this.pull=this.rot=this.slow=1;if(this.act&&this.act.id=='shield'&&F)for(const f of F){if(f.ws0!==undefined){f.sh=Math.max(0,f.ws0-this.act.t);delete f.ws0}}},
-reset(){this.restore();this.act=null;this.pend=null;this.rt=0;this.si=0;const c=this.cfg();this.next=c?(c.sched?c.sched[0][0]:c.first):1e9;EVP.clear()},
+reset(){this.restore();this.act=null;this.pend=null;this.rt=0;this.si=0;const c=this.cfg();const _ef=(typeof getBal==='function'?getBal().evFreq:1)||1;this.next=c?(c.sched?c.sched[0][0]/_ef:c.first/_ef):1e9;EVP.clear()},
 end(){if(this.act)this.stop('round end');this.pend=null;this.restore();EVP.clear()},
 ok(id,al,strict){const d=EVDEF[id],n=al.length;if(SD.on||forced||n<=2||phase!=0)return false;if(d.g){if(n<(strict?8:6))return false;if(ED.lim&&this.rt>45)return false}return true},
 choose(c,al){if(c.sched){const e=c.sched[this.si++];return this.ok(e[1],al,1)?e[1]:null}
 const last=this.hist.length?this.hist[this.hist.length-1].id:'';let pool=(rnd()<c.pg?c.gp:c.vis).filter(x=>x!=last&&this.ok(x,al,1));if(!pool.length)pool=c.vis.filter(x=>x!=last);return pool.length?pk(pool):null},
-sched(c,why){const g=c.min+rnd()*(c.max-c.min);this.next=c.sched?Math.max(this.rt+12,this.si<c.sched.length?c.sched[this.si][0]:1e9):this.rt+(why=='expired'||why=='round end'||why=='showdown'?g:3)},
+sched(c,why){const _ef=(typeof getBal==='function'?getBal().evFreq:1)||1;const g=(c.min+rnd()*(c.max-c.min))/_ef;this.next=c.sched?Math.max(this.rt+12/_ef,this.si<c.sched.length?c.sched[this.si][0]/_ef:1e9):this.rt+(why=='expired'||why=='round end'||why=='showdown'?g:3)},
 tick(dt,al){const c=this.cfg();if(!c||phase!=0)return;this.rt+=dt;
 if(SD.on){if(this.act&&EVDEF[this.act.id].g)this.stop('showdown');this.pend=null;this.vt(dt);return}
 if(this.act){this.act.t+=dt;if(this.act.t>=this.act.d)this.stop('expired',c)}
@@ -713,6 +718,7 @@ else if(id=='frenzy')this.rot=1+.8*mag;
 else if(id=='slow')this.slow=.6;
 else if(id=='shield'){this.act=a;for(const f of al){if(isW(f)||f.cp||f.stElim||(cap&&cap.f===f))continue;f.ws0=f.sh;f.sh=Math.max(f.sh,d.d)}}
 else if(id=='burst')EVP.burst();
+else if(id=='golden_flag'){const cands=al.filter(f=>!isW(f)&&!f.cp&&!f.stElim&&!(cap&&cap.f===f));if(cands.length){const gf=cands[Math.floor(rnd()*cands.length)];gf.sh=Math.max(gf.sh||0,5);a.gf=gf.c;a.sub=C[gf.c].n.toUpperCase()+' GETS GOLDEN AURA!';a.say='Golden Flag! '+C[gf.c].n+' receives golden protection!'}}
 this.act=a;this.hist.push(a.h={r:round,id,at:+this.rt.toFixed(1),d:d.d,g:d.g,end:null});if(this.hist.length>60)this.hist.shift();
 evA(id);say(c.hidden?(d.n.toLowerCase()+'!'):a.say)},
 stop(why,c){const a=this.act;if(!a)return;this.restore();if(a.h){a.h.end=+this.rt.toFixed(1);a.h.why=why}this.act=null;const cc=c||this.cfg();if(cc)this.sched(cc,why)},
@@ -732,7 +738,8 @@ back(){ctx.strokeStyle='#ffd9a0';ctx.lineWidth=2;for(const q of EVP.m){if(!q.o)c
 front(){const a=EV.act,tt=performance.now()/1000;
 if(a){const fade=Math.min(1,a.t*3,(a.d-a.t)*3);ctx.save();ctx.globalAlpha=.55*fade*(.7+.3*Math.sin(tt*6));ctx.strokeStyle=a.c;ctx.lineWidth=4;ctx.beginPath();ctx.arc(CX,CY,R+7,0,PI2);ctx.stroke();ctx.restore();
 if(a.id=='gravity'){ctx.save();ctx.strokeStyle=a.c;ctx.lineWidth=2;for(let i=0;i<3;i++){const u=((tt*(a.sub[0]=='S'?-.4:.4)+i/3)%1+1)%1;ctx.globalAlpha=.3*fade*(1-u);ctx.beginPath();ctx.arc(CX,CY,R*(.25+.7*u),0,PI2);ctx.stroke()}ctx.restore()}
-if(a.id=='spot'){ctx.save();const gg=ctx.createRadialGradient(CX,CY,R*.2,CX,CY,R*1.3);gg.addColorStop(0,'rgba(255,210,63,.22)');gg.addColorStop(1,'rgba(255,210,63,0)');ctx.globalAlpha=fade;ctx.fillStyle=gg;ctx.fillRect(0,CY-R*1.3,SW,R*2.6);ctx.strokeStyle='#ffd23f';ctx.lineWidth=2;for(const f of F){if(!f.on)continue;ctx.beginPath();ctx.arc(CX+f.x*R,CY+f.y*R,rr*R+3,0,PI2);ctx.stroke()}ctx.restore()}}
+if(a.id=='spot'){ctx.save();const gg=ctx.createRadialGradient(CX,CY,R*.2,CX,CY,R*1.3);gg.addColorStop(0,'rgba(255,210,63,.22)');gg.addColorStop(1,'rgba(255,210,63,0)');ctx.globalAlpha=fade;ctx.fillStyle=gg;ctx.fillRect(0,CY-R*1.3,SW,R*2.6);ctx.strokeStyle='#ffd23f';ctx.lineWidth=2;for(const f of F){if(!f.on)continue;ctx.beginPath();ctx.arc(CX+f.x*R,CY+f.y*R,rr*R+3,0,PI2);ctx.stroke()}ctx.restore()}
+if(a.id=='golden_flag'&&a.gf!==undefined){const gf=F.find(f=>f.on&&f.c===a.gf);if(gf){const gx=CX+gf.x*R,gy=CY+gf.y*R;ctx.save();ctx.strokeStyle='#ffd23f';ctx.lineWidth=3.2;ctx.globalAlpha=fade*(.7+.3*Math.sin(tt*10));ctx.beginPath();ctx.arc(gx,gy,rr*R+7+2*Math.sin(tt*8),0,PI2);ctx.stroke();drawCrown(ctx,gx,gy-rr*R-8,18,10,fade);ctx.restore()}}}
 if(EVP.ring>0){ctx.save();ctx.globalAlpha=Math.max(0,1-EVP.ring/1.2);ctx.shadowColor='#ff2bd6';ctx.shadowBlur=14;ctx.strokeStyle='#ff2bd6';ctx.lineWidth=5;ctx.beginPath();ctx.arc(CX,CY,R*1.15*Math.min(1,EVP.ring/.9),0,PI2);ctx.stroke();ctx.restore()}
 for(const q of EVP.p){if(!q.o)continue;ctx.globalAlpha=Math.max(0,q.l);ctx.fillStyle=q.c;ctx.fillRect(q.x-2,q.y-2,4,4)}ctx.globalAlpha=1},
 note(){const p=EV.pend,a=EV.act;ctx.save();if(p){const d=EVDEF[p.id],hid=p.hid,bl=Math.floor(p.w*4)%2;pill(76,62,232,58,8,'#070b1a',hid?'#b86bff':d.c);T('SURPRISE EVENT INCOMING',192,80,8,'#9aa4c7','center');T(hid?'? ? ?':d.n,192,102,bl?16:19,'#fff','center',AN);T('IN '+Math.max(0,p.w).toFixed(1)+'s',192,114,8,hid?'#b86bff':d.c,'center')}
@@ -1962,12 +1969,12 @@ const BOSS={
    return;
   }
   bossHitS();
-  this.dealDamage(BOSS_CFG.collisionDamage,CX+bossF.x*R,CY+bossF.y*R,chalF.c);
+  this.dealDamage(BOSS_CFG.collisionDamage*(typeof getBal==='function'?getBal().dmg:1),CX+bossF.x*R,CY+bossF.y*R,chalF.c);
  },
  applyHoleDamage(bossF,dt){
   if(!ED.boss||!this.bossAlive||bossF.c!==this.bossC)return;
   const d=Math.hypot(bossF.x,bossF.y)||1e-6;
-  if(!this.shielded)this.dealDamage(BOSS_CFG.holeDps*dt);
+  if(!this.shielded)this.dealDamage(BOSS_CFG.holeDps*dt*(typeof getBal==='function'?getBal().dmg:1));
   if(this.bossAlive&&d<HR+rr){bossF.vx+=bossF.x/d*6.5*dt;bossF.vy+=bossF.y/d*6.5*dt}
  },
  defeatBoss(bossF,killerC){
@@ -2611,6 +2618,7 @@ if(adm&&adm.hitStopT>0){adm.hitStopT=Math.max(0,adm.hitStopT-dt);return}
 if(adm&&adm.shakeT>0)adm.shakeT=Math.max(0,adm.shakeT-dt);
 if(adm&&adm.featuredComment&&adm.featuredComment.ttl>0){adm.featuredComment.t=(adm.featuredComment.t||0)+dt;if(adm.featuredComment.t>=adm.featuredComment.ttl)adm.featuredComment=null}
 if(adm&&adm.supporterCelebration&&adm.supporterCelebration.ttl>0){adm.supporterCelebration.t=(adm.supporterCelebration.t||0)+dt;if(adm.supporterCelebration.t>=adm.supporterCelebration.ttl)adm.supporterCelebration=null}
+if(adm&&adm.tickEntertainment)adm.tickEntertainment(dt);
 if(phase>=1){wt+=dt;const pOn=!adm||!adm.visual||adm.visual.particlesEnabled!==false;if(pOn)conf.forEach(p=>{p.vy+=500*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.r+=p.s*dt});if(wt>DUR[phase])fin();return}
 const BAL=getBal();
 t+=dt;a+=ED.rot*BAL.rot*EV.rot*(ED.sudden?SUDDEN.rotMul:1)*(ED.boss?BOSS.rotMul:1)*(ED.chaos?CHAOS.rot:1)*dt;const teamElimsTick=[];flash=Math.max(0,flash-dt*2.5*uK);if(toast)toast.t+=dt*uK;if(banner)banner.t+=dt*uK;if(ann)ann.t+=dt*uK;
@@ -2703,7 +2711,7 @@ if(ED.team&&phase==0){
   return;
  }
 }
-if(!ED.team&&al.length==1&&phase==0){wIdx=al[0].c;phase=1;wt=0;winAt=performance.now();EV.end();DUR[1]=ED.lim?3.2:8;const isShow=!!(adm&&adm.activeMatchType==='showcase');LS.set('fca_state','');if(isShow){winS();awd=null;domLine=''}else{if(ED.king)KING.onRoundWinner(wIdx);else if(ED.boss)BOSS.onRoundWinner(wIdx);else winS();if(ED.king&&!KING.kingWonRound)winS();if(ED.sudden)SUDDEN.onRoundWinner(wIdx);if(ED.chaos)CHAOS.onRoundWinner(wIdx);if(ED.power)POWER.onRoundWinner(wIdx);if(ED.n=='Championship'){champ[wIdx]=(champ[wIdx]||0)+1;LS.set('fca_champ',JSON.stringify(champ))}hr.l.push(wIdx);saveHr();life.r++;life.w[wIdx]=(life.w[wIdx]||0)+1;LS.set('fca_life',JSON.stringify(life));judge();let tournamentCompleted=null;if(ED.n==='Championship'){tournamentCompleted=recordTournamentRound();if(tournamentCompleted){const ta=unlockAchievement('tournament',tournamentCompleted.champion);if(ta)awd=ta;say('Tournament champion! '+C[tournamentCompleted.champion].n+' wins the 12-round Championship tournament!',3)}}}if(adm&&adm.recordMatchResult)adm.recordMatchResult({winner:wIdx,winnerName:C[wIdx]?.n||'',edition:ED.n,round,durationSec:+((Date.now()-rStart)/1000).toFixed(1),matchType:isShow?'showcase':'normal',elims:outs.length});{const n=C[wIdx].n,up=wHole>.2,nw=wIdx!=lastChamp;
+if(!ED.team&&al.length==1&&phase==0){wIdx=al[0].c;phase=1;wt=0;winAt=performance.now();EV.end();DUR[1]=ED.lim?3.2:8;const isShow=!!(adm&&adm.activeMatchType==='showcase');LS.set('fca_state','');if(isShow){winS();awd=null;domLine=''}else{if(ED.king)KING.onRoundWinner(wIdx);else if(ED.boss)BOSS.onRoundWinner(wIdx);else winS();if(ED.king&&!KING.kingWonRound)winS();if(ED.sudden)SUDDEN.onRoundWinner(wIdx);if(ED.chaos)CHAOS.onRoundWinner(wIdx);if(ED.power)POWER.onRoundWinner(wIdx);if(ED.n=='Championship'){champ[wIdx]=(champ[wIdx]||0)+1;LS.set('fca_champ',JSON.stringify(champ))}hr.l.push(wIdx);saveHr();life.r++;life.w[wIdx]=(life.w[wIdx]||0)+1;LS.set('fca_life',JSON.stringify(life));judge();let tournamentCompleted=null;if(ED.n==='Championship'){tournamentCompleted=recordTournamentRound();if(tournamentCompleted){const ta=unlockAchievement('tournament',tournamentCompleted.champion);if(ta)awd=ta;say('Tournament champion! '+C[tournamentCompleted.champion].n+' wins the 12-round Championship tournament!',3)}}}if(adm&&adm.recordMatchResult)adm.recordMatchResult({winner:wIdx,winnerName:C[wIdx]?.n||'',runnerUp:outs.length?outs[outs.length-1]:-1,edition:ED.n,round,durationSec:+((Date.now()-rStart)/1000).toFixed(1),matchType:isShow?'showcase':'normal',elims:outs.length});{const n=C[wIdx].n,up=wHole>.2,nw=wIdx!=lastChamp;
 if(ED.king){
  if(KING.kingWonRound){
   const ks=kingStats.curCountryStreak[wIdx]||1;
@@ -2736,7 +2744,7 @@ if(ED.king){
  winCap=ED.storm?'SURVIVED THE STORM! '+(nw?'NEW CHAMPION!':'BACK-TO-BACK!'):up?(nw?'WHAT AN UPSET! NEW CHAMPION!':'WHAT AN UPSET!'):nw?'WE HAVE A NEW CHAMPION!':'BACK-TO-BACK CHAMPION!';
  say((ED.storm?'Survival Storm champion! '+n+' survives the storm and wins! ':(up?'What an upset! ':'')+(nw?'We have a new champion! ':'Back to back champion! ')+n+' wins!')+(S.cs.n>=2?' '+n+' has now won '+S.cs.n+' rounds in a row.':'')+(S.ir[wIdx]>=3?' '+n+' has reached the final twenty for '+S.ir[wIdx]+' rounds in a row.':'')+(awd?' '+awd.say+'.':'')+(domLine?' '+domLine.toLowerCase():''),3);
 }
-if(!isShow){lastChamp=wIdx;LS.set('fca_last',wIdx)}}conf=[];const kWin=ED.king&&KING.kingWonRound;const pMul=(!adm||!adm.visual||adm.visual.particlesEnabled===false||adm.visual.victoryAnimEnabled===false)?0:Math.max(0,Math.min(1,(adm.visual.fxIntensity??100)/100));for(let i=0;i<Math.round((kWin?200:160)*pMul);i++)conf.push({x:192,y:314,vx:(rnd()-.5)*500,vy:-(rnd()*450+80),r:0,s:(rnd()-.5)*12,c:kWin?['#ffd23f','#fff3b0','#f59e0b','#fff','#ff4d6d'][Math.floor(rnd()*5)]:['#ffd23f','#ff4d6d','#4cc9f0','#80ed99','#fff'][Math.floor(rnd()*5)]})}}
+if(!isShow){lastChamp=wIdx;LS.set('fca_last',wIdx)}}conf=[];const kWin=ED.king&&KING.kingWonRound;const pMul=adm&&adm.getParticleMul?adm.getParticleMul(true):((!adm||!adm.visual||adm.visual.particlesEnabled===false||adm.visual.victoryAnimEnabled===false)?0:Math.max(0,Math.min(1,(adm.visual.fxIntensity??100)/100)));for(let i=0;i<Math.round((kWin?200:160)*pMul);i++)conf.push({x:192,y:314,vx:(rnd()-.5)*500,vy:-(rnd()*450+80),r:0,s:(rnd()-.5)*12,c:kWin?['#ffd23f','#fff3b0','#f59e0b','#fff','#ff4d6d'][Math.floor(rnd()*5)]:['#ffd23f','#ff4d6d','#4cc9f0','#80ed99','#fff'][Math.floor(rnd()*5)]})}}
 // draw
 function T(s,x,y,px,col,al,fam){ctx.font=px+'px '+(fam||'system-ui,sans-serif');ctx.fillStyle=col;ctx.textAlign=al||'left';ctx.fillText(s,x,y)}
 const AN='Anton,Impact,sans-serif';
@@ -2751,10 +2759,11 @@ ctx.fillStyle='#070b1a';ctx.fillRect(0,0,SW,SH);
 let g=ctx.createRadialGradient(0,300,0,0,300,260);g.addColorStop(0,ED.storm?'#0ea5e955':ED.king?'#f59e0b44':'#2d5fd066');g.addColorStop(1,'#2d5fd000');ctx.fillStyle=g;ctx.fillRect(0,0,SW,SH);
 g=ctx.createRadialGradient(384,430,0,384,430,260);g.addColorStop(0,ED.storm&&STORM.stage>=3?'#e11d4866':ED.storm?'#6366f155':ED.king?'#b4530955':'#d6303066');g.addColorStop(1,'#d6303000');ctx.fillStyle=g;ctx.fillRect(0,0,SW,SH);STORM.drawBack();KING.drawBack();TEAM.drawBack();SUDDEN.drawBack();BOSS.drawBack();CHAOS.drawBack();POWER.drawBack();EVD.back();
 const E=outs.length;
-T('FLAG CLASH ',10,36,17,'#fff','left',AN);ctx.font='17px '+AN;const tw=ctx.measureText('FLAG CLASH ').width;T('ARENA',10+tw,36,17,'#ffd23f','left',AN);
+const _ov=(_adm&&_adm.visual&&_adm.visual.overlays)||{};
+if(_ov.hud!==false){T('FLAG CLASH ',10,36,17,'#fff','left',AN);ctx.font='17px '+AN;const tw=ctx.measureText('FLAG CLASH ').width;T('ARENA',10+tw,36,17,'#ffd23f','left',AN);
 pill(168,16,66,38,6,'#0d1430cc','#ffffff33');T('COUNTRIES',201,28,7,'#9aa4c7','center');T(String(N),201,47,18,'#fff','center',AN);
 pill(242,16,66,38,6,'#0d1430cc','#ffffff33');T('REMAINING',275,28,7,'#9aa4c7','center');T(String(N-E),275,47,18,'#ffd23f','center',AN);
-ctx.lineWidth=3;ctx.strokeStyle='#ffffff33';ctx.beginPath();ctx.arc(346,35,14,0,2*PI);ctx.stroke();ctx.strokeStyle='#ffd23f';ctx.beginPath();ctx.arc(346,35,14,-PI/2,-PI/2+2*PI*E/N);ctx.stroke();T(String(round),346,41,15,'#fff','center',AN);
+ctx.lineWidth=3;ctx.strokeStyle='#ffffff33';ctx.beginPath();ctx.arc(346,35,14,0,2*PI);ctx.stroke();ctx.strokeStyle='#ffd23f';ctx.beginPath();ctx.arc(346,35,14,-PI/2,-PI/2+2*PI*E/N);ctx.stroke();T(String(round),346,41,15,'#fff','center',AN);}
 if(EV.show()){EVD.note()}else if(banner&&banner.t<3.2){ctx.globalAlpha=Math.max(0,Math.min(1,(3.2-banner.t)*2));pill(76,62,232,58,8,'#0d1430ee','#22d3ee');ctx.drawImage(ED.n=='Mystery'?mys():gs(banner.f.c),88,77,28,28);T((ED.n=='Mystery'?'MYSTERY FLAG':C[banner.f.c].n.toUpperCase())+' SHIELDED',126,88,15,'#fff','left',AN);T('Shield power',126,106,9,'#67e8f9');ctx.globalAlpha=1}
 else if(!(ED.storm&&phase===0&&STORM.drawCenterBanner())&&!(ED.king&&phase===0&&KING.drawCenterBanner())&&!(ED.team&&phase===0&&TEAM.drawCenterBanner())&&!(ED.sudden&&phase===0&&SUDDEN.drawCenterBanner())&&!(ED.boss&&phase===0&&BOSS.drawCenterBanner())&&!(ED.chaos&&phase===0&&CHAOS.drawCenterBanner())){
  if(ED.storm){T('ROUND '+round+' · SURVIVAL STORM · '+STORM.stageShort(),192,76,8.5,'#38bdf8','center');T('SURVIVE THE',192,100,25,'#fff','center',AN);T('STORM!',192,129,25,STORM.stageCol(),'center',AN)}
@@ -2809,8 +2818,8 @@ pill(12,610,360,4,2,'#ffffff22');pill(12,610,Math.max(4,360*E/N),4,2,ED.king?'#f
 T(E+' / '+N+' ELIMINATED',192,632,9,'#9aa4c7','center');
 pill(12,642,360,26,6,'#0d1430cc','#ffffff22');T('LIKE IF YOU SEE YOUR COUNTRY FLAG',192,659,10,'#fff','center','bold system-ui,sans-serif');
 ctx.font='bold 10px system-ui';
-if(toast&&toast.t<2.4){ctx.save();const sc2=toast.t<.15?.8+.2*toast.t/.15:1;ctx.translate(114,480);ctx.scale(sc2,sc2);ctx.translate(-114,-480);ctx.globalAlpha=Math.max(0,Math.min(1,(2.4-toast.t)*2));const isK=!!toast.king,isB=!!toast.boss,isTm=toast.team===0||toast.team===1,tCol=isTm?TEAM_CFG.teams[toast.team].col:isK?'#ffd23f':isB?'#f59e0b':toast.storm?'#38bdf8':'#ff4d6d';pill(14,462,216,36,6,isTm?TEAM_CFG.teams[toast.team].bg:isK||isB?'#261704f4':toast.storm?'#071428f2':'#1a0d22ee',tCol);sprite(toast.c,22,468,24);T(isTm?TEAM_CFG.teams[toast.team].name+' LOST A MEMBER':isB?'BOSS DEFEATED!':isK?(toast.slayer>=0?'KING DEFEATED BY '+C[toast.slayer].n.toUpperCase():'KING DEFEATED'):toast.storm?'STORM ELIMINATED':'ELIMINATED',54,476,7,tCol);T(C[toast.c].n.toUpperCase(),54,492,14,'#fff','left',AN);ctx.restore()}
-if(!run())T('Tap the screen once to start the sound',192,690,9,'#9aa4c7','center');
+if(toast&&toast.t<2.4&&_ov.toasts!==false){ctx.save();const sc2=toast.t<.15?.8+.2*toast.t/.15:1;ctx.translate(114,480);ctx.scale(sc2,sc2);ctx.translate(-114,-480);ctx.globalAlpha=Math.max(0,Math.min(1,(2.4-toast.t)*2));const isK=!!toast.king,isB=!!toast.boss,isTm=toast.team===0||toast.team===1,tCol=isTm?TEAM_CFG.teams[toast.team].col:isK?'#ffd23f':isB?'#f59e0b':toast.storm?'#38bdf8':'#ff4d6d';pill(14,462,216,36,6,isTm?TEAM_CFG.teams[toast.team].bg:isK||isB?'#261704f4':toast.storm?'#071428f2':'#1a0d22ee',tCol);sprite(toast.c,22,468,24);T(isTm?TEAM_CFG.teams[toast.team].name+' LOST A MEMBER':isB?'BOSS DEFEATED!':isK?(toast.slayer>=0?'KING DEFEATED BY '+C[toast.slayer].n.toUpperCase():'KING DEFEATED'):toast.storm?'STORM ELIMINATED':'ELIMINATED',54,476,7,tCol);T(C[toast.c].n.toUpperCase(),54,492,14,'#fff','left',AN);ctx.restore()}
+if(!run()&&!IS_STREAM_SAFE)T('Tap the screen once to start the sound',192,690,9,'#9aa4c7','center');
 if(flash>0){ctx.fillStyle=ED.king?'rgba(255,210,63,'+flash*.42+')':'rgba(255,255,255,'+flash*.5+')';ctx.fillRect(0,0,SW,SH)}
 if(phase==1){ctx.fillStyle='#070b1ad9';ctx.fillRect(0,0,SW,SH);
 if(ED.team&&TEAM.winTeam>=0){
@@ -2927,12 +2936,13 @@ for(const p of conf){ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.fillS
 if(_adm&&_adm.drawOverlays)_adm.drawOverlays(ctx);
 ctx.restore()}
 if(!restore()){if(pendRecap){start();RS=pendRecap;rt='LAST STREAM RECAP';rcCmp=sessList[sessList.length-2]||null;conf=[];ph(6)}else next()}setInterval(save,2000);setInterval(saveS,10000);addEventListener('pagehide',saveS);addEventListener('pagehide',save);document.addEventListener('visibilitychange',()=>{if(document.hidden)save()});let last=performance.now();
-let acc=0;function loop(n){requestAnimationFrame(loop);const dt=Math.min(Math.max((n-last)/1000,0),.1);last=n;const _smOn=!window.__FCA_ADM__||!window.__FCA_ADM__.visual||window.__FCA_ADM__.visual.slowMotionEnabled!==false;
+let acc=0;function loop(n){requestAnimationFrame(loop);const rawMs=Math.max(0,n-last);const dt=Math.min(rawMs/1000,.1);last=n;const _admL=window.__FCA_ADM__;if(_admL&&_admL.recordFrame)try{_admL.recordFrame(rawMs)}catch(_){}
+const _smOn=!_admL||!_admL.visual||_admL.visual.slowMotionEnabled!==false;
 const _slowMul=_smOn?(EV.slow*SD.slow*(ED.chaos?CHAOS.slow:1)):1;
-const mul=((ED.bt&&phase==0)?bsp(BEL()):1)*_slowMul,MK=ED.bt?24:8;uK=1/mul;acc+=dt*mul;try{if(phase>=1&&performance.now()-winAt>DUR[phase]*1000+1000)fin();let k=0;while(acc>=1/120&&k<MK){step(1/120);acc-=1/120;k++}if(k>=MK)acc=0;draw()}catch(e){console.error(e);try{ctx.restore()}catch(_){}}}
+const mul=((ED.bt&&phase==0)?bsp(BEL()):1)*_slowMul,MK=ED.bt?24:8;uK=1/mul;acc+=dt*mul;try{if(phase>=1&&performance.now()-winAt>DUR[phase]*1000+1000)fin();let k=0;while(acc>=1/120&&k<MK){step(1/120);acc-=1/120;k++}if(k>=MK)acc=0;draw()}catch(e){console.error(e);if(_admL&&_admL.recordDiagnostic)_admL.recordDiagnostic('physics_render_loop',e.message||'Frame error',String(e.stack||'').slice(0,180));try{ctx.restore()}catch(_){}}}
 requestAnimationFrame(loop);
 
-// ===== FLAG CLASH ARENA — ADMIN ENGINE BRIDGE & INTERNAL EVENT BUS =====
+// ===== FLAG CLASH ARENA — ADMIN ENGINE BRIDGE, RELIABILITY & SHOW DIRECTOR =====
 (function(){
   const CFG_KEY='fca_admin_config';
   const HIST_KEY='fca_match_history';
@@ -2940,6 +2950,7 @@ requestAnimationFrame(loop);
   const AUD_KEY='fca_audience_requests';
   const SUP_KEY='fca_supporters';
   const TOURN_CUSTOM_KEY='fca_custom_tournament';
+  const RIV_KEY='fca_rivalry_history';
 
   const defaultConfig=()=>({
     autoBattle:true,
@@ -2979,6 +2990,8 @@ requestAnimationFrame(loop);
     },
     visual:{
       particlesEnabled:true,
+      reducedEffects:false,
+      adaptiveQuality:true,
       fxIntensity:100,
       screenShake:60,
       hitStopEnabled:true,
@@ -2992,7 +3005,24 @@ requestAnimationFrame(loop);
         toasts:true,
         featuredComment:true,
         topSupporter:true,
-        showcaseBadge:true
+        showcaseBadge:true,
+        nextTeaser:true,
+        poll:true
+      }
+    },
+    showDirector:{
+      introEnabled:true,
+      introStyle:'auto',
+      introDurationSec:2.5,
+      rivalryAnnouncements:true,
+      dramaticAlerts:true,
+      nextMatchTeaser:true,
+      mvpBadge:true,
+      enabledEvents:{
+        golden_flag:true,
+        revenge_match:true,
+        champions_challenge:true,
+        underdog_challenge:true
       }
     }
   });
@@ -3003,6 +3033,7 @@ requestAnimationFrame(loop);
   function sanitizeConfig(raw){
     const d=defaultConfig();
     if(!raw||typeof raw!=='object')return d;
+    const sdIn=raw.showDirector||{};
     const out={
       ...d,
       autoBattle:raw.autoBattle!==false,
@@ -3016,7 +3047,9 @@ requestAnimationFrame(loop);
         matchType:q.matchType==='showcase'?'showcase':'normal',
         showcaseWinner:APPS.has(+q.showcaseWinner)&&validCountry(C[+q.showcaseWinner]?.n)?+q.showcaseWinner:-1,
         durationSec:q.durationSec?Math.max(20,Math.min(180,+q.durationSec)):0,
-        label:String(q.label||'').slice(0,80)
+        label:String(q.label||'').slice(0,80),
+        tournamentId:q.tournamentId?String(q.tournamentId).slice(0,50):'',
+        specialTag:q.specialTag?String(q.specialTag).slice(0,32):''
       })):[],
       countryConfig:{
         ...d.countryConfig,
@@ -3029,9 +3062,81 @@ requestAnimationFrame(loop);
       },
       supporterLimits:{...d.supporterLimits,...(raw.supporterLimits||{})},
       gameplay:{...d.gameplay,...(raw.gameplay||{})},
-      visual:{...d.visual,...(raw.visual||{}),overlays:{...d.visual.overlays,...(raw.visual?.overlays||{})}}
+      visual:{...d.visual,...(raw.visual||{}),overlays:{...d.visual.overlays,...(raw.visual?.overlays||{})}},
+      showDirector:{
+        ...d.showDirector,
+        ...sdIn,
+        introDurationSec:Math.max(1.5,Math.min(4,+sdIn.introDurationSec||2.5)),
+        enabledEvents:{...d.showDirector.enabledEvents,...(sdIn.enabledEvents||{})}
+      }
     };
     return out;
+  }
+
+  // Performance ring buffer (60 samples, zero allocations per frame)
+  const frameBuf=new Float32Array(60);
+  let frameIdx=0,frameCount=0,lowFpsSec=0;
+  const perfState={fps:60,avgFrameMs:16.7,maxFrameMs:16.7,unstable:false,adaptiveLevel:'FULL',memoryMB:null,activeParticles:0};
+
+  // Deduplicated runtime diagnostics (max 50 entries, no PII/secrets)
+  const diagnostics=[];
+  const SECRET_PAT=/(password|secret|token|cookie|csrf|bearer)\s*[:=]\s*\S+/gi;
+  function recordDiagnostic(system,message,detail=''){
+    const sys=String(system||'general').slice(0,40);
+    const msg=String(message||'Unknown error').replace(SECRET_PAT,'[REDACTED]').slice(0,180);
+    const det=String(detail||'').replace(SECRET_PAT,'[REDACTED]').slice(0,220);
+    const sig=sys+'|'+msg;
+    const existing=diagnostics.find(d=>d.sig===sig);
+    const now=new Date().toISOString();
+    if(existing){
+      existing.count++;
+      existing.lastAt=now;
+      if(det)existing.detail=det;
+      return existing;
+    }
+    const rec={id:'diag_'+Date.now()+'_'+Math.floor(Math.random()*999),sig,system:sys,message:msg,detail:det,count:1,firstAt:now,lastAt:now};
+    diagnostics.unshift(rec);
+    if(diagnostics.length>50)diagnostics.length=50;
+    return rec;
+  }
+
+  // Ingest any boot-time storage recovery warnings
+  if(Array.isArray(BOOT_WARNINGS)){
+    BOOT_WARNINGS.forEach(w=>recordDiagnostic(w.system,w.reason,w.key));
+  }
+  window.addEventListener('error',ev=>{
+    recordDiagnostic('runtime_error',ev.message||'Uncaught error',(ev.filename?ev.filename.split('/').pop()+':'+ev.lineno:''));
+  });
+  window.addEventListener('unhandledrejection',ev=>{
+    const r=ev.reason;
+    recordDiagnostic('unhandled_promise',r&&r.message?r.message:String(r||'Promise rejection'),'');
+  });
+
+  // Real Historical Rivalry Tracker (competitive matches only; showcase strictly excluded)
+  function readRivalryHistory(){
+    const fb={pairs:{},lastWinner:-1,lastRunnerUp:-1,defendingChamp:-1,defendingStreak:0};
+    const raw=readJson(RIV_KEY,null);
+    return raw&&typeof raw==='object'&&raw.pairs?{...fb,...raw}:fb;
+  }
+  let rivalryHist=readRivalryHistory();
+
+  function updateRivalryHistory(winnerId,runnerUpId){
+    if(IS_PREVIEW||!APPS.has(winnerId))return;
+    if(rivalryHist.defendingChamp===winnerId)rivalryHist.defendingStreak++;
+    else{rivalryHist.defendingChamp=winnerId;rivalryHist.defendingStreak=1;}
+    rivalryHist.lastWinner=winnerId;
+    if(APPS.has(runnerUpId)&&runnerUpId!==winnerId){
+      rivalryHist.lastRunnerUp=runnerUpId;
+      const a=Math.min(winnerId,runnerUpId),b=Math.max(winnerId,runnerUpId);
+      const key=a+'_'+b;
+      const rec=rivalryHist.pairs[key]||{a,b,winsA:0,winsB:0,matches:0,lastWinner:-1,lastAt:''};
+      rec.matches++;
+      if(winnerId===a)rec.winsA++;else rec.winsB++;
+      rec.lastWinner=winnerId;
+      rec.lastAt=new Date().toISOString();
+      rivalryHist.pairs[key]=rec;
+    }
+    writeJson(RIV_KEY,rivalryHist);
   }
 
   const loaded=sanitizeConfig(readJson(CFG_KEY,null));
@@ -3039,9 +3144,9 @@ requestAnimationFrame(loop);
     ...loaded,
     paused:false,
     emergencyStop:false,
-    activeMatchType:'normal',
-    activeShowcaseWinner:-1,
-    activeMatchDuration:0,
+    activeMatchType:(window.__FCA_RESTORED_META__&&window.__FCA_RESTORED_META__.mt)||'normal',
+    activeShowcaseWinner:(window.__FCA_RESTORED_META__&&window.__FCA_RESTORED_META__.sw>=0)?window.__FCA_RESTORED_META__.sw:-1,
+    activeMatchDuration:(window.__FCA_RESTORED_META__&&window.__FCA_RESTORED_META__.md)||0,
     shakeT:0,
     hitStopT:0,
     featuredComment:null,
@@ -3049,6 +3154,101 @@ requestAnimationFrame(loop);
     topSupporter:null,
     roundSupporterEffects:{total:0,byCountry:{},lastAt:0},
     previewState:{showcaseBanner:false},
+    introBanner:null,
+    roundMvp:null,
+    audiencePoll:{active:false,question:'',optionA:'',optionB:'',votesA:0,votesB:0},
+    activeSpecialTag:'',
+    perf:perfState,
+    recordDiagnostic,
+    getPausedTournamentId(){
+      const ct=readJson(TOURN_CUSTOM_KEY,null);
+      return ct&&ct.status==='paused'&&ct.id?ct.id:'';
+    },
+    getParticleMul(isVictory){
+      const v=adm.visual||{};
+      if(v.particlesEnabled===false)return 0;
+      if(isVictory&&v.victoryAnimEnabled===false)return 0;
+      let m=Math.max(0,Math.min(1,(v.fxIntensity??100)/100));
+      if(v.reducedEffects)m*=0.35;
+      else if(v.adaptiveQuality!==false){
+        if(perfState.adaptiveLevel==='REDUCED')m*=0.35;
+        else if(perfState.adaptiveLevel==='BALANCED')m*=0.65;
+      }
+      return m;
+    },
+    recordFrame(rawMs){
+      if(!(rawMs>0&&rawMs<1000))return;
+      frameBuf[frameIdx]=rawMs;
+      frameIdx=(frameIdx+1)%60;
+      if(frameCount<60)frameCount++;
+      if(frameIdx===0||frameCount===15){
+        let sum=0,mx=0;
+        for(let i=0;i<frameCount;i++){const v=frameBuf[i];sum+=v;if(v>mx)mx=v;}
+        const avg=sum/Math.max(1,frameCount);
+        const fps=Math.min(120,Math.round(1000/Math.max(1,avg)));
+        perfState.avgFrameMs=+avg.toFixed(1);
+        perfState.maxFrameMs=+mx.toFixed(1);
+        perfState.fps=fps;
+        perfState.unstable=(fps<42||mx>55);
+        if(fps<42)lowFpsSec+=avg*frameCount/1000;else lowFpsSec=Math.max(0,lowFpsSec-0.5);
+        if(adm.visual&&adm.visual.reducedEffects)perfState.adaptiveLevel='REDUCED';
+        else if(adm.visual&&adm.visual.adaptiveQuality===false)perfState.adaptiveLevel='FULL';
+        else if(lowFpsSec>=2)perfState.adaptiveLevel='REDUCED';
+        else if(fps<50)perfState.adaptiveLevel='BALANCED';
+        else perfState.adaptiveLevel='FULL';
+        perfState.activeParticles=(Array.isArray(conf)?conf.length:0)+(EVP&&Array.isArray(EVP.p)?EVP.p.filter(x=>x.o).length:0);
+        try{
+          if(performance&&performance.memory&&performance.memory.usedJSHeapSize){
+            perfState.memoryMB=+(performance.memory.usedJSHeapSize/(1024*1024)).toFixed(1);
+          }
+        }catch(_){}
+      }
+    },
+    onRoundStart(queued){
+      const sd=adm.showDirector||{};
+      adm.roundMvp=null;
+      adm.activeSpecialTag=(queued&&queued.specialTag)||'';
+      if(sd.introEnabled===false){adm.introBanner=null;return;}
+      const dur=Math.max(1.5,Math.min(4,+sd.introDurationSec||2.5));
+      let title='',sub='',col='#22d3ee',style=sd.introStyle||'auto';
+      if(adm.activeSpecialTag==='revenge_match'){
+        title='REVENGE MATCH';
+        sub=(queued&&queued.label)||'REMATCH FOR REDEMPTION!';
+        col='#ff4d6d';
+      }else if(adm.activeSpecialTag==='champions_challenge'){
+        title="CHAMPION'S CHALLENGE";
+        sub=APPS.has(rivalryHist.defendingChamp)?('DEFENDING: '+C[rivalryHist.defendingChamp].n.toUpperCase()):'ALL CHALLENGERS RISE!';
+        col='#ffd23f';
+      }else if(adm.activeSpecialTag==='underdog_challenge'){
+        title='UNDERDOG CHALLENGE';
+        sub='CAN AN UNDERDOG TAKE THE CROWN?';
+        col='#80ed99';
+      }else if(style==='rivalry'||(style==='auto'&&ED.n==='Rivalry')){
+        title='RIVALRY SHOWDOWN';
+        sub='HISTORIC RIVALS COLLIDE!';
+        col='#ff4d6d';
+      }else if(style==='champion'||(style==='auto'&&APPS.has(rivalryHist.defendingChamp)&&rivalryHist.defendingStreak>=2)){
+        title='CHAMPION DEFENSE';
+        sub=C[rivalryHist.defendingChamp].n.toUpperCase()+' · '+rivalryHist.defendingStreak+'X STREAK';
+        col='#ffd23f';
+      }else if(style==='mystery'||(style==='auto'&&ED.n==='Mystery')){
+        title='MYSTERY REVEAL';
+        sub='30 HIDDEN FLAGS · WHO SURVIVES?';
+        col='#b86bff';
+      }else{
+        title=(queued&&queued.label)?queued.label.toUpperCase().slice(0,26):(ED.n.toUpperCase()+' CLASH');
+        sub='ROUND '+round+' · 30 COUNTRIES ENTER';
+        col='#22d3ee';
+      }
+      adm.introBanner={title,sub,col,t:0,ttl:dur};
+      if(run()){const n=AC.currentTime;tone(440,n,.12,'triangle',.16);tone(660,n+.1,.18,'triangle',.18);}
+    },
+    tickEntertainment(dt){
+      if(adm.introBanner){
+        adm.introBanner.t+=dt;
+        if(adm.introBanner.t>=adm.introBanner.ttl)adm.introBanner=null;
+      }
+    },
     saveConfig(){
       writeJson(CFG_KEY,{
         autoBattle:adm.autoBattle,
@@ -3059,7 +3259,8 @@ requestAnimationFrame(loop);
         countryConfig:adm.countryConfig,
         supporterLimits:adm.supporterLimits,
         gameplay:adm.gameplay,
-        visual:adm.visual
+        visual:adm.visual,
+        showDirector:adm.showDirector
       });
     },
     recordMatchResult(rec){
@@ -3069,10 +3270,22 @@ requestAnimationFrame(loop);
         const list=readJson(SHOW_KEY,[]);
         list.unshift(entry);
         writeJson(SHOW_KEY,list.slice(0,200));
+        adm.roundMvp=null;
       }else{
         const list=readJson(HIST_KEY,[]);
         list.unshift(entry);
         writeJson(HIST_KEY,list.slice(0,500));
+        updateRivalryHistory(rec.winner,rec.runnerUp);
+        // Compute real round MVP (never fabricated)
+        if(ED.king&&KING.slayerC>=0&&APPS.has(KING.slayerC)){
+          adm.roundMvp={role:'KING SLAYER MVP',name:C[KING.slayerC].n};
+        }else if(ED.boss&&BOSS.bossWonRound===false&&APPS.has(rec.winner)){
+          adm.roundMvp={role:'BOSS BREAKER MVP',name:C[rec.winner].n};
+        }else if(rivalryHist.defendingStreak>=2&&APPS.has(rec.winner)){
+          adm.roundMvp={role:'STREAK MVP ('+rivalryHist.defendingStreak+'X)',name:C[rec.winner].n};
+        }else if(APPS.has(rec.winner)){
+          adm.roundMvp={role:'ROUND MVP',name:C[rec.winner].n};
+        }
       }
       adm.broadcastState();
     },
@@ -3135,8 +3348,99 @@ requestAnimationFrame(loop);
       }
       return{ok:false,error:'Unsupported event ID.'};
     },
+    triggerShowDirectorSpecial(specialType){
+      if(adm.emergencyStop)return{ok:false,error:'Emergency stop is active.'};
+      const enabled=adm.showDirector?.enabledEvents||{};
+      if(enabled[specialType]===false)return{ok:false,error:`Special event "${specialType}" is disabled in Show Director.`};
+      if(specialType==='golden_flag'){
+        return adm.triggerSpecialEvent('golden_flag');
+      }
+      if(specialType==='revenge_match'){
+        const pins=[];
+        if(APPS.has(rivalryHist.lastWinner))pins.push(rivalryHist.lastWinner);
+        if(APPS.has(rivalryHist.lastRunnerUp)&&!pins.includes(rivalryHist.lastRunnerUp))pins.push(rivalryHist.lastRunnerUp);
+        const label=pins.length===2?('REVENGE: '+C[pins[1]].n+' VS '+C[pins[0]].n):'REVENGE MATCH';
+        start({editionIdx:1,countries:pins,matchType:'normal',label,specialTag:'revenge_match'});
+        say('Revenge match begins! '+label,3);
+        return{ok:true};
+      }
+      if(specialType==='champions_challenge'){
+        const pins=APPS.has(rivalryHist.defendingChamp)?[rivalryHist.defendingChamp]:(APPS.has(lastChamp)?[lastChamp]:[]);
+        const label=pins.length?("CHAMPION'S CHALLENGE: "+C[pins[0]].n):"CHAMPION'S CHALLENGE";
+        start({editionIdx:curEi,countries:pins,matchType:'normal',label,specialTag:'champions_challenge'});
+        say('Champions challenge! Can the defending champion survive?',3);
+        return{ok:true};
+      }
+      if(specialType==='underdog_challenge'){
+        const eligible=getEligibleCountries();
+        const underdogs=eligible.slice().sort((a,b)=>(life.w[a]||0)-(life.w[b]||0)).slice(0,10);
+        start({editionIdx:curEi,countries:underdogs,matchType:'normal',label:'UNDERDOG CHALLENGE',specialTag:'underdog_challenge'});
+        say('Underdog challenge! Rising contenders take the arena!',3);
+        return{ok:true};
+      }
+      return{ok:false,error:'Unsupported Show Director special.'};
+    },
     drawOverlays(g){
       const ov=(adm.visual&&adm.visual.overlays)||{};
+      const sd=adm.showDirector||{};
+      const lowFx=!!(adm.visual&&adm.visual.reducedEffects)||perfState.adaptiveLevel==='REDUCED';
+
+      // Dramatic Final-5 / Critical Boss HP subtle tension pulse (phase 0 only, fair, non-obscuring)
+      if(phase===0&&sd.dramaticAlerts!==false&&!lowFx&&F){
+        const aliveCnt=F.reduce((acc,f)=>acc+(f.on?1:0),0);
+        const bossLow=ED.boss&&BOSS.bossAlive&&BOSS.maxHp>0&&(BOSS.hp/BOSS.maxHp)<0.25;
+        if((aliveCnt<=5&&aliveCnt>=2)||bossLow){
+          const pulse=.18+.12*Math.sin(performance.now()/180);
+          g.save();
+          g.strokeStyle=bossLow?'#ff4d6d':'#ffd23f';
+          g.globalAlpha=pulse;
+          g.lineWidth=4;
+          g.beginPath();g.arc(CX,CY,R+4,0,PI2);g.stroke();
+          g.restore();
+        }
+      }
+
+      // Brief Battle Intro Banner (non-blocking, vertical safe-zone)
+      if(phase===0&&adm.introBanner&&sd.introEnabled!==false){
+        const ib=adm.introBanner;
+        const alpha=Math.max(0,Math.min(1,ib.t*4,(ib.ttl-ib.t)*3));
+        g.save();g.globalAlpha=alpha;
+        pill(38,154,308,46,8,'#070b1af0',ib.col);
+        T(ib.title,192,175,15,ib.col,'center',AN);
+        T(ib.sub,192,192,9,'#e2e8f0','center','bold system-ui,sans-serif');
+        g.restore();
+      }
+
+      // Live Manual Audience Poll Bar (only when operator activates a real poll)
+      if(phase===0&&adm.audiencePoll&&adm.audiencePoll.active&&ov.poll!==false){
+        const p=adm.audiencePoll;
+        const tot=Math.max(0,(p.votesA||0)+(p.votesB||0));
+        const pctA=tot>0?Math.round((p.votesA/tot)*100):50;
+        const pctB=tot>0?100-pctA:50;
+        g.save();
+        pill(18,522,348,22,6,'#09152cee','#22d3ee88');
+        T('POLL: '+String(p.optionA||'A').slice(0,12)+' '+pctA+'%  VS  '+String(p.optionB||'B').slice(0,12)+' '+pctB+'% ('+tot+')',192,536,8.5,'#e2e8f0','center','bold system-ui,sans-serif');
+        g.restore();
+      }
+
+      // Victory Screen MVP & Next-Match Teaser ("NEXT HOOK")
+      if(phase===1){
+        if(sd.mvpBadge!==false&&adm.roundMvp){
+          g.save();
+          pill(62,48,260,26,6,'#0d1430ee','#ffd23f');
+          T(adm.roundMvp.role+': '+adm.roundMvp.name.toUpperCase(),192,65,10,'#ffd23f','center',AN);
+          g.restore();
+        }
+        if(sd.nextMatchTeaser!==false&&ov.nextTeaser!==false){
+          const nextQ=adm.battleQueue&&adm.battleQueue.length?adm.battleQueue[0]:null;
+          const nextTxt=nextQ?('NEXT UP: '+(nextQ.label||EDS[nextQ.editionIdx]?.n||'QUEUED MATCH').toUpperCase().slice(0,28)):(APPS.has(rivalryHist.lastRunnerUp)&&APPS.has(rivalryHist.lastWinner)?'NEXT UP: CAN '+C[rivalryHist.lastWinner].n.toUpperCase()+' DEFEND THE CROWN?':'NEXT BATTLE LOADING...');
+          g.save();
+          pill(26,676,332,20,5,'#09152cee','#22d3ee99');
+          T(nextTxt,192,689,8.5,'#67e8f9','center','bold system-ui,sans-serif');
+          g.restore();
+        }
+      }
+
       const showShowcase=adm.activeMatchType==='showcase'||(IS_PREVIEW&&adm.previewState.showcaseBanner);
       if(showShowcase&&ov.showcaseBadge!==false){
         g.save();
@@ -3190,6 +3494,7 @@ requestAnimationFrame(loop);
       return {
         ts:Date.now(),
         isPreview:IS_PREVIEW,
+        isStreamSafe:IS_STREAM_SAFE,
         phase,
         round,
         paused:adm.paused,
@@ -3230,6 +3535,11 @@ requestAnimationFrame(loop);
         roundSupporterEffects:adm.roundSupporterEffects,
         gameplay:adm.gameplay,
         visual:adm.visual,
+        showDirector:adm.showDirector,
+        audiencePoll:adm.audiencePoll,
+        rivalryHistory:rivalryHist,
+        perf:perfState,
+        diagnostics:diagnostics.slice(0,30),
         tourney,
         tourneyHistory:tourneyHistory.slice(-20),
         champ,
@@ -3304,6 +3614,21 @@ requestAnimationFrame(loop);
             adm.featuredComment={user:String(payload.user||'Viewer').slice(0,24),text:String(payload.text||'').slice(0,80),t:0,ttl:Number(payload.ttl)||10};break;
           case 'audience.clear_featured':
             adm.featuredComment=null;break;
+          case 'audience.poll_update':
+            adm.audiencePoll={
+              active:!!payload.active,
+              question:String(payload.question||'').slice(0,60),
+              optionA:String(payload.optionA||'Option A').slice(0,24),
+              optionB:String(payload.optionB||'Option B').slice(0,24),
+              votesA:Math.max(0,Math.floor(Number(payload.votesA)||0)),
+              votesB:Math.max(0,Math.floor(Number(payload.votesB)||0))
+            };break;
+          case 'tournament.start':
+          case 'tournament.pause':
+            break;
+          case 'tournament.reset':
+            tourney={id:(tourney.id||1)+1,round:0,scores:{},wins:{},results:[]};
+            saveTournament();break;
           case 'settings.update_gameplay':
             adm.gameplay={...adm.gameplay,...payload};adm.saveConfig();break;
           case 'settings.update_visual_audio':
@@ -3311,6 +3636,29 @@ requestAnimationFrame(loop);
             syncAudioGains();
             if(adm.visual.announcerEnabled===false&&window.speechSynthesis){try{speechSynthesis.cancel()}catch(_){}}
             adm.saveConfig();break;
+          case 'showdirector.update':
+            adm.showDirector=sanitizeConfig({showDirector:{...adm.showDirector,...payload,enabledEvents:{...adm.showDirector.enabledEvents,...(payload.enabledEvents||{})}}}).showDirector;
+            adm.saveConfig();break;
+          case 'showdirector.trigger_special':
+            return adm.triggerShowDirectorSpecial(payload.specialType);
+          case 'showdirector.return_normal':
+            EV.end();adm.introBanner=null;adm.featuredComment=null;adm.supporterCelebration=null;adm.audiencePoll.active=false;adm.activeSpecialTag='';
+            adm.nextMatchType='normal';adm.nextShowcaseWinner=-1;adm.paused=false;adm.saveConfig();break;
+          case 'diagnostics.clear':
+            diagnostics.length=0;break;
+          case 'recovery.reload_storage':
+            if(!IS_PREVIEW&&typeof location!=='undefined'&&location.reload){setTimeout(()=>location.reload(),120);}
+            break;
+          case 'recovery.safe_reset':
+            LS.set('fca_state','');adm.paused=false;adm.emergencyStop=false;EV.end();start();break;
+          case 'config.undo':
+          case 'config.rollback':
+            if(payload.config){
+              const cleanCfg=sanitizeConfig(payload.config);
+              Object.assign(adm,cleanCfg);
+              syncAudioGains();
+              adm.saveConfig();
+            }break;
           case 'emergency.stop':
             adm.emergencyStop=true;adm.paused=true;EV.end();adm.supporterCelebration=null;
             if(window.speechSynthesis){try{speechSynthesis.cancel()}catch(_){}}
@@ -3324,7 +3672,9 @@ requestAnimationFrame(loop);
               if(payload.type==='celebration')adm.supporterCelebration={supporter:payload.supporter||'VIP_Fan',country:payload.country||'Brazil',effect:'SHIELD BOOST',t:0,ttl:6};
               if(payload.type==='event'&&EVDEF[payload.eventId])EV.go(payload.eventId,{mag:1,hidden:0},F.filter(x=>x.on));
               if(payload.type==='announcement')ann={s:String(payload.text||'PREVIEW ANNOUNCEMENT').slice(0,40),t:0};
-              if(payload.type==='clear'){adm.previewState.showcaseBanner=false;adm.featuredComment=null;adm.supporterCelebration=null;ann=null}
+              if(payload.type==='intro')adm.introBanner={title:'RIVALRY SHOWDOWN',sub:'PREVIEW BATTLE INTRO',col:'#ffd23f',t:0,ttl:4};
+              if(payload.type==='poll')adm.audiencePoll={active:true,question:'Next Match?',optionA:'Brazil',optionB:'Argentina',votesA:0,votesB:0};
+              if(payload.type==='clear'){adm.previewState.showcaseBanner=false;adm.featuredComment=null;adm.supporterCelebration=null;adm.introBanner=null;adm.audiencePoll.active=false;ann=null}
             }break;
           case 'ping':
             break;
@@ -3334,6 +3684,7 @@ requestAnimationFrame(loop);
         adm.broadcastState();
         return{ok:true};
       }catch(e){
+        recordDiagnostic('admin_bridge',e.message||'Command failed',action);
         return{ok:false,error:e.message||'Command failed'};
       }
     }
@@ -3372,7 +3723,7 @@ requestAnimationFrame(loop);
   window.__FCA_ADM__=adm;
   window.__FCA_EVENT_BUS__={
     // Standardized internal event interface prepared for future platform integrations
-    version:'1.0.0',
+    version:'1.1.0',
     connectedPlatforms:[],
     emitViewerRequest(user,countryName,comment){
       if(!validCountry(countryName))return{ok:false,error:'Excluded country'};
