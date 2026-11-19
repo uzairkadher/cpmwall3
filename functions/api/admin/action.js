@@ -20,6 +20,9 @@ const ALLOWED_ACTIONS = new Set([
   'battle.select_countries',
   'battle.set_queue',
   'battle.trigger_event',
+  'edition.queue',
+  'edition.switch_classic',
+  'edition.cancel_queue',
   'country.update_config',
   'audience.submit_request',
   'audience.approve_request',
@@ -48,12 +51,28 @@ const ALLOWED_ACTIONS = new Set([
   'showdirector.update',
   'showdirector.trigger_special',
   'showdirector.return_normal',
+  'showdirector.apply_preset',
+  'showdirector.set_pacing',
+  'showdirector.set_intensity',
+  'showdirector.trigger_rare',
+  'showdirector.trigger_finale',
+  'showdirector.update_rare_config',
+  'gauntlet.start',
+  'gauntlet.stop',
+  'queue.smart_fill',
+  'highlights.clear',
+  'sync.resync',
   'audience.poll_update',
   'diagnostics.clear',
   'recovery.reload_storage',
   'recovery.safe_reset',
   'config.undo',
-  'config.rollback'
+  'config.rollback',
+  'rotation.update',
+  'edition.toggle_enabled',
+  'v6.update_config',
+  'v6.clear_timelines',
+  'v6.trigger_sudden_death'
 ]);
 
 function validateBounds(action, payload) {
@@ -110,6 +129,73 @@ function validateBounds(action, payload) {
     }
     if (payload.maxShieldSec !== undefined && (!Number.isFinite(shieldDur) || shieldDur < 1 || shieldDur > 6)) {
       return 'maxShieldSec must be between 1 and 6 seconds.';
+    }
+  }
+
+  if (action === 'battle.set_edition' || action === 'edition.queue') {
+    const idx = Number(payload.editionIdx);
+    if (!Number.isInteger(idx) || idx < 0 || idx > 76) {
+      return 'editionIdx must be a valid edition index (0 to 76).';
+    }
+  }
+
+  if (action === 'showdirector.update_rare_config') {
+    if (payload.chance !== undefined) {
+      const ch = Number(payload.chance);
+      if (!Number.isFinite(ch) || ch < 0 || ch > 0.5) {
+        return 'Rare event chance must be between 0 and 0.5.';
+      }
+    }
+    if (payload.cooldownRounds !== undefined) {
+      const cd = Number(payload.cooldownRounds);
+      if (!Number.isFinite(cd) || cd < 1 || cd > 20) {
+        return 'Rare event cooldownRounds must be between 1 and 20.';
+      }
+    }
+  }
+
+  if (action === 'gauntlet.start') {
+    if (payload.targetDefenses !== undefined) {
+      const td = Number(payload.targetDefenses);
+      if (!Number.isInteger(td) || td < 2 || td > 10) {
+        return 'Gauntlet targetDefenses must be between 2 and 10.';
+      }
+    }
+  }
+
+
+  if (action === 'edition.toggle_enabled') {
+    const idx = Number(payload.editionIdx);
+    if (!Number.isInteger(idx) || idx < 1 || idx > 76) {
+      return 'editionIdx must be between 1 and 76 (Classic Edition cannot be disabled).';
+    }
+  }
+
+  if (action === 'rotation.update') {
+    const validModes = new Set(['every_battle', 'every_2', 'every_3', 'smart', 'timed', 'manual']);
+    for (const key of ['edition', 'theme', 'mode', 'difficulty']) {
+      if (payload[key] && typeof payload[key] === 'object') {
+        if (payload[key].mode !== undefined && !validModes.has(payload[key].mode)) {
+          return `Invalid rotation mode for ${key}.`;
+        }
+        if (payload[key].timedSec !== undefined) {
+          const ts = Number(payload[key].timedSec);
+          if (!Number.isFinite(ts) || ts < 30 || ts > 7200) {
+            return `timedSec for ${key} must be between 30 and 7200 seconds.`;
+          }
+        }
+      }
+    }
+  }
+
+  if (action === 'v6.update_config') {
+    if (payload.suddenDeath && payload.suddenDeath.triggerSec !== undefined) {
+      const s = Number(payload.suddenDeath.triggerSec);
+      if (!Number.isFinite(s) || s < 20 || s > 300) return 'suddenDeath.triggerSec must be between 20 and 300.';
+    }
+    if (payload.upsetDetector && payload.upsetDetector.minRoundsData !== undefined) {
+      const m = Number(payload.upsetDetector.minRoundsData);
+      if (!Number.isFinite(m) || m < 1 || m > 50) return 'upsetDetector.minRoundsData must be between 1 and 50.';
     }
   }
 

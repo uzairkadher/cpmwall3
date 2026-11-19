@@ -68,6 +68,7 @@
     <div class="nav-group-label">Operations</div>
     <button class="nav-item active" data-tab="dashboard">Dashboard</button>
     <button class="nav-item" data-tab="battle">Live Battle Control</button>
+    <button class="nav-item" data-tab="editions">Editions Hub (37)</button>
     <button class="nav-item" data-tab="countries">Country Management</button>
     <button class="nav-item" data-tab="special">Special Match Control</button>
     <button class="nav-item" data-tab="showdirector">Show Director</button>
@@ -89,6 +90,23 @@
   </nav>
 
   <main class="main-content">
+    <!-- MOBILE STICKY QUICK-ACTION DOCK -->
+    <div id="mobile-quick-dock" class="mobile-quick-dock" aria-label="Mobile Quick Controls">
+      <div class="mqd-row">
+        <span id="mqd-edition" style="font-weight:800;font-size:13px;color:#ffd23f">Classic Edition</span>
+        <span id="mqd-sync-pill" class="sync-pill offline">Waiting for Game</span>
+      </div>
+      <div id="mqd-queued-row" class="mqd-row hidden" style="font-size:11.5px;color:#fcd34d">
+        <span id="mqd-queued-text">Queued: --</span>
+        <button id="mqd-cancel-queue" type="button" class="btn btn-sm" style="min-height:32px;padding:4px 8px">Cancel</button>
+      </div>
+      <div class="mqd-actions">
+        <button id="mqd-pause-btn" type="button" class="btn">Pause</button>
+        <button id="mqd-next-btn" type="button" class="btn btn-primary">Next</button>
+        <button id="mqd-classic-btn" type="button" class="btn">Classic</button>
+        <button id="mqd-resync-btn" type="button" class="btn">Resync</button>
+      </div>
+    </div>
 
     <!-- 1. DASHBOARD -->
     <section id="tab-dashboard" class="tab-panel">
@@ -998,6 +1016,123 @@
           </div>
         </div>
       </div>
+    
+      <!-- ===== MASTER SHOW PRESETS, PACING, GAUNTLET, FINALE & INTELLIGENCE ===== -->
+      <div class="card" style="margin-top:14px">
+        <div class="card-title">Livestream Show Presets (One-Tap Synced Config)</div>
+        <div class="preset-grid" id="sd-preset-grid">
+          <button type="button" class="btn preset-btn" data-preset="competitive">Competitive</button>
+          <button type="button" class="btn preset-btn" data-preset="chaos_show">Chaos Show</button>
+          <button type="button" class="btn preset-btn" data-preset="championship">Championship</button>
+          <button type="button" class="btn preset-btn" data-preset="retention">Retention</button>
+          <button type="button" class="btn preset-btn" data-preset="chill">Chill Mode</button>
+          <button type="button" class="btn preset-btn" data-preset="manual">Manual Mode</button>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top:14px">
+        <div class="card">
+          <div class="card-title">Battle Pacing &amp; Intensity Director</div>
+          <div class="form-group">
+            <label for="sd-pacing-select">Pacing Mode</label>
+            <select id="sd-pacing-select">
+              <option value="quick">Quick Pace (Fast transitions)</option>
+              <option value="standard" selected>Standard Pace (Balanced)</option>
+              <option value="high_stakes">High Stakes Pace (Extended buildup)</option>
+              <option value="finale">Finale Pace (Grand climax)</option>
+            </select>
+          </div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;margin:10px 0">
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px">
+              <input id="sd-intensity-toggle" type="checkbox" checked> Battle Intensity Director
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px">
+              <input id="sd-statusbar-toggle" type="checkbox" checked> Live Show Status Bar
+            </label>
+          </div>
+          <div id="sd-live-stakes-box" style="font-size:12.5px;color:#cbd5e1;padding:8px;background:rgba(15,23,42,0.6);border-radius:8px">
+            Current Intensity: <strong id="sd-intensity-val">Stage 1 (Normal)</strong> · Stakes: <strong id="sd-stakes-val">Standard</strong>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Champion's Throne &amp; Gauntlet</div>
+          <div id="sd-champ-legacy-summary" style="font-size:13px;color:#e2e8f0;margin-bottom:10px">
+            Current Champion: <strong>None yet</strong> · Longest Reign: <strong>0</strong>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <input id="gauntlet-target" type="number" min="2" max="10" value="5" style="width:76px" title="Target Defenses">
+            <button id="btn-gauntlet-start" class="btn btn-primary" type="button">Start Gauntlet</button>
+            <button id="btn-gauntlet-stop" class="btn" type="button">Stop Gauntlet</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top:14px">
+        <div class="card">
+          <div class="card-title">Rare Moments &amp; Secret Events</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px">
+              <input id="sd-rare-enabled" type="checkbox" checked> Random Rare Moments
+            </label>
+            <label style="font-size:12px">Chance: <input id="sd-rare-chance" type="number" min="0" max="0.5" step="0.02" value="0.12" style="width:70px"></label>
+            <label style="font-size:12px">Cooldown: <input id="sd-rare-cd" type="number" min="1" max="20" value="5" style="width:62px"></label>
+            <button id="btn-sd-save-rare" class="btn btn-sm" type="button">Save Rare Rules</button>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <select id="sd-rare-select" style="flex:1;min-width:150px">
+              <option value="golden_arena">Golden Arena (Legendary)</option>
+              <option value="double_event">Double Event (Ultimate)</option>
+              <option value="legendary_entrance">Legendary Entrance (Special)</option>
+              <option value="arena_transform">Arena Transformation (Legendary)</option>
+              <option value="singularity_omen">Singularity Omen (Singularity)</option>
+            </select>
+            <button id="btn-sd-trigger-rare" class="btn btn-primary" type="button">Trigger Rare (Manual)</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Grand Finale &amp; Smart Queue</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+            <select id="sd-finale-format" style="flex:1;min-width:150px">
+              <option value="Championship Final">Championship Final</option>
+              <option value="Champion's Last Defense">Champion's Last Defense</option>
+              <option value="Rivalry Decider">Rivalry Decider</option>
+              <option value="Legendary Infinity Finale">Legendary Infinity Finale</option>
+            </select>
+            <button id="btn-sd-launch-finale" class="btn btn-primary" type="button">Launch Finale</button>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <button id="btn-smart-queue" class="btn" type="button">Smart-Fill 3 Varied Battles</button>
+            <span style="font-size:11.5px;color:var(--text-muted)">Anti-repetition queue builder</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px">
+        <div class="card-title">Retention &amp; Anti-Repetition Intelligence (Gameplay-Based Estimates)</div>
+        <div id="sd-retention-intel-list">
+          <div class="intel-item ok">Waiting for live game telemetry...</div>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top:14px">
+        <div class="card">
+          <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
+            <span>Highlight Moment Detector (Metadata Only)</span>
+            <button id="btn-clear-highlights" class="btn btn-sm" type="button">Clear</button>
+          </div>
+          <div id="sd-highlights-list" style="max-height:240px;overflow-y:auto;font-size:12.5px;color:var(--text-muted)">No highlights recorded yet.</div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Hall of Legends &amp; Story Recaps</div>
+          <div id="sd-legends-list" style="margin-bottom:10px;font-size:12.5px;color:#fde68a">No Legend titles earned yet.</div>
+          <div style="font-size:11.5px;color:var(--text-muted);margin-bottom:4px">Recent Battle Story Recaps (Summary Data, Not Video)</div>
+          <div id="sd-recaps-list" style="max-height:170px;overflow-y:auto;font-size:12px;color:var(--text-muted)">No recaps yet.</div>
+        </div>
+      </div>
+
     </section>
 
     <!-- 14. DIAGNOSTICS & PERFORMANCE -->
@@ -1049,10 +1184,178 @@
           </table>
         </div>
       </div>
+    
+      <div class="card" style="margin-top:14px">
+        <div class="card-head">
+          <h3>v6.0 Battle Intelligence &amp; Entertainment</h3>
+          <span id="v6-runtime-pill" class="badge">Active</span>
+        </div>
+        <div class="grid-2" style="gap:10px">
+          <label class="check-row"><input id="v6-sudden-en" type="checkbox" checked> Sudden Death Overtime</label>
+          <label class="check-row"><input id="v6-rivalry-en" type="checkbox" checked> Rivalry Engine</label>
+          <label class="check-row"><input id="v6-director-en" type="checkbox" checked> Automated Event Director</label>
+          <label class="check-row"><input id="v6-upset-en" type="checkbox" checked> Upset Detector</label>
+          <label class="check-row"><input id="v6-comeback-en" type="checkbox" checked> Comeback Recognition</label>
+          <label class="check-row"><input id="v6-entrance-en" type="checkbox" checked> Entrance Evolution</label>
+        </div>
+        <div class="grid-2" style="gap:10px;margin-top:10px">
+          <div>
+            <label class="field-label">Sudden Death Trigger (sec)</label>
+            <input id="v6-sudden-sec" type="number" min="20" max="300" value="75">
+          </div>
+          <div>
+            <label class="field-label">Battle Personality Profile</label>
+            <select id="v6-profile-select">
+              <option value="auto">Auto (Dynamic)</option>
+              <option value="energetic">Fast &amp; Energetic</option>
+              <option value="dramatic">Dramatic</option>
+              <option value="tactical">Tactical Presentation</option>
+              <option value="rivalry_focus">Rivalry-Focused</option>
+              <option value="championship_focus">Championship-Focused</option>
+              <option value="minimal">Minimal Presentation</option>
+              <option value="cinematic">Cinematic</option>
+              <option value="celebration">Celebration-Focused</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+          <button id="v6-save-btn" type="button" class="btn btn-primary btn-sm">Save Intelligence Config</button>
+          <button id="v6-trigger-sd-btn" type="button" class="btn btn-sm">Trigger Sudden Death Now</button>
+          <button id="v6-clear-tl-btn" type="button" class="btn btn-sm">Clear Moment Timelines</button>
+        </div>
+        <div id="v6-live-summary" class="muted" style="margin-top:10px;font-size:12px"></div>
+        <div class="grid-2" style="gap:10px;margin-top:10px">
+          <div>
+            <div class="field-label">Country Journey Leaders (Real Records)</div>
+            <div id="v6-journey-list" class="muted" style="font-size:12px;max-height:140px;overflow:auto">No journey records yet.</div>
+          </div>
+          <div>
+            <div class="field-label">Battle Moment Timelines (Metadata Recap)</div>
+            <div id="v6-timelines-list" class="muted" style="font-size:12px;max-height:140px;overflow:auto">No timelines captured yet.</div>
+          </div>
+        </div>
+      </div>
+
+</section>
+
+  
+    <!-- ===== EDITIONS HUB (ALL 37 EDITIONS: 13 ORIGINAL + 24 LEGENDARY) ===== -->
+    <section id="tab-editions" class="tab-panel hidden">
+      <div class="panel-header">
+        <div>
+          <h2>Editions Hub (37 Editions)</h2>
+          <p class="panel-sub">Select any original or Legendary edition. Classic remains strictly protected. Mid-battle switches queue safely by default.</p>
+        </div>
+        <div class="header-actions" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <span id="ed-sync-status" class="sync-pill offline">Waiting for Game</span>
+          <button id="btn-ed-return-classic" class="btn btn-primary" type="button">Return to Classic</button>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:14px">
+        <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-size:12px;color:var(--text-muted)">ACTIVE EDITION</div>
+            <div id="ed-active-banner" style="font-size:18px;font-weight:800;color:#22d3ee">Classic</div>
+            <div id="ed-queued-banner" style="font-size:12px;color:#fcd34d;margin-top:2px">No edition queued</div>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+              <input id="ed-safe-queue-toggle" type="checkbox" checked>
+              <span>Safe Mid-Battle Queue</span>
+            </label>
+            <button id="btn-ed-cancel-queue" class="btn btn-sm" type="button">Cancel Queued</button>
+          </div>
+        </div>
+      </div>
+
+
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-head">
+          <h3>Rotation &amp; Timing Control (Round-Based)</h3>
+          <span id="rot-status-badge" class="badge">Every Battle</span>
+        </div>
+        <p class="muted" style="margin-top:0;font-size:12px">Independent battle-boundary rotation for Edition, Theme, Mode, and Difficulty. Never interrupts active battles.</p>
+        <div class="grid-2" style="gap:10px">
+          <div>
+            <label class="field-label">Edition Rotation <span id="rot-ed-next" class="muted" style="font-weight:400"></span></label>
+            <select id="rot-edition-mode">
+              <option value="every_battle">Every Battle</option>
+              <option value="every_2">Every 2 Battles</option>
+              <option value="every_3">Every 3 Battles</option>
+              <option value="smart">Smart Rotation</option>
+              <option value="timed">Timed Rotation</option>
+              <option value="manual">Manual</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label">Theme Overlay Rotation <span id="rot-theme-next" class="muted" style="font-weight:400"></span></label>
+            <select id="rot-theme-mode">
+              <option value="manual">Manual</option>
+              <option value="every_battle">Every Battle</option>
+              <option value="every_2">Every 2 Battles</option>
+              <option value="every_3">Every 3 Battles</option>
+              <option value="smart">Smart Rotation</option>
+              <option value="timed">Timed Rotation</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label">Pacing Mode Rotation <span id="rot-mode-next" class="muted" style="font-weight:400"></span></label>
+            <select id="rot-mode-mode">
+              <option value="manual">Manual</option>
+              <option value="every_battle">Every Battle</option>
+              <option value="every_2">Every 2 Battles</option>
+              <option value="every_3">Every 3 Battles</option>
+              <option value="smart">Smart Rotation</option>
+              <option value="timed">Timed Rotation</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label">Difficulty Rotation <span id="rot-diff-next" class="muted" style="font-weight:400"></span></label>
+            <select id="rot-diff-mode">
+              <option value="manual">Manual</option>
+              <option value="every_battle">Every Battle</option>
+              <option value="every_2">Every 2 Battles</option>
+              <option value="every_3">Every 3 Battles</option>
+              <option value="smart">Smart Rotation</option>
+              <option value="timed">Timed Rotation</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap">
+          <label class="field-label" style="margin:0">Timed Interval (sec)</label>
+          <input id="rot-timed-sec" type="number" min="30" max="7200" value="300" style="width:90px">
+          <button id="rot-save-btn" type="button" class="btn btn-primary btn-sm">Apply Rotation Settings</button>
+          <span id="rot-current-summary" class="muted" style="font-size:11px"></span>
+        </div>
+      </div>
+
+      <div class="edition-filter-bar" id="ed-filter-bar">
+        <button type="button" class="btn active-filter" data-ed-filter="all">All (77)</button>
+        <button type="button" class="btn" data-ed-filter="v5a">v5.0 Batch A (20)</button>
+        <button type="button" class="btn" data-ed-filter="v5b">v5.0 Batch B (20)</button>
+        <button type="button" class="btn" data-ed-filter="tier1">Tier 1 Flagship</button>
+        <button type="button" class="btn" data-ed-filter="tier2">Tier 2 Spectacle</button>
+        <button type="button" class="btn" data-ed-filter="tier3">Tier 3 Atmosphere</button>
+        <button type="button" class="btn" data-ed-filter="tier4">Tier 4 Specialized</button>
+        <button type="button" class="btn" data-ed-filter="original">Original 13</button>
+      </div>
+
+      <div id="editions-card-grid" class="editions-grid"></div>
     </section>
 
   </main>
 </div>
+
+
+<!-- MOBILE-FIRST BOTTOM NAVIGATION BAR -->
+<nav id="mobile-bottom-nav" class="mobile-bottom-nav" aria-label="Mobile Navigation">
+  <button type="button" class="mbn-item active" data-mbn-tab="battle"><span class="mbn-icon">⚔️</span><span>Live</span></button>
+  <button type="button" class="mbn-item" data-mbn-tab="editions"><span class="mbn-icon">🌌</span><span>Editions</span></button>
+  <button type="button" class="mbn-item" data-mbn-tab="showdirector"><span class="mbn-icon">🎬</span><span>Show</span></button>
+  <button type="button" class="mbn-item" data-mbn-tab="dashboard"><span class="mbn-icon">📊</span><span>Stats</span></button>
+  <button type="button" class="mbn-item" data-mbn-action="more"><span class="mbn-icon">☰</span><span>More</span></button>
+</nav>
 
 <!-- ===== CONFIRMATION MODAL ===== -->
 <div id="confirm-modal" class="modal-backdrop hidden">

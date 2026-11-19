@@ -256,7 +256,85 @@ function playNextSpeech(){if(speechBusy||!speechQueue.length)return;const item=s
 
 // game
 const EDMS=3600000,pk=a=>a[Math.floor(rnd()*a.length)];
-const EDS=[{n:'Classic',sp:1,rot:.5,gap:1,pull:1},{n:'Rivalry',sp:1,rot:.5,gap:1,pull:1},{n:'Extreme',sp:1.5,rot:.8,gap:.7,pull:1.6,lim:60},{n:'Mystery',sp:1,rot:.5,gap:1,pull:1},{n:'Championship',sp:1,rot:.5,gap:1,pull:1},{n:'60-Second Battle',sp:1,rot:.5,gap:1,pull:1,bt:60},{n:'Survival Storm',sp:1,rot:.5,gap:1,pull:1,storm:1},{n:'King of the Arena',sp:1,rot:.5,gap:1,pull:1,king:1},{n:'Team Wars',sp:1,rot:.5,gap:1,pull:1,team:1},{n:'Sudden Death',sp:1,rot:.5,gap:1,pull:1,sudden:1},{n:'Boss Battle',sp:1,rot:.5,gap:1,pull:1,boss:1},{n:'Chaos Arena',sp:1,rot:.5,gap:1,pull:1,chaos:1},{n:'Power-Up Battle',sp:1,rot:.5,gap:1,pull:1,power:1}];
+const EDS=[
+{n:'Classic',sp:1,rot:.5,gap:1,pull:1},
+{n:'Rivalry',sp:1,rot:.5,gap:1,pull:1},
+{n:'Extreme',sp:1.5,rot:.8,gap:.7,pull:1.6,lim:60},
+{n:'Mystery',sp:1,rot:.5,gap:1,pull:1},
+{n:'Championship',sp:1,rot:.5,gap:1,pull:1},
+{n:'60-Second Battle',sp:1,rot:.5,gap:1,pull:1,bt:60},
+{n:'Survival Storm',sp:1,rot:.5,gap:1,pull:1,storm:1},
+{n:'King of the Arena',sp:1,rot:.5,gap:1,pull:1,king:1},
+{n:'Team Wars',sp:1,rot:.5,gap:1,pull:1,team:1},
+{n:'Sudden Death',sp:1,rot:.5,gap:1,pull:1,sudden:1},
+{n:'Boss Battle',sp:1,rot:.5,gap:1,pull:1,boss:1},
+{n:'Chaos Arena',sp:1,rot:.5,gap:1,pull:1,chaos:1},
+{n:'Power-Up Battle',sp:1,rot:.5,gap:1,pull:1,power:1},
+{n:'Singularity',sp:1,rot:.55,gap:1,pull:1.08,leg:'singularity',tier:1,rarity:'Singularity',desc:'Cosmic black-hole centerpiece, orbital lensing, and Singularity Collapse sequences.'},
+{n:'Volcanic Rise',sp:1.04,rot:.55,gap:1,pull:1,leg:'volcanic',tier:2,rarity:'Special',desc:'Caldera lava veins, rising volcanic embers, and controlled Volcanic Surge eruptions.'},
+{n:'Frostbite',sp:1,rot:.48,gap:1,pull:1,leg:'frostbite',tier:2,rarity:'Special',desc:'Crystalline ice arena, drifting snow, frost rim, and Blizzard Wave sweeps.'},
+{n:'Thunderbreak',sp:1.05,rot:.58,gap:1,pull:1,leg:'thunderbreak',tier:2,rarity:'Special',desc:'Electric storm sky, forked lightning arcs, and sudden Thunder Strike surges.'},
+{n:'Great Colosseum',sp:1,rot:.5,gap:1,pull:1,leg:'colosseum',tier:1,rarity:'Legendary',desc:'Ancient marble arena, torchlight aura, and prestigious Colosseum Final Duel framing.'},
+{n:'Crystal Realms',sp:1,rot:.52,gap:1,pull:1,leg:'crystal',tier:4,rarity:'Special',desc:'Prismatic crystal shards, luminous refraction beams, and Crystal Resonance waves.'},
+{n:'Expedition Survival',sp:1,rot:.52,gap:1,pull:1.05,leg:'expedition',tier:4,rarity:'Standard',desc:'Rugged canyon ruins, desert dust gusts, and endurance-focused survival atmosphere.'},
+{n:'Celestial Ascension',sp:1,rot:.5,gap:1,pull:1,leg:'celestial',tier:2,rarity:'Legendary',desc:'Golden sky dome, radiant sunbeams, floating pillars, and prestigious Ascension celebrations.'},
+{n:'Aurora',sp:1,rot:.5,gap:1,pull:1,leg:'aurora',tier:3,rarity:'Special',desc:'Dynamic northern lights ribbons in emerald, cyan, and violet with Aurora Burst waves.'},
+{n:'Candy Mayhem',sp:1.06,rot:.58,gap:1,pull:1,leg:'candy',tier:4,rarity:'Standard',desc:'Playful pastel candy arena, confetti pops, and humorous Sugar Rush surprises.'},
+{n:'Ronin Rivalry',sp:1,rot:.52,gap:1,pull:1,leg:'ronin',tier:4,rarity:'Special',desc:'Respectful samurai dojo framing, drifting sakura petals, and Honor Duel precision.'},
+{n:'Alien Worlds',sp:1.02,rot:.54,gap:1,pull:1.04,leg:'alien',tier:3,rarity:'Special',desc:'Bioluminescent exoplanet flora, twin moons, drifting spores, and Xenon Pulse waves.'},
+{n:'Titan Mechanics',sp:1.03,rot:.6,gap:1,pull:1,leg:'titan',tier:4,rarity:'Special',desc:'Giant rotating brass and steel gears, industrial sparks, and Mechanical Overdrive.'},
+{n:'Abyssal Ocean',sp:.96,rot:.46,gap:1,pull:1,leg:'abyssal',tier:3,rarity:'Special',desc:'Deep turquoise ocean currents, rising bubbles, and Deep Ocean Pulse waves.'},
+{n:'Desert Dynasty',sp:1.02,rot:.52,gap:1,pull:1,leg:'desert',tier:3,rarity:'Standard',desc:'Golden dunes, sandstone obelisks, sunlight shimmer, and Desert Storm gusts.'},
+{n:'Reality Break',sp:1.04,rot:.56,gap:1,pull:1.04,leg:'reality',tier:2,rarity:'Legendary',desc:'Floating dimensional shards, portal rings, controlled scanline visuals, and Reality Fracture.'},
+{n:'Omega Championship',sp:1,rot:.5,gap:1,pull:1,leg:'omega',tier:1,rarity:'Ultimate',desc:'Obsidian and gold championship stage built for high-stakes title defenses and finals.'},
+{n:'Multiverse',sp:1.02,rot:.54,gap:1,pull:1,leg:'multiverse',tier:2,rarity:'Ultimate',desc:'Worlds colliding: dynamic arena realm shifts mid-battle with Multiverse Shift bursts.'},
+{n:'Prism Overdrive',sp:1.05,rot:.56,gap:1,pull:1,leg:'prism',tier:2,rarity:'Legendary',desc:'Full-spectrum prismatic rays, chromatic ring glow, and Prism Explosion waves.'},
+{n:'Skybound',sp:1.02,rot:.5,gap:1,pull:1,leg:'skybound',tier:3,rarity:'Standard',desc:'Floating sky islands, drifting cloud layers, and Skyfall Gust wind currents.'},
+{n:'Speedforce',sp:1.22,rot:.68,gap:1,pull:1.08,leg:'speedforce',tier:4,rarity:'Special',desc:'Kinetic racing chevrons, neon motion trails, and rapid-pace Hyper Acceleration.'},
+{n:'Wilderness',sp:1,rot:.5,gap:1,pull:1,leg:'wilderness',tier:3,rarity:'Standard',desc:'Pine forest horizon, mountain mist, drifting leaves, and Nature Fury breezes.'},
+{n:'Cyber Overdrive',sp:1.06,rot:.58,gap:1,pull:1,leg:'cyber',tier:3,rarity:'Special',desc:'Futuristic neon cyber grid, holographic HUD lines, and Cyber Surge waves.'},
+{n:'Legendary Infinity',sp:1.04,rot:.54,gap:1,pull:1.04,leg:'infinity',tier:1,rarity:'Ultimate',desc:'Curated ultimate broadcast showcase uniting cosmic gold nebula, prism halo, and Infinity Sequence.'}
+,{n:'Duality',sp:1,rot:.5,gap:1,pull:1,leg:'duality',tier:1,rarity:'Special',batch:'v5a',desc:'Opposing ivory and obsidian realms with mirrored architecture and contrast pulse transitions.'}
+,{n:'Timebreak',sp:1,rot:.5,gap:1,pull:1,leg:'timebreak',tier:1,rarity:'Legendary',batch:'v5a',desc:'Giant Roman clockface arena, rotating hands, temporal fracture rings, and visual rewind transitions.'}
+,{n:'BioGlow',sp:1,rot:.5,gap:1,pull:1,leg:'bioglow',tier:2,rarity:'Special',batch:'v5a',desc:'Bioluminescent subterranean botanical cavern with glowing vines, luminous roots, and reactive spores.'}
+,{n:'Art Deco Royale',sp:1,rot:.5,gap:1,pull:1,leg:'artdeco',tier:1,rarity:'Legendary',batch:'v5a',desc:'1920s geometric sunburst arches, emerald and champagne-gold symmetry, and formal luxury framing.'}
+,{n:'Paperworld',sp:1,rot:.5,gap:1,pull:1,leg:'paperworld',tier:2,rarity:'Standard',batch:'v5a',desc:'Handcrafted layered parchment arena, folded origami cranes, and crisp paper-fold transitions.'}
+,{n:'Museum of Worlds',sp:1,rot:.5,gap:1,pull:1,leg:'museum',tier:2,rarity:'Standard',batch:'v5a',desc:'Alabaster exhibition gallery with brass display plaques showcasing genuine battle records.'}
+,{n:'Ironworks',sp:1,rot:.5,gap:1,pull:1,leg:'ironworks',tier:2,rarity:'Special',batch:'v5a',desc:'Heavy steel foundry beams, glowing furnace grates, and cosmetic industrial forge embers.'}
+,{n:'Carnival Royale',sp:1,rot:.5,gap:1,pull:1,leg:'carnival',tier:2,rarity:'Special',batch:'v5a',desc:'Big-top marquee stripes, chase-bulb perimeter lighting, ticket cards, and festive confetti.'}
+,{n:'Silent Prestige',sp:1,rot:.5,gap:1,pull:1,leg:'silent_prestige',tier:1,rarity:'Special',batch:'v5a',desc:'Minimalist matte charcoal and silver composition with restrained lighting and pure battle focus.'}
+,{n:'Horizon Zero',sp:1,rot:.5,gap:1,pull:1,leg:'horizon_zero',tier:2,rarity:'Special',batch:'v5a',desc:'Oversized atmospheric sun disc over a silhouetted horizon with warm cinematic sky bands.'}
+,{n:'Glasshouse',sp:1,rot:.5,gap:1,pull:1,leg:'glasshouse',tier:2,rarity:'Special',batch:'v5a',desc:'Transparent conservatory dome ribs, crisp specular glass panes, and architectural light refraction.'}
+,{n:'Paintstorm',sp:1,rot:.5,gap:1,pull:1,leg:'paintstorm',tier:2,rarity:'Standard',batch:'v5a',desc:'Dynamic studio canvas with bold pigment arcs, artistic splatters, and readable vibrant energy.'}
+,{n:'Last Station',sp:1,rot:.5,gap:1,pull:1,leg:'last_station',tier:2,rarity:'Special',batch:'v5a',desc:'Cinematic railway terminus with platform tracks and split-flap departure boards using real round data.'}
+,{n:'Lantern Festival',sp:1,rot:.5,gap:1,pull:1,leg:'lantern_festival',tier:2,rarity:'Special',batch:'v5a',desc:'Twilight indigo sky filled with warm floating paper lanterns and celebratory golden illumination.'}
+,{n:'Soundwave',sp:1,rot:.5,gap:1,pull:1,leg:'soundwave',tier:2,rarity:'Special',batch:'v5a',desc:'Rhythm-synchronized circular equalizer spectrum, bass ring pulses, and timing-driven visual climax.'}
+,{n:'Labyrinth',sp:1,rot:.5,gap:1,pull:1,leg:'labyrinth',tier:2,rarity:'Special',batch:'v5a',desc:'Concentric stone-and-teal geometric maze pathways etched cosmetically into the arena floor.'}
+,{n:'World Expo',sp:1,rot:.5,gap:1,pull:1,leg:'world_expo',tier:1,rarity:'Special',batch:'v5a',desc:'International geodesic pavilion dome, global meridian grid, and genuine country showcase panels.'}
+,{n:'Infinite Mirror',sp:1,rot:.5,gap:1,pull:1,leg:'infinite_mirror',tier:1,rarity:'Legendary',batch:'v5a',desc:'Recursive vanishing-point mirror frames creating a crisp symmetrical infinity-tunnel illusion.'}
+,{n:'Jewelstorm',sp:1,rot:.5,gap:1,pull:1,leg:'jewelstorm',tier:1,rarity:'Legendary',batch:'v5a',desc:'Luxury cut-gemstone octagon facets in ruby, sapphire, and emerald with brilliant specular glints.'}
+,{n:'Grand Opening',sp:1,rot:.5,gap:1,pull:1,leg:'grand_opening',tier:1,rarity:'Ultimate',batch:'v5a',desc:'Major stadium opening ceremony with sweeping floodlight beams and gala countdown framing.'}
+,{n:'Retro Arcade',sp:1,rot:.5,gap:1,pull:1,leg:'retro_arcade',tier:2,rarity:'Special',batch:'v5b',desc:'Classic 8-bit CRT bezel, pixel-grid border, retro scoreboard styling, and arcade chime energy.'}
+,{n:'Steampunk',sp:1,rot:.5,gap:1,pull:1,leg:'steampunk',tier:2,rarity:'Special',batch:'v5b',desc:'Victorian riveted copper pipes, brass pressure gauges, rising steam puffs, and airship atmosphere.'}
+,{n:'Film Noir',sp:1,rot:.5,gap:1,pull:1,leg:'film_noir',tier:2,rarity:'Special',batch:'v5b',desc:'High-contrast silver-screen monochrome, sweeping spotlight cones, and vintage cinema title cards.'}
+,{n:'Toybox',sp:1,rot:.5,gap:1,pull:1,leg:'toybox',tier:3,rarity:'Standard',batch:'v5b',desc:'Polished miniature toy workshop with interlocking building-block borders and playful primary colors.'}
+,{n:'Botanical Garden',sp:1,rot:.5,gap:1,pull:1,leg:'botanical_garden',tier:3,rarity:'Standard',batch:'v5b',desc:'Sunlit conservatory garden with ornamental blooming petals, wrought-iron trellis, and sage glow.'}
+,{n:'Blueprint',sp:1,rot:.5,gap:1,pull:1,leg:'blueprint',tier:2,rarity:'Special',batch:'v5b',desc:'Architectural Prussian-blue drafting paper, crisp technical wireframe grid, and schematic ticks.'}
+,{n:"Pharaoh's Empire",sp:1,rot:.5,gap:1,pull:1,leg:'pharaoh_empire',tier:1,rarity:'Legendary',batch:'v5b',desc:'Monumental sandstone colonnade, lapis-and-gold geometric frieze, and warm royal court lighting.'}
+,{n:'Megacity',sp:1,rot:.5,gap:1,pull:1,leg:'megacity',tier:2,rarity:'Special',batch:'v5b',desc:'Towering metropolitan skyscraper skyline at dusk with illuminated high-rise windows and urban depth.'}
+,{n:'Grand Prix',sp:1,rot:.5,gap:1,pull:1,leg:'grand_prix',tier:2,rarity:'Special',batch:'v5b',desc:'Championship race circuit curbing, checkered finish strip, starting gantry lights, and lap styling.'}
+,{n:'Royal Court',sp:1,rot:.5,gap:1,pull:1,leg:'royal_court',tier:1,rarity:'Legendary',batch:'v5b',desc:'Ceremonial crimson velvet banners, gilded palace arches, and formal throne-room prestige.'}
+,{n:'Inflatable World',sp:1,rot:.5,gap:1,pull:1,leg:'inflatable_world',tier:3,rarity:'Standard',batch:'v5b',desc:'Glossy oversized soft-cushion arches, specular balloon highlights, and playful arena spectacle.'}
+,{n:'Data Vault',sp:1,rot:.5,gap:1,pull:1,leg:'data_vault',tier:2,rarity:'Special',batch:'v5b',desc:'High-security digital archive with crisp ledger grids and live real-data championship telemetry.'}
+,{n:'Canyon Clash',sp:1,rot:.5,gap:1,pull:1,leg:'canyon_clash',tier:3,rarity:'Standard',batch:'v5b',desc:'Monumental layered red-rock canyon cliffs, terraced geological depth rings, and sunlit chasm glow.'}
+,{n:'Laser Symphony',sp:1,rot:.5,gap:1,pull:1,leg:'laser_symphony',tier:2,rarity:'Special',batch:'v5b',desc:'Coordinated multi-beam concert laser choreography sweeping rhythmically behind the arena.'}
+,{n:'Broadcast Classic',sp:1,rot:.5,gap:1,pull:1,leg:'broadcast_classic',tier:2,rarity:'Standard',batch:'v5b',desc:'Vintage television sports broadcast frame, retro chyron scoreboard, and classic TV styling.'}
+,{n:'Summit',sp:1,rot:.5,gap:1,pull:1,leg:'summit',tier:2,rarity:'Special',batch:'v5b',desc:'High-altitude alpine mountain peak above a sea of sunlit clouds with crisp alpenglow horizons.'}
+,{n:'Geometry',sp:1,rot:.5,gap:1,pull:1,leg:'geometry',tier:2,rarity:'Special',batch:'v5b',desc:'Abstract Bauhaus polygon tessellations, rotating nested hexagons, and symmetrical vector elegance.'}
+,{n:'Infinite Library',sp:1,rot:.5,gap:1,pull:1,leg:'infinite_library',tier:1,rarity:'Legendary',batch:'v5b',desc:'Warm candlelit grand library arches and open chronicle panels displaying genuine battle history.'}
+,{n:'Runway Royale',sp:1,rot:.5,gap:1,pull:1,leg:'runway_royale',tier:2,rarity:'Special',batch:'v5b',desc:'High-fashion vertical spotlight catwalk, couture gold framing, and subtle flash-camera bokeh.'}
+,{n:'Fireworks Finale',sp:1,rot:.5,gap:1,pull:1,leg:'fireworks_finale',tier:1,rarity:'Ultimate',batch:'v5b',desc:'Night-sky celebration arena with performance-capped radial firework bursts built for major finales.'}
+];
 const BSP=[[10,1],[20,1.5],[30,2],[40,2.75],[50,3.5],[55,4.5],[60,6]];let bAn={},uK=1;
 const bsp=e=>{for(const[l,m]of BSP)if(e<l)return m;return 6},bsim=e=>{let u=0,p=0;for(const[l,m]of BSP){if(e<=l)return u+(e-p)*m;u+=(l-p)*m;p=l}return u},BEL=()=>(Date.now()-rStart)/1000;
 function binit(e){bAn={s:bsp(e),c:0};if(e>.5)bAn.go=1;[30,20,10,5].forEach(r=>{if(60-e<=r)bAn['r'+r]=1})}
@@ -532,8 +610,8 @@ try{champ=cleanCountryCounts(JSON.parse(LS.get('fca_champ')||'{}'))}catch(e){cha
 let streamStart=+LS.get('fca_start')||0;if(!streamStart){streamStart=Date.now();LS.set('fca_start',streamStart)}
 let edOff=(()=>{const v=LS.get('fca_ed_off');if(v!==null&&v!==''&&Number.isInteger(+v)&&+v>=0)return +v%EDS.length;LS.set('fca_ed_off','7');return 7})();
 let edForce=(()=>{try{const q=new URLSearchParams(location.search).get('edition')||location.hash.replace('#','');if(!q)return -1;const s=q.toLowerCase().trim();const idx=EDS.findIndex((e,i)=>String(i)===s||e.n.toLowerCase()===s||(s==='storm'&&e.storm)||((s==='king'||s==='king of the arena'||s==='kota')&&e.king)||((s==='team'||s==='teamwars'||s==='team wars')&&e.team)||((s==='sudden'||s==='suddendeath'||s==='sudden death')&&e.sudden)||((s==='boss'||s==='bossbattle'||s==='boss battle')&&e.boss)||((s==='chaos'||s==='chaosarena'||s==='chaos arena')&&e.chaos)||((s==='power'||s==='powerup'||s==='power-up'||s==='power-up battle')&&e.power));return idx>=0?idx:-1}catch(e){return -1}})();
-const edIdx=()=>edForce>=0?edForce:(Math.floor((Date.now()-streamStart)/EDMS)+edOff)%EDS.length;
-function setEdition(idx){if(!EDS[idx])return;edForce=-1;const base=Math.floor((Date.now()-streamStart)/EDMS)%EDS.length;edOff=(idx-base+EDS.length)%EDS.length;LS.set('fca_ed_off',String(edOff));LS.set('fca_state','');go()}
+const edIdx=()=>{if(window.__FCA_ROT__&&window.__FCA_ROT__.resolveEditionIdx)return window.__FCA_ROT__.resolveEditionIdx();return edForce>=0?edForce:(Math.floor((Date.now()-streamStart)/EDMS)+edOff)%EDS.length;};
+function setEdition(idx){if(!EDS[idx])return;edForce=idx;if(window.__FCA_ROT__&&window.__FCA_ROT__.onManualEdition)window.__FCA_ROT__.onManualEdition(idx);const base=Math.floor((Date.now()-streamStart)/EDMS)%EDS.length;edOff=(idx-base+EDS.length)%EDS.length;LS.set('fca_ed_off',String(edOff));LS.set('fca_state','');go()}
 let mysS=null;function mys(){const S=Math.ceil(2*rr*R*sc*dpr);if(mysS&&mysS.width==S)return mysS;const o=document.createElement('canvas');o.width=o.height=S;const g=o.getContext('2d');g.fillStyle='#4a4f9a';circ(g,S/2,S/2,S/2);g.fillStyle='#fff';g.font=(S*.7)+'px Anton,Impact,sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText('?',S/2,S/2+S*.04);g.strokeStyle='#fff';g.lineWidth=Math.max(2,.05*S);g.beginPath();g.arc(S/2,S/2,.48*S,0,2*PI);g.stroke();mysS=o;return o}
 const absHour=()=>Math.floor((Date.now()-streamStart)/EDMS);
 let hr={h:absHour(),l:[]},hist=[],hc=null,hcS=null;
@@ -544,11 +622,11 @@ const burst=()=>{conf=[];for(let i=0;i<160;i++)conf.push({x:192,y:314,vx:(rnd()-
 function next(){if(hr.h<absHour()){if(hr.l.length){const cn={},ls={};hr.l.forEach((c,i)=>{cn[c]=(cn[c]||0)+1;ls[c]=i});const c=+Object.keys(cn).sort((x,y)=>cn[y]-cn[x]||ls[x]-ls[y])[0];hc={h:hr.h+1,c,n:cn[c]};hist.push(hc);S.hrc.push(hc);{const p=S.ph||{};let b=null;for(const k in cn){const d=cn[k]-(p[k]||0);if(!b||d>b.d)b={c:+k,d}}if(b&&b.d>=2&&S.hn>0)S.mi=b;S.ph=cn;S.hn=(S.hn||0)+1}qs.push('recap');saveS();hr={h:absHour(),l:[]};saveHr();phase=2;wt=0;winAt=performance.now();burst();winS();say('Hour '+hc.h+' champion! '+C[c].n+' with '+hc.n+(hc.n>1?' wins':' win')+'. Congratulations to the champion!');return}hr={h:absHour(),l:[]};saveHr()}go()}
 const DUR={1:8,2:12,3:7,4:4.5,5:8,6:13};
 const MS=[{m:50,n:'BRONZE',c:'#cd7f32',d:6,t:'Bronze: a great start!'},{m:100,n:'SILVER',c:'#cfd8e3',d:7,t:'Silver: the legend grows!'},{m:250,n:'GOLD',c:'#ffd23f',d:8,t:'Gold: a golden era!'},{m:500,n:'LEGENDARY',c:'#b86bff',d:10,t:'The arena trembles!'},{m:1000,n:'ULTIMATE',c:'#ff4d6d',d:12,t:'1,000 rounds of glory!'}];
-const EDT=['CLASSIC EDITION BEGINS!','RIVALRY EDITION BEGINS!','EXTREME SURVIVAL ACTIVATED!','ENTERING MYSTERY MODE!','WORLD CHAMPIONSHIP FINALS!','60-SECOND BATTLE BEGINS!','SURVIVAL STORM BEGINS!','KING OF THE ARENA BEGINS!','TEAM WARS BEGINS!','SUDDEN DEATH ACTIVATED!','BOSS BATTLE BEGINS!','ENTERING CHAOS ARENA!','POWER-UP BATTLE BEGINS!'],EDC=['#22d3ee','#ff4d6d','#ff9f1c','#b86bff','#ffd23f','#ff2bd6','#38bdf8','#ffd23f','#ff4d6d','#ff2a4b','#f59e0b','#d946ef','#10b981'];
+const EDT=['CLASSIC EDITION BEGINS!','RIVALRY EDITION BEGINS!','EXTREME SURVIVAL ACTIVATED!','ENTERING MYSTERY MODE!','WORLD CHAMPIONSHIP FINALS!','60-SECOND BATTLE BEGINS!','SURVIVAL STORM BEGINS!','KING OF THE ARENA BEGINS!','TEAM WARS BEGINS!','SUDDEN DEATH ACTIVATED!','BOSS BATTLE BEGINS!','ENTERING CHAOS ARENA!','POWER-UP BATTLE BEGINS!','ENTERING THE SINGULARITY!','VOLCANIC RISE ERUPTS!','FROSTBITE ARENA BEGINS!','THUNDERBREAK STORM ARRIVES!','WELCOME TO THE GREAT COLOSSEUM!','CRYSTAL REALMS AWAKEN!','EXPEDITION SURVIVAL BEGINS!','CELESTIAL ASCENSION BEGINS!','AURORA NIGHTS BEGIN!','CANDY MAYHEM BEGINS!','RONIN RIVALRY DUEL BEGINS!','EXPLORING ALIEN WORLDS!','TITAN MECHANICS ONLINE!','DIVING INTO ABYSSAL OCEAN!','DESERT DYNASTY BEGINS!','REALITY BREAK ACTIVATED!','OMEGA CHAMPIONSHIP STAGE!','MULTIVERSE WORLDS COLLIDE!','PRISM OVERDRIVE ACTIVATED!','ASCENDING TO SKYBOUND!','SPEEDFORCE ACCELERATION!','ENTERING THE WILDERNESS!','CYBER OVERDRIVE ONLINE!','LEGENDARY INFINITY SHOWCASE!','ENTERING DUALITY ARENA!','TIMEBREAK CLOCKWORK ACTIVATED!','BIOGLOW CAVERN ILLUMINATES!','WELCOME TO ART DECO ROYALE!','UNFOLDING PAPERWORLD!','MUSEUM OF WORLDS EXHIBITION!','IRONWORKS FOUNDRY IGNITED!','CARNIVAL ROYALE SHOWTIME!','SILENT PRESTIGE BEGINS!','HORIZON ZERO DAWN RISES!','ENTERING THE GLASSHOUSE!','PAINTSTORM STUDIO UNLEASHED!','ARRIVING AT LAST STATION!','LANTERN FESTIVAL BEGINS!','SOUNDWAVE FREQUENCY LOCKED!','ENTERING THE LABYRINTH!','WELCOME TO WORLD EXPO!','INFINITE MIRROR REFLECTION!','JEWELSTORM BRILLIANCE!','GRAND OPENING CEREMONY!','RETRO ARCADE INSERT COIN!','STEAMPUNK ENGINE ENGAGED!','FILM NOIR SPOTLIGHT ON!','TOYBOX WORKSHOP OPEN!','BOTANICAL GARDEN IN BLOOM!','BLUEPRINT SCHEMATIC LOADED!','PHARAOH EMPIRE MONUMENT!','MEGACITY SKYLINE ONLINE!','GRAND PRIX LIGHTS OUT!','ROYAL COURT IN SESSION!','INFLATABLE WORLD BOUNCE!','DATA VAULT ARCHIVE OPEN!','CANYON CLASH ECHOES!','LASER SYMPHONY IGNITED!','BROADCAST CLASSIC LIVE!','ASCENDING TO THE SUMMIT!','GEOMETRY TESSELLATION!','INFINITE LIBRARY CHRONICLE!','RUNWAY ROYALE SPOTLIGHT!','FIREWORKS FINALE CELEBRATION!'],EDC=['#22d3ee','#ff4d6d','#ff9f1c','#b86bff','#ffd23f','#ff2bd6','#38bdf8','#ffd23f','#ff4d6d','#ff2a4b','#f59e0b','#d946ef','#10b981','#a855f7','#ff5722','#38bdf8','#60a5fa','#f59e0b','#c084fc','#d97706','#fbbf24','#34d399','#f472b6','#fb7185','#2dd4bf','#f97316','#06b6d4','#eab308','#e879f9','#ffd23f','#818cf8','#ec4899','#7dd3fc','#facc15','#22c55e','#00f5d4','#ffd23f','#e2e8f0','#f59e0b','#10b981','#d4af37','#e6ccb2','#c9a86a','#ea580c','#f43f5e','#94a3b8','#fb7185','#67e8f9','#ec4899','#38bdf8','#fb923c','#22d3ee','#14b8a6','#3b82f6','#cbd5e1','#e11d48','#fbbf24','#a3e635','#d97706','#e5e7eb','#ef4444','#4ade80','#60a5fa','#eab308','#f97316','#ef4444','#be123c','#38bdf8','#10b981','#c2410c','#d946ef','#facc15','#7dd3fc','#f43f5e','#d97706','#f472b6','#fbbf24'];
 let life={r:0,w:{}},msDone=[],edSeen=-1,qs=[],trans=null,msCur=null,achievementRecords=[];
 let _lifeCorrupt=false;try{const _rl=LS.get('fca_life');const o=JSON.parse(_rl||'null');if(o&&o.w&&typeof o.w==='object'&&!Array.isArray(o.w)){life.w=cleanCountryCounts(o.w);const sum=Object.values(life.w).reduce((a,b)=>a+b,0);life.r=Math.max(sum,Number.isSafeInteger(+o.r)&&+o.r>=0?+o.r:0)}}catch(e){_lifeCorrupt=true;quarantineStorageKey('fca_life',LS.get('fca_life'),'Corrupted fca_life JSON quarantined on boot')}
 try{const o=JSON.parse(LS.get('fca_ms')||'[]');if(Array.isArray(o))msDone=o.filter(x=>MS.some(m=>m.m===x))}catch(e){}
-const ACHIEVEMENTS=[['first','FIRST VICTORY','Wins a first round','#22d3ee'],['wins10','TEN-TIME CHAMPION','Wins 10 rounds','#ffd23f'],['wins25','25-TIME CHAMPION','Wins 25 rounds','#ffd23f'],['wins50','50-TIME CHAMPION','Wins 50 rounds','#ff9f1c'],['wins100','CENTURY CLUB','Wins 100 rounds','#b86bff'],['streak3','THREE-PEAT','Wins 3 rounds in a row','#80ed99'],['streak5','FIVE IN A ROW','Wins 5 rounds in a row','#80ed99'],['streak10','UNSTOPPABLE','Wins 10 rounds in a row','#ff4d6d'],['comeback','COMEBACK KING','Wins after 40 consecutive losses','#22d3ee'],['giant','GIANT KILLER','Defeats the established session leader','#ff4d6d'],['iron','IRON FLAG','Reaches the final twenty for 5 consecutive rounds','#b86bff'],['tournament','TOURNAMENT CHAMPION','Wins a 12-round Championship tournament','#ffd23f']];
+const ACHIEVEMENTS=[['first','FIRST VICTORY','Wins a first round','#22d3ee'],['wins10','TEN-TIME CHAMPION','Wins 10 rounds','#ffd23f'],['wins25','25-TIME CHAMPION','Wins 25 rounds','#ffd23f'],['wins50','50-TIME CHAMPION','Wins 50 rounds','#ff9f1c'],['wins100','CENTURY CLUB','Wins 100 rounds','#b86bff'],['streak3','THREE-PEAT','Wins 3 rounds in a row','#80ed99'],['streak5','FIVE IN A ROW','Wins 5 rounds in a row','#80ed99'],['streak10','UNSTOPPABLE','Wins 10 rounds in a row','#ff4d6d'],['comeback','COMEBACK KING','Wins after 40 consecutive losses','#22d3ee'],['giant','GIANT KILLER','Defeats the established session leader','#ff4d6d'],['iron','IRON FLAG','Reaches the final twenty for 5 consecutive rounds','#b86bff'],['tournament','TOURNAMENT CHAMPION','Wins a 12-round Championship tournament','#ffd23f'],['upset_hero','UPSET HERO','Wins a verified underdog upset battle','#f97316'],['rivalry_victor','RIVALRY VICTOR','Claims a verified head-to-head rivalry victory','#fb7185'],['rare_witness','RARE EVENT WINNER','Wins during a verified Rare Battle Event','#e879f9'],['sudden_survivor','SUDDEN DEATH SURVIVOR','Survives Sudden Death overtime to win','#ef4444']];
 try{const o=JSON.parse(LS.get('fca_achievements')||'[]');if(Array.isArray(o)){const seen=new Set();achievementRecords=o.filter(x=>{if(!x||!ACHIEVEMENTS.some(a=>a[0]===x.k)||!APPS.has(+x.c))return false;const k=x.k+':'+(+x.c);if(seen.has(k))return false;seen.add(k);return true}).map(x=>({k:x.k,c:+x.c,at:Number.isSafeInteger(+x.at)&&+x.at>=0?+x.at:0,round:Number.isSafeInteger(+x.round)&&+x.round>=0?+x.round:0})).slice(-1000)}}catch(e){}
 function unlockAchievement(k,c){if(!ACHIEVEMENTS.some(a=>a[0]===k)||!APPS.has(c)||achievementRecords.some(x=>x.k===k&&x.c===c))return null;const a=ACHIEVEMENTS.find(x=>x[0]===k),rec={k,c,at:Date.now(),round:life.r};achievementRecords.push(rec);achievementRecords=achievementRecords.slice(-1000);LS.set('fca_achievements',JSON.stringify(achievementRecords));return{k,t:a[1],s:C[c].n+': '+a[2],c:a[3],say:C[c].n+' unlocked '+a[1]}}
 
@@ -560,7 +638,7 @@ function showHof(){conf=[];ph(3)}
 function showMs(){const i=MS.findIndex(x=>life.r>=x.m&&!msDone.includes(x.m));if(i<0)return nxt();const x=MS[i];msDone.push(x.m);LS.set('fca_ms',JSON.stringify(msDone));msCur={...x,i};DUR[5]=x.d;ph(5);conf=[];for(let k=0;k<80+i*60;k++)conf.push({x:192,y:314,vx:(rnd()-.5)*500,vy:-(rnd()*450+80),r:0,s:(rnd()-.5)*12,c:pk([x.c,'#fff',x.c,'#ffd23f'])});msS(i);say('Milestone! Round '+x.m+'! '+x.n.toLowerCase()+' celebration!')}
 function go(){const ei=edIdx();if(edSeen!==ei){const p=edSeen,fresh=!F;edSeen=ei;LS.set('fca_ed',ei);trans={p,n:ei,fresh};if(fresh)start();ph(4);edS();say(EDT[ei].toLowerCase());return}start()}
 function nxt(){const s=qs.shift();if(s=='ms')return showMs();if(s=='recap')return showRecap();if(s=='hof')return showHof();if(s=='hour')return next();go()}
-function adv(){qs=[];if(MS.some(x=>life.r>=x.m&&!msDone.includes(x.m)))qs.push('ms');if(!ED.lim)qs.push('hof');qs.push('hour');nxt()}
+function adv(){if(window.__FCA_ROT__&&window.__FCA_ROT__.onBattleCompleted)window.__FCA_ROT__.onBattleCompleted();qs=[];if(MS.some(x=>life.r>=x.m&&!msDone.includes(x.m)))qs.push('ms');if(!ED.lim)qs.push('hof');qs.push('hour');nxt()}
 function fin(){const adm=window.__FCA_ADM__;if(adm&&adm.emergencyStop)return;if(adm&&adm.autoBattle===false&&phase===1)return;if(phase==1)adv();else if(phase==4){if(trans&&trans.fresh){if(ED.bt)rStart=Date.now();ph(0)}else start()}else nxt()}
 const NEWS=()=>({id:Date.now(),last:Date.now(),rounds:0,elim:0,w:{},cs:{c:-1,n:0},sb:{c:-1,n:0},ls:{},ir:{},ib:{c:-1,n:0},sp:{c:-1,s:0},cd:{},dm:-99,hrc:[],ph:{},hn:0,mi:null});
 const summ=o=>{const t=Object.entries(o.w).sort((x,y)=>y[1]-x[1])[0];return{id:o.id,end:o.last,rounds:o.rounds,elim:o.elim,top:t?{c:+t[0],n:t[1]}:null,sb:o.sb,sp:o.sp,hrc:o.hrc}};
@@ -655,7 +733,7 @@ function vRound(ids){return ids.length==N&&new Set(ids).size==N&&ids.every(i=>AP
 function fixRound(ids){const u=[...new Set(ids.filter(i=>APPS.has(i)))].slice(0,N);if(u.length<N){const q=APP.filter(i=>!u.includes(i));for(let i=q.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[q[i],q[j]]=[q[j],q[i]]}while(u.length<N&&q.length)u.push(q.pop())}return u}
 function getEligibleCountries(){const adm=window.__FCA_ADM__;if(!adm||!adm.countryConfig)return APP.slice();const cfg=adm.countryConfig;const disabled=new Set((cfg.disabled||[]).map(Number));let list=APP.filter(i=>!disabled.has(i)&&validCountry(C[i]?.n));if(cfg.activePool&&Array.isArray(cfg.pools?.[cfg.activePool])&&cfg.pools[cfg.activePool].length>=N){const pl=cfg.pools[cfg.activePool].map(Number).filter(i=>APPS.has(i)&&!disabled.has(i)&&validCountry(C[i]?.n));if(pl.length>=N)list=pl}return list.length>=N?list:APP.slice()}
 function start(overrideOpts){const adm=window.__FCA_ADM__;if(adm&&adm.emergencyStop)return;tourneyJustCompleted=false;let queued=overrideOpts||null;if(!queued&&adm&&Array.isArray(adm.battleQueue)&&adm.battleQueue.length>0&&!IS_PREVIEW){const pausedTid=adm.getPausedTournamentId?adm.getPausedTournamentId():'';const qIdx=adm.battleQueue.findIndex(q=>!pausedTid||q.tournamentId!==pausedTid);if(qIdx>=0){queued=adm.battleQueue.splice(qIdx,1)[0];if(adm.saveConfig)adm.saveConfig()}}
-let ei=edIdx();if(queued&&Number.isInteger(queued.editionIdx)&&EDS[queued.editionIdx]){ei=queued.editionIdx;edForce=ei}
+let ei=edIdx();if(!queued&&adm&&Number.isInteger(adm.pendingEditionIdx)&&EDS[adm.pendingEditionIdx]){ei=adm.pendingEditionIdx;edForce=ei;adm.pendingEditionIdx=-1;adm.lastQueuedAppliedAt=Date.now()}if(queued&&Number.isInteger(queued.editionIdx)&&EDS[queued.editionIdx]){ei=queued.editionIdx;edForce=ei}
 ED=EDS[ei];curEi=ei;if(ED.n==='Championship'&&tourney.round===0&&tourney.results.length===0)tourneyResult=null;if(ei==4&&lastEd!=4&&tourney.round===0)tourneyResult=null;lastEd=ei;
 const eligible=getEligibleCountries();
 const eligSet=new Set(eligible);
@@ -674,7 +752,7 @@ if(ED.n=='Rivalry'){const pr=RIV.map(p=>p.map(ci));const wp=pr.find(p=>p.include
 if(ids.length<N){const rem=eligible.filter(i=>!ids.includes(i));for(let i=rem.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[rem[i],rem[j]]=[rem[j],rem[i]]}while(ids.length<N&&rem.length)ids.push(rem.pop())}
 ids.splice(0,ids.length,...fixRound(ids));if(!vRound(ids))console.error('Round validation FAILED',ids);
 F=ids.map(c=>{const an=rnd()*2*PI,d=Math.sqrt(rnd())*.8,h=rnd()*2*PI,sp=(.3+rnd()*.2)*ED.sp;return{c,x:Math.cos(an)*d,y:Math.sin(an)*d,vx:Math.cos(h)*sp,vy:Math.sin(h)*sp,sp,on:1,h:0,sh:0,dg:0,inDanger:false,stElim:null,lastHitBy:-1,lastHitAt:-99,team:-1,pu:null,puCount:0,puCd:0,supBoost:0}});
-t=0;a=0;phase=0;wt=0;toast=null;conf=[];outs=[];lastE=0;cap=null;flash=0;nextShield=(adm&&adm.gameplay&&!(ED.n==='Classic'&&adm.gameplay.classicPhysicsLock))?Math.max(6,Math.min(60,+adm.gameplay.shieldCooldown||12)):12;banner=null;round++;wspr=null;nextTalk=30;wHole=0;winCap='';ann=null;showdown=null;showdownDone=false;snap=null;forced=false;rStart=Date.now();binit(0);EV.reset();STORM.reset();KING.reset();TEAM.reset();SUDDEN.reset();BOSS.reset();CHAOS.reset();POWER.reset();if(ED.king)KING.startRound();if(ED.team)TEAM.startRound();if(ED.sudden)SUDDEN.startRound();if(ED.boss){BOSS.startRound();if(adm&&adm.gameplay&&adm.gameplay.bossHpMul&&!(ED.n==='Classic'&&adm.gameplay.classicPhysicsLock)){BOSS.maxHp=Math.round(BOSS.maxHp*Math.max(.5,Math.min(3,+adm.gameplay.bossHpMul)));BOSS.hp=BOSS.maxHp}}if(ED.chaos)CHAOS.startRound();if(ED.power)POWER.startRound();if(adm&&adm.onRoundStart)adm.onRoundStart(queued);if(adm&&adm.broadcastState)adm.broadcastState();save()}
+t=0;a=0;phase=0;wt=0;toast=null;conf=[];outs=[];lastE=0;cap=null;flash=0;nextShield=(adm&&adm.gameplay&&!(ED.n==='Classic'&&adm.gameplay.classicPhysicsLock))?Math.max(6,Math.min(60,+adm.gameplay.shieldCooldown||12)):12;banner=null;round++;wspr=null;nextTalk=30;wHole=0;winCap='';ann=null;showdown=null;showdownDone=false;snap=null;forced=false;rStart=Date.now();binit(0);EV.reset();STORM.reset();KING.reset();TEAM.reset();SUDDEN.reset();BOSS.reset();CHAOS.reset();POWER.reset();if(ED.king)KING.startRound();if(ED.team)TEAM.startRound();if(ED.sudden)SUDDEN.startRound();if(ED.boss){BOSS.startRound();if(adm&&adm.gameplay&&adm.gameplay.bossHpMul&&!(ED.n==='Classic'&&adm.gameplay.classicPhysicsLock)){BOSS.maxHp=Math.round(BOSS.maxHp*Math.max(.5,Math.min(3,+adm.gameplay.bossHpMul)));BOSS.hp=BOSS.maxHp}}if(ED.chaos)CHAOS.startRound();if(ED.power)POWER.startRound();if(typeof LEGEND_ED!=='undefined'){LEGEND_ED.reset();if(ED.leg)LEGEND_ED.startRound();}if(adm&&adm.onRoundStart)adm.onRoundStart(queued);if(adm&&adm.broadcastState)adm.broadcastState();save()}
 // ===== SURPRISE EVENT CONTROLLER (modifiers are multipliers only; all reset to 1) =====
 const SD={on:0,slow:1,hold:0};
 const EVDEF={
@@ -2610,6 +2688,271 @@ const POWER={
 
 const isFairEd=ed=>!!(ed&&(ed.king||ed.team||ed.sudden||ed.boss||ed.chaos||ed.power));
 const isW=f=>{const adm=window.__FCA_ADM__;if(adm&&adm.activeMatchType==='showcase'&&adm.activeShowcaseWinner>=0)return f.c===adm.activeShowcaseWinner;return false};
+
+// ===== LEGENDARY 25-EDITION MODULAR ENGINE CONTROLLER =====
+const LEGEND_CFG={
+  singularity:{bg1:'#090318',bg2:'#2e1065',arena:'#0b0620',rim:'#a855f7',accent:'#c084fc',hole1:'#1e1b4b',hole2:'#4c1d95',sub:'COSMIC SINGULARITY',h1:'EVENT',h2:'HORIZON!',sig:'Singularity Collapse',sigCol:'#c084fc',sigSub:'GRAVITATIONAL LENSING PULSE!',sigMod:{pull:1.18,rot:1.15},pType:'orbit',pCol:['#c084fc','#818cf8','#38bdf8','#f0abfc']},
+  volcanic:{bg1:'#1c0905',bg2:'#7c2d12',arena:'#1f0d08',rim:'#ff5722',accent:'#fb923c',hole1:'#451a03',hole2:'#9a3412',sub:'VOLCANIC RISE',h1:'VOLCANIC',h2:'SURGE!',sig:'Volcanic Surge',sigCol:'#ff5722',sigSub:'MAGMA CONVECTION WAVE!',sigMod:{sp:1.14,rot:1.1},pType:'rise',pCol:['#ff5722','#fb923c','#facc15','#fde047']},
+  frostbite:{bg1:'#061422',bg2:'#0c4a6e',arena:'#081e30',rim:'#38bdf8',accent:'#bae6fd',hole1:'#0f2940',hole2:'#0369a1',sub:'FROSTBITE ARENA',h1:'FROZEN',h2:'FRONTIER!',sig:'Blizzard Wave',sigCol:'#7dd3fc',sigSub:'ARCTIC WIND SWEEP!',sigMod:{sp:0.9,rot:1.15},pType:'snow',pCol:['#e0f2fe','#7dd3fc','#bae6fd','#ffffff']},
+  thunderbreak:{bg1:'#080c1c',bg2:'#1e3a8a',arena:'#0b132b',rim:'#60a5fa',accent:'#fde047',hole1:'#172554',hole2:'#1d4ed8',sub:'THUNDERBREAK',h1:'STORM',h2:'STRIKE!',sig:'Thunder Strike',sigCol:'#fde047',sigSub:'HIGH-VOLTAGE SURGE!',sigMod:{sp:1.16,rot:1.18},pType:'bolt',pCol:['#fde047','#60a5fa','#93c5fd','#ffffff']},
+  colosseum:{bg1:'#1c150c',bg2:'#573b1a',arena:'#1e1810',rim:'#f59e0b',accent:'#fde68a',hole1:'#3b2b16',hole2:'#785322',sub:'GREAT COLOSSEUM',h1:'CHAMPION',h2:'LEGACY!',sig:'Colosseum Final Duel',sigCol:'#fbbf24',sigSub:'THE ARENA SALUTES CHAMPIONS!',sigMod:{rot:1.08},pType:'ember',pCol:['#fbbf24','#f59e0b','#fde68a','#fed7aa']},
+  crystal:{bg1:'#100826',bg2:'#4c1d95',arena:'#140c2e',rim:'#c084fc',accent:'#67e8f9',hole1:'#2e1065',hole2:'#6d28d9',sub:'CRYSTAL REALMS',h1:'CRYSTAL',h2:'RESONANCE!',sig:'Crystal Resonance',sigCol:'#67e8f9',sigSub:'PRISMATIC ENERGY WAVE!',sigMod:{sp:1.08,pull:1.06},pType:'spark',pCol:['#67e8f9','#c084fc','#f0abfc','#a5f3fc']},
+  expedition:{bg1:'#18120a',bg2:'#4a3519',arena:'#1b160f',rim:'#d97706',accent:'#fcd34d',hole1:'#332412',hole2:'#5c401c',sub:'EXPEDITION SURVIVAL',h1:'ENDURANCE',h2:'CONTEST!',sig:'Endurance Surge',sigCol:'#f59e0b',sigSub:'DUST FRONT SWEEPS THE ARENA!',sigMod:{pull:1.12},pType:'wind',pCol:['#fcd34d','#d97706','#fde68a','#b45309']},
+  celestial:{bg1:'#111428',bg2:'#42330c',arena:'#141830',rim:'#fbbf24',accent:'#fef08a',hole1:'#2a230b',hole2:'#5c4813',sub:'CELESTIAL ASCENSION',h1:'GOLDEN',h2:'PRESTIGE!',sig:'Celestial Ascension',sigCol:'#fef08a',sigSub:'RADIANT CROWN BEAMS!',sigMod:{sp:1.06},pType:'rise',pCol:['#fef08a','#fbbf24','#e0f2fe','#ffffff']},
+  aurora:{bg1:'#04141d',bg2:'#064e3b',arena:'#071d29',rim:'#34d399',accent:'#67e8f9',hole1:'#06382b',hole2:'#115e59',sub:'AURORA NIGHTS',h1:'NORTHERN',h2:'LIGHTS!',sig:'Aurora Burst',sigCol:'#34d399',sigSub:'SOLAR RIBBON WAVE!',sigMod:{rot:1.12},pType:'aurora',pCol:['#34d399','#22d3ee','#a78bfa','#6ee7b7']},
+  candy:{bg1:'#240b24',bg2:'#701a75',arena:'#280f2a',rim:'#f472b6',accent:'#fde047',hole1:'#4a044e',hole2:'#9d174d',sub:'CANDY MAYHEM',h1:'SUGAR',h2:'MAYHEM!',sig:'Sugar Rush',sigCol:'#f472b6',sigSub:'BOUNCY CONFETTI SURGE!',sigMod:{sp:1.18,rot:1.14},pType:'spark',pCol:['#f472b6','#fde047','#67e8f9','#86efac']},
+  ronin:{bg1:'#180a10',bg2:'#4c1124',arena:'#1a0d14',rim:'#fb7185',accent:'#fecdd3',hole1:'#3b0a18',hole2:'#6b142c',sub:'RONIN RIVALRY',h1:'HONOR',h2:'DUEL!',sig:'Honor Duel',sigCol:'#fb7185',sigSub:'BLOSSOM WIND · PRECISION CLASH!',sigMod:{rot:1.08},pType:'petal',pCol:['#fecdd3','#fda4af','#fb7185','#fff1f2']},
+  alien:{bg1:'#041a18',bg2:'#115e59',arena:'#06211e',rim:'#2dd4bf',accent:'#a3e635',hole1:'#08332c',hole2:'#0f766e',sub:'ALIEN WORLDS',h1:'EXOPLANET',h2:'ARENA!',sig:'Xenon Pulse',sigCol:'#a3e635',sigSub:'BIOLUMINESCENT SPORE WAVE!',sigMod:{pull:1.1,sp:1.08},pType:'rise',pCol:['#2dd4bf','#a3e635','#38bdf8','#c084fc']},
+  titan:{bg1:'#141210',bg2:'#443627',arena:'#181614',rim:'#f97316',accent:'#fdba74',hole1:'#292524',hole2:'#57534e',sub:'TITAN MECHANICS',h1:'HEAVY',h2:'OVERDRIVE!',sig:'Mechanical Overdrive',sigCol:'#f97316',sigSub:'TURBINE GEARS ACCELERATE!',sigMod:{rot:1.25,sp:1.08},pType:'gear',pCol:['#f97316','#fbbf24','#d6d3d1','#fdba74']},
+  abyssal:{bg1:'#021324',bg2:'#075985',arena:'#041a30',rim:'#06b6d4',accent:'#67e8f9',hole1:'#082f49',hole2:'#0e7490',sub:'ABYSSAL OCEAN',h1:'DEEP SEA',h2:'CURRENT!',sig:'Deep Ocean Pulse',sigCol:'#22d3ee',sigSub:'TIDAL PRESSURE WAVE!',sigMod:{pull:1.12},pType:'bubble',pCol:['#67e8f9','#22d3ee','#bae6fd','#38bdf8']},
+  desert:{bg1:'#1f1406',bg2:'#78450a',arena:'#241808',rim:'#eab308',accent:'#fde047',hole1:'#452705',hole2:'#854d0e',sub:'DESERT DYNASTY',h1:'GOLDEN',h2:'DUNES!',sig:'Desert Storm',sigCol:'#facc15',sigSub:'SWIRLING SANDSTORM GUST!',sigMod:{sp:1.1,rot:1.12},pType:'wind',pCol:['#fde047','#eab308','#fed7aa','#f59e0b']},
+  reality:{bg1:'#130724',bg2:'#4a044e',arena:'#17092b',rim:'#e879f9',accent:'#22d3ee',hole1:'#2e1065',hole2:'#701a75',sub:'REALITY BREAK',h1:'REALITY',h2:'FRACTURE!',sig:'Reality Fracture',sigCol:'#e879f9',sigSub:'DIMENSIONAL PORTAL SHIFT!',sigMod:{rot:1.18,pull:1.1},pType:'glitch',pCol:['#e879f9','#22d3ee','#f43f5e','#ffffff']},
+  omega:{bg1:'#0e0c14',bg2:'#423208',arena:'#12101a',rim:'#ffd23f',accent:'#fef08a',hole1:'#292005',hole2:'#5c470b',sub:'OMEGA CHAMPIONSHIP',h1:'OMEGA',h2:'FINALS!',sig:'Championship Climax',sigCol:'#ffd23f',sigSub:'HIGH-STAKES CHAMPIONSHIP ENERGY!',sigMod:{sp:1.06,rot:1.08},pType:'spark',pCol:['#ffd23f','#fef08a','#ffffff','#f59e0b']},
+  multiverse:{bg1:'#0a0b24',bg2:'#312e81',arena:'#0e1030',rim:'#818cf8',accent:'#38bdf8',hole1:'#1e1b4b',hole2:'#4338ca',sub:'MULTIVERSE',h1:'WORLDS',h2:'COLLIDE!',sig:'Multiverse Shift',sigCol:'#818cf8',sigSub:'REALM DIMENSION SWITCH!',sigMod:{sp:1.1,rot:1.12},pType:'orbit',pCol:['#818cf8','#34d399','#f472b6','#fbbf24']},
+  prism:{bg1:'#100920',bg2:'#4a154b',arena:'#150c28',rim:'#ec4899',accent:'#38bdf8',hole1:'#3b0764',hole2:'#831843',sub:'PRISM OVERDRIVE',h1:'PRISM',h2:'OVERDRIVE!',sig:'Prism Explosion',sigCol:'#f472b6',sigSub:'FULL-SPECTRUM ENERGY WAVE!',sigMod:{sp:1.12,rot:1.12},pType:'prism',pCol:['#f43f5e','#f59e0b','#22c55e','#38bdf8','#a855f7']},
+  skybound:{bg1:'#081c33',bg2:'#0369a1',arena:'#0c2745',rim:'#7dd3fc',accent:'#e0f2fe',hole1:'#0c4a6e',hole2:'#0284c7',sub:'SKYBOUND',h1:'FLOATING',h2:'ISLANDS!',sig:'Skyfall Gust',sigCol:'#7dd3fc',sigSub:'HIGH-ALTITUDE JET STREAM!',sigMod:{sp:1.12},pType:'wind',pCol:['#e0f2fe','#bae6fd','#7dd3fc','#ffffff']},
+  speedforce:{bg1:'#171204',bg2:'#713f12',arena:'#1c1606',rim:'#facc15',accent:'#fb923c',hole1:'#422006',hole2:'#854d0e',sub:'SPEEDFORCE',h1:'HYPER',h2:'VELOCITY!',sig:'Hyper Acceleration',sigCol:'#facc15',sigSub:'VELOCITY BOOST ACTIVE!',sigMod:{sp:1.22,rot:1.2},pType:'wind',pCol:['#facc15','#fb923c','#fef08a','#ffffff']},
+  wilderness:{bg1:'#05180d',bg2:'#14532d',arena:'#082213',rim:'#22c55e',accent:'#86efac',hole1:'#052e16',hole2:'#166534',sub:'WILDERNESS',h1:'NATURE',h2:'ARENA!',sig:"Nature's Fury",sigCol:'#4ade80',sigSub:'FOREST WIND SURGE!',sigMod:{rot:1.1},pType:'petal',pCol:['#4ade80','#86efac','#bef264','#fde047']},
+  cyber:{bg1:'#04121c',bg2:'#164e63',arena:'#061826',rim:'#00f5d4',accent:'#f472b6',hole1:'#083344',hole2:'#155e75',sub:'CYBER OVERDRIVE',h1:'CYBER',h2:'OVERDRIVE!',sig:'Cyber Surge',sigCol:'#00f5d4',sigSub:'NEON GRID OVERCLOCK!',sigMod:{sp:1.14,rot:1.16},pType:'glitch',pCol:['#00f5d4','#22d3ee','#f472b6','#a855f7']},
+  infinity:{bg1:'#09061a',bg2:'#3b1e54',arena:'#0d0924',rim:'#ffd23f',accent:'#22d3ee',hole1:'#241142',hole2:'#4c2875',sub:'LEGENDARY INFINITY',h1:'LEGENDARY',h2:'INFINITY!',sig:'Legendary Infinity Sequence',sigCol:'#ffd23f',sigSub:'ULTIMATE SHOWCASE RESONANCE!',sigMod:{sp:1.1,rot:1.12,pull:1.06},pType:'orbit',pCol:['#ffd23f','#22d3ee','#e879f9','#ffffff']},
+  duality:{bg1:'#0b0d14',bg2:'#272b3b',arena:'#111420',rim:'#e2e8f0',accent:'#94a3b8',hole1:'#0f172a',hole2:'#475569',sub:'DUALITY ARENA',h1:'LIGHT VS',h2:'SHADOW!',sig:'Equilibrium Pulse',sigCol:'#e2e8f0',sigSub:'OPPOSING WORLDS CONVERGE!',sigMod:{},pType:'orbit',pCol:['#f8fafc','#cbd5e1','#334155','#94a3b8']},
+  timebreak:{bg1:'#110d08',bg2:'#422c10',arena:'#17120a',rim:'#f59e0b',accent:'#fde68a',hole1:'#291b06',hole2:'#78350f',sub:'TIMEBREAK',h1:'TEMPORAL',h2:'CLOCKWORK!',sig:'Temporal Pulse',sigCol:'#fbbf24',sigSub:'CLOCKWORK REWIND VISUAL!',sigMod:{},pType:'orbit',pCol:['#fbbf24','#fde68a','#d97706','#fffbeb']},
+  bioglow:{bg1:'#031412',bg2:'#064e3b',arena:'#051e1b',rim:'#10b981',accent:'#5eead4',hole1:'#042f2e',hole2:'#0f766e',sub:'BIOGLOW CAVERN',h1:'LUMINOUS',h2:'FLORA!',sig:'Spore Bloom',sigCol:'#34d399',sigSub:'BIOLUMINESCENT CANOPY GLOW!',sigMod:{},pType:'rise',pCol:['#10b981','#5eead4','#a7f3d0','#38bdf8']},
+  artdeco:{bg1:'#081412',bg2:'#1c3830',arena:'#0c1c18',rim:'#d4af37',accent:'#f3e5ab',hole1:'#142822',hole2:'#5c4a18',sub:'ART DECO ROYALE',h1:'GILDED',h2:'SYMMETRY!',sig:'Deco Fanfare',sigCol:'#d4af37',sigSub:'GRAND GALA PRESENTATION!',sigMod:{},pType:'spark',pCol:['#d4af37','#f3e5ab','#10b981','#fef3c7']},
+  paperworld:{bg1:'#26201a',bg2:'#524436',arena:'#2e2720',rim:'#e6ccb2',accent:'#f5ebe0',hole1:'#3d3328',hole2:'#7f6a54',sub:'PAPERWORLD',h1:'ORIGAMI',h2:'CRAFT!',sig:'Paper Fold',sigCol:'#e6ccb2',sigSub:'HANDCRAFTED LAYER SHIFT!',sigMod:{},pType:'petal',pCol:['#f5ebe0','#e6ccb2','#ddb892','#b08968']},
+  museum:{bg1:'#1c1915',bg2:'#453c30',arena:'#221e19',rim:'#c9a86a',accent:'#f5e6c8',hole1:'#2e2820',hole2:'#66563c',sub:'MUSEUM OF WORLDS',h1:'HISTORIC',h2:'EXHIBITION!',sig:'Curator Spotlight',sigCol:'#c9a86a',sigSub:'FEATURED GALLERY EXHIBIT!',sigMod:{},pType:'spark',pCol:['#c9a86a','#f5e6c8','#a8a29e','#fde68a']},
+  ironworks:{bg1:'#120d0a',bg2:'#3b1e10',arena:'#171210',rim:'#ea580c',accent:'#fdba74',hole1:'#29150b',hole2:'#7c2d12',sub:'IRONWORKS FOUNDRY',h1:'MOLTEN',h2:'STEEL!',sig:'Forge Ignition',sigCol:'#f97316',sigSub:'FURNACE HEAT WAVE!',sigMod:{},pType:'ember',pCol:['#ea580c','#fb923c','#fde047','#94a3b8']},
+  carnival:{bg1:'#1f0714',bg2:'#6b1038',arena:'#240a18',rim:'#f43f5e',accent:'#fde047',hole1:'#4c0519',hole2:'#9f1239',sub:'CARNIVAL ROYALE',h1:'GRAND',h2:'SHOWTIME!',sig:'Marquee Encore',sigCol:'#fde047',sigSub:'CARNIVAL CONFETTI BURST!',sigMod:{},pType:'spark',pCol:['#f43f5e','#fde047','#38bdf8','#4ade80']},
+  silent_prestige:{bg1:'#0b0d10',bg2:'#1c2026',arena:'#101318',rim:'#94a3b8',accent:'#e2e8f0',hole1:'#171b22',hole2:'#334155',sub:'SILENT PRESTIGE',h1:'PURE',h2:'FOCUS!',sig:'Quiet Tension',sigCol:'#cbd5e1',sigSub:'MINIMALIST PRESTIGE MOMENT!',sigMod:{},pType:'none',pCol:['#94a3b8','#cbd5e1']},
+  horizon_zero:{bg1:'#1c0c18',bg2:'#7c2d3e',arena:'#1f101c',rim:'#fb7185',accent:'#fdba74',hole1:'#3b1224',hole2:'#9f2b40',sub:'HORIZON ZERO',h1:'ENDLESS',h2:'HORIZON!',sig:'Solar Crest',sigCol:'#fb923c',sigSub:'GOLDEN HORIZON RADIANCE!',sigMod:{},pType:'rise',pCol:['#fb7185','#fdba74','#fde047','#f472b6']},
+  glasshouse:{bg1:'#091820',bg2:'#164e63',arena:'#0d202b',rim:'#67e8f9',accent:'#e0f2fe',hole1:'#0e2f3d',hole2:'#0891b2',sub:'GLASSHOUSE',h1:'PRISM',h2:'REFLECTION!',sig:'Refraction Sweep',sigCol:'#67e8f9',sigSub:'CRYSTAL-CLEAR LIGHT SHIFT!',sigMod:{},pType:'spark',pCol:['#e0f2fe','#67e8f9','#bae6fd','#ffffff']},
+  paintstorm:{bg1:'#14121d',bg2:'#37204a',arena:'#191624',rim:'#ec4899',accent:'#38bdf8',hole1:'#281736',hole2:'#701a75',sub:'PAINTSTORM',h1:'COLOR',h2:'SPLASH!',sig:'Chroma Splash',sigCol:'#f472b6',sigSub:'ARTISTIC PIGMENT WAVE!',sigMod:{},pType:'spark',pCol:['#ec4899','#38bdf8','#facc15','#4ade80','#fb923c']},
+  last_station:{bg1:'#0b131e',bg2:'#1e3a5f',arena:'#0f1928',rim:'#38bdf8',accent:'#fde047',hole1:'#14253b',hole2:'#0369a1',sub:'LAST STATION',h1:'PLATFORM',h2:'EXPRESS!',sig:'Departure Signal',sigCol:'#fde047',sigSub:'NEXT DESTINATION BOARDED!',sigMod:{},pType:'wind',pCol:['#38bdf8','#fde047','#cbd5e1','#93c5fd']},
+  lantern_festival:{bg1:'#0c0a20',bg2:'#3b1c2e',arena:'#120e29',rim:'#fb923c',accent:'#fde047',hole1:'#29121e',hole2:'#9a3412',sub:'LANTERN FESTIVAL',h1:'GLOWING',h2:'NIGHT!',sig:'Lantern Release',sigCol:'#fb923c',sigSub:'WARM FESTIVAL ILLUMINATION!',sigMod:{},pType:'rise',pCol:['#fb923c','#fde047','#f43f5e','#fed7aa']},
+  soundwave:{bg1:'#080c1c',bg2:'#1e1b4b',arena:'#0c1126',rim:'#22d3ee',accent:'#a855f7',hole1:'#17143b',hole2:'#4338ca',sub:'SOUNDWAVE',h1:'RHYTHM',h2:'PULSE!',sig:'Bass Resonance',sigCol:'#22d3ee',sigSub:'TEMPO-SYNCED FREQUENCY WAVE!',sigMod:{},pType:'orbit',pCol:['#22d3ee','#a855f7','#f472b6','#38bdf8']},
+  labyrinth:{bg1:'#0a1618',bg2:'#134e4a',arena:'#0e1f22',rim:'#14b8a6',accent:'#fcd34d',hole1:'#113331',hole2:'#0f766e',sub:'LABYRINTH',h1:'MYSTERY',h2:'MAZE!',sig:'Pathway Reveal',sigCol:'#2dd4bf',sigSub:'ANCIENT CORRIDORS SHIFT!',sigMod:{},pType:'spark',pCol:['#14b8a6','#fcd34d','#5eead4','#99f6e4']},
+  world_expo:{bg1:'#081426',bg2:'#1d4ed8',arena:'#0c1c36',rim:'#3b82f6',accent:'#93c5fd',hole1:'#102a54',hole2:'#2563eb',sub:'WORLD EXPO',h1:'GLOBAL',h2:'SHOWCASE!',sig:'Pavilion Spotlight',sigCol:'#60a5fa',sigSub:'INTERNATIONAL EXHIBITION!',sigMod:{},pType:'orbit',pCol:['#3b82f6','#60a5fa','#fde047','#4ade80']},
+  infinite_mirror:{bg1:'#0c1018',bg2:'#334155',arena:'#111824',rim:'#cbd5e1',accent:'#38bdf8',hole1:'#1e293b',hole2:'#475569',sub:'INFINITE MIRROR',h1:'ENDLESS',h2:'REFLECTION!',sig:'Mirror Cascade',sigCol:'#e2e8f0',sigSub:'SYMMETRICAL DEPTH PULSE!',sigMod:{},pType:'orbit',pCol:['#f8fafc','#cbd5e1','#38bdf8','#94a3b8']},
+  jewelstorm:{bg1:'#0d081c',bg2:'#3b0764',arena:'#130c29',rim:'#e11d48',accent:'#38bdf8',hole1:'#24083d',hole2:'#881337',sub:'JEWELSTORM',h1:'FACETED',h2:'BRILLIANCE!',sig:'Gemstone Glint',sigCol:'#fb7185',sigSub:'RUBY & SAPPHIRE RADIANCE!',sigMod:{},pType:'spark',pCol:['#e11d48','#38bdf8','#10b981','#facc15','#f8fafc']},
+  grand_opening:{bg1:'#0a0f1f',bg2:'#1e3a8a',arena:'#0e162e',rim:'#fbbf24',accent:'#ffffff',hole1:'#172554',hole2:'#b45309',sub:'GRAND OPENING',h1:'STADIUM',h2:'CEREMONY!',sig:'Ceremony Floodlights',sigCol:'#fbbf24',sigSub:'STADIUM LIGHTS AT FULL POWER!',sigMod:{},pType:'rise',pCol:['#fbbf24','#ffffff','#38bdf8','#fde047']},
+  retro_arcade:{bg1:'#0a0618',bg2:'#3b0764',arena:'#0f0924',rim:'#a3e635',accent:'#f472b6',hole1:'#1e0a3c',hole2:'#701a75',sub:'RETRO ARCADE',h1:'HIGH SCORE',h2:'BATTLE!',sig:'Bonus Stage',sigCol:'#a3e635',sigSub:'ARCADE 1-UP ENERGY!',sigMod:{},pType:'spark',pCol:['#a3e635','#f472b6','#22d3ee','#facc15']},
+  steampunk:{bg1:'#1a120a',bg2:'#573718',arena:'#21170d',rim:'#d97706',accent:'#fde68a',hole1:'#38230e',hole2:'#92400e',sub:'STEAMPUNK',h1:'BRASS &',h2:'STEAM!',sig:'Pressure Release',sigCol:'#f59e0b',sigSub:'VINTAGE BOILER STEAM VENT!',sigMod:{},pType:'rise',pCol:['#e2e8f0','#d97706','#fde68a','#cbd5e1']},
+  film_noir:{bg1:'#0a0a0c',bg2:'#26262a',arena:'#111114',rim:'#e5e7eb',accent:'#9ca3af',hole1:'#18181b',hole2:'#3f3f46',sub:'FILM NOIR',h1:'SILVER',h2:'SHADOWS!',sig:'Spotlight Reveal',sigCol:'#f3f4f6',sigSub:'DRAMATIC CINEMA SPOTLIGHT!',sigMod:{},pType:'none',pCol:['#e5e7eb','#9ca3af']},
+  toybox:{bg1:'#121a30',bg2:'#1d4ed8',arena:'#162240',rim:'#ef4444',accent:'#facc15',hole1:'#1e3a8a',hole2:'#dc2626',sub:'TOYBOX',h1:'MINIATURE',h2:'MAYHEM!',sig:'Block Stack',sigCol:'#facc15',sigSub:'PLAYFUL WORKSHOP BURST!',sigMod:{},pType:'spark',pCol:['#ef4444','#facc15','#22c55e','#38bdf8']},
+  botanical_garden:{bg1:'#0a1c14',bg2:'#1f4d36',arena:'#0f261b',rim:'#4ade80',accent:'#fda4af',hole1:'#133624',hole2:'#15803d',sub:'BOTANICAL GARDEN',h1:'BLOOMING',h2:'SANCTUARY!',sig:'Petal Breeze',sigCol:'#fda4af',sigSub:'GARDEN BLOSSOM DRIFT!',sigMod:{},pType:'petal',pCol:['#fda4af','#fde047','#86efac','#f9a8d4']},
+  blueprint:{bg1:'#071d42',bg2:'#0f3b7a',arena:'#0a2a5e',rim:'#60a5fa',accent:'#ffffff',hole1:'#061836',hole2:'#1d4ed8',sub:'BLUEPRINT',h1:'SCHEMATIC',h2:'DESIGN!',sig:'Grid Calibration',sigCol:'#93c5fd',sigSub:'TECHNICAL WIREFRAME SCAN!',sigMod:{},pType:'none',pCol:['#93c5fd','#ffffff']},
+  pharaoh_empire:{bg1:'#1c1408',bg2:'#6e4b12',arena:'#241a0b',rim:'#eab308',accent:'#38bdf8',hole1:'#3d2a0a',hole2:'#a16207',sub:"PHARAOH'S EMPIRE",h1:'ANCIENT',h2:'MONUMENT!',sig:'Sun Obelisk',sigCol:'#facc15',sigSub:'GOLDEN SANDSTONE RADIANCE!',sigMod:{},pType:'ember',pCol:['#eab308','#fde047','#38bdf8','#fed7aa']},
+  megacity:{bg1:'#0a0f1c',bg2:'#1e293b',arena:'#0f172a',rim:'#f97316',accent:'#38bdf8',hole1:'#172033',hole2:'#334155',sub:'MEGACITY',h1:'SKYLINE',h2:'METROPOLIS!',sig:'Skyline Surge',sigCol:'#38bdf8',sigSub:'METROPOLITAN GRID LIGHTS!',sigMod:{},pType:'rise',pCol:['#f97316','#38bdf8','#facc15','#e2e8f0']},
+  grand_prix:{bg1:'#121418',bg2:'#374151',arena:'#181b20',rim:'#ef4444',accent:'#ffffff',hole1:'#1f2937',hole2:'#991b1b',sub:'GRAND PRIX',h1:'LIGHTS OUT',h2:'RACE!',sig:'Final Lap',sigCol:'#ef4444',sigSub:'CHECKERED FLAG SPRINT!',sigMod:{},pType:'wind',pCol:['#ef4444','#ffffff','#facc15','#94a3b8']},
+  royal_court:{bg1:'#1c0810',bg2:'#6b102c',arena:'#240b15',rim:'#fbbf24',accent:'#fef3c7',hole1:'#3f0a1b',hole2:'#9f1239',sub:'ROYAL COURT',h1:'CEREMONIAL',h2:'THRONE!',sig:'Royal Fanfare',sigCol:'#fbbf24',sigSub:'CROWN COURT SALUTE!',sigMod:{},pType:'spark',pCol:['#fbbf24','#fef3c7','#f43f5e','#ffffff']},
+  inflatable_world:{bg1:'#0d1c33',bg2:'#2563eb',arena:'#112645',rim:'#38bdf8',accent:'#f472b6',hole1:'#1e3a8a',hole2:'#0284c7',sub:'INFLATABLE WORLD',h1:'BOUNCE',h2:'SPECTACLE!',sig:'Balloon Pop',sigCol:'#f472b6',sigSub:'PLAYFUL CUSHION WAVE!',sigMod:{},pType:'bubble',pCol:['#38bdf8','#f472b6','#facc15','#4ade80']},
+  data_vault:{bg1:'#051412',bg2:'#0f3d36',arena:'#081c19',rim:'#10b981',accent:'#6ee7b7',hole1:'#062b26',hole2:'#047857',sub:'DATA VAULT',h1:'DIGITAL',h2:'ARCHIVE!',sig:'Archive Sync',sigCol:'#34d399',sigSub:'VERIFIED RECORD LEDGER!',sigMod:{},pType:'rise',pCol:['#10b981','#6ee7b7','#22d3ee','#a7f3d0']},
+  canyon_clash:{bg1:'#211008',bg2:'#7c3416',arena:'#29150b',rim:'#c2410c',accent:'#fdba74',hole1:'#431a08',hole2:'#9a3412',sub:'CANYON CLASH',h1:'RED ROCK',h2:'CHASM!',sig:'Canyon Echo',sigCol:'#fb923c',sigSub:'DUST WAVE ACROSS THE CLIFFS!',sigMod:{},pType:'wind',pCol:['#fb923c','#fdba74','#c2410c','#fde68a']},
+  laser_symphony:{bg1:'#080618',bg2:'#2e1065',arena:'#0d0a24',rim:'#d946ef',accent:'#22d3ee',hole1:'#1e0a3c',hole2:'#701a75',sub:'LASER SYMPHONY',h1:'LIGHT',h2:'CONCERT!',sig:'Beam Choreography',sigCol:'#e879f9',sigSub:'SYNCHRONIZED LASER SHOW!',sigMod:{},pType:'spark',pCol:['#d946ef','#22d3ee','#4ade80','#facc15']},
+  broadcast_classic:{bg1:'#0d1322',bg2:'#1e3a5f',arena:'#111a2e',rim:'#facc15',accent:'#ef4444',hole1:'#172540',hole2:'#1d4ed8',sub:'BROADCAST CLASSIC',h1:'VINTAGE',h2:'NETWORK!',sig:'Live Chyron',sigCol:'#facc15',sigSub:'CLASSIC SPORTS TELECAST!',sigMod:{},pType:'none',pCol:['#facc15','#ef4444','#ffffff']},
+  summit:{bg1:'#0a192e',bg2:'#2c5282',arena:'#0f2340',rim:'#7dd3fc',accent:'#fed7aa',hole1:'#163259',hole2:'#0369a1',sub:'SUMMIT',h1:'ALPINE',h2:'PEAK!',sig:'Altitude Gust',sigCol:'#bae6fd',sigSub:'ABOVE THE CLOUDS!',sigMod:{},pType:'snow',pCol:['#ffffff','#e0f2fe','#7dd3fc','#fed7aa']},
+  geometry:{bg1:'#10121c',bg2:'#272b42',arena:'#151826',rim:'#f43f5e',accent:'#22d3ee',hole1:'#1e2236',hole2:'#3b4266',sub:'GEOMETRY',h1:'VECTOR',h2:'SYMMETRY!',sig:'Tessellation Shift',sigCol:'#22d3ee',sigSub:'POLYGON HARMONY PULSE!',sigMod:{},pType:'orbit',pCol:['#f43f5e','#22d3ee','#facc15','#a78bfa']},
+  infinite_library:{bg1:'#1a120a',bg2:'#4a3018',arena:'#21170e',rim:'#d97706',accent:'#fef3c7',hole1:'#332110',hole2:'#78350f',sub:'INFINITE LIBRARY',h1:'ENDLESS',h2:'CHRONICLE!',sig:'Chapter Turn',sigCol:'#fbbf24',sigSub:'HISTORIC RECORD UNVEILED!',sigMod:{},pType:'spark',pCol:['#fbbf24','#fef3c7','#d97706','#fde68a']},
+  runway_royale:{bg1:'#100a14',bg2:'#3b1538',arena:'#160e1c',rim:'#f472b6',accent:'#fef08a',hole1:'#240f26',hole2:'#831843',sub:'RUNWAY ROYALE',h1:'COUTURE',h2:'CATWALK!',sig:'Flash Spotlight',sigCol:'#f472b6',sigSub:'RUNWAY PREMIERE SHOWCASE!',sigMod:{},pType:'spark',pCol:['#f472b6','#fef08a','#ffffff','#e879f9']},
+  fireworks_finale:{bg1:'#060818',bg2:'#1e1b4b',arena:'#090d24',rim:'#fbbf24',accent:'#f43f5e',hole1:'#111638',hole2:'#4c1d95',sub:'FIREWORKS FINALE',h1:'GRAND',h2:'FINALE!',sig:'Skyburst Finale',sigCol:'#fbbf24',sigSub:'CELEBRATION FIREWORKS BURST!',sigMod:{},pType:'spark',pCol:['#fbbf24','#f43f5e','#38bdf8','#4ade80','#e879f9']}
+};
+const LEGEND_ED={
+  t:0,sigAct:null,nextSig:18,sigCount:0,realmIdx:0,boltT:0,
+  pts:Array.from({length:36},()=>({x:0,y:0,vx:0,vy:0,s:2,a:0,c:'#fff',ph:0})),
+  cfg(){return ED&&ED.leg?LEGEND_CFG[ED.leg]||null:null},
+  reset(){
+    this.t=0;this.sigAct=null;this.nextSig=16+rnd()*8;this.sigCount=0;this.realmIdx=0;this.boltT=0;
+    const c=this.cfg();
+    for(let i=0;i<this.pts.length;i++){
+      const p=this.pts[i];
+      p.x=rnd()*SW;p.y=rnd()*SH;p.ph=rnd()*PI2;
+      p.s=1.5+rnd()*2.8;p.a=0.25+rnd()*0.55;
+      p.c=c?c.pCol[i%c.pCol.length]:'#fff';
+      p.vx=(rnd()-.5)*18;p.vy=(rnd()-.5)*18;
+    }
+  },
+  startRound(){this.reset()},
+  getMul(){
+    if(!this.sigAct||!this.cfg())return{sp:1,rot:1,pull:1};
+    const m=this.cfg().sigMod||{};
+    return{sp:m.sp||1,rot:m.rot||1,pull:m.pull||1};
+  },
+  triggerSignature(source='RANDOM'){
+    const c=this.cfg();if(!c||phase!==0)return false;
+    this.sigAct={name:c.sig,col:c.sigCol,sub:c.sigSub,t:0,d:5.5,source};
+    this.sigCount++;
+    if(ED.leg==='multiverse')this.realmIdx=(this.realmIdx+1)%4;
+    if(ED.leg==='thunderbreak')this.boltT=0.6;
+    if(run()){const n=AC.currentTime;tone(330,n,.14,'triangle',.16);tone(523,n+.12,.2,'triangle',.18)}
+    shout(c.sig+'! '+c.sigSub,c.sig.toUpperCase());
+    if(window.__FCA_ADM__&&window.__FCA_ADM__.onSignatureEvent)window.__FCA_ADM__.onSignatureEvent(c.sig,source);
+    return true;
+  },
+  tick(dt,al){
+    const c=this.cfg();if(!c||phase!==0)return;
+    this.t+=dt;
+    if(this.boltT>0)this.boltT=Math.max(0,this.boltT-dt);
+    if(ED.leg==='thunderbreak'&&rnd()<dt*0.28)this.boltT=0.25;
+    if(ED.leg==='multiverse'&&this.t>0&&Math.floor(this.t/18)!==Math.floor((this.t-dt)/18))this.realmIdx=(this.realmIdx+1)%4;
+    const lowFx=!!(window.__FCA_ADM__&&((window.__FCA_ADM__.visual&&window.__FCA_ADM__.visual.reducedEffects)||window.__FCA_ADM__.perf?.adaptiveLevel==='REDUCED'));
+    const lim=lowFx?14:32;
+    for(let i=0;i<lim;i++){
+      const p=this.pts[i];
+      if(c.pType==='snow'||c.pType==='petal'){p.y+=dt*(22+p.s*8);p.x+=Math.sin(this.t*1.8+p.ph)*dt*18;if(p.y>SH)p.y=-4;if(p.x<0)p.x=SW;if(p.x>SW)p.x=0}
+      else if(c.pType==='rise'||c.pType==='bubble'||c.pType==='ember'){p.y-=dt*(24+p.s*9);p.x+=Math.sin(this.t*2+p.ph)*dt*14;if(p.y<-4){p.y=SH+4;p.x=rnd()*SW}}
+      else if(c.pType==='wind'){p.x+=dt*(65+p.s*18);p.y+=Math.sin(this.t*2.5+p.ph)*dt*12;if(p.x>SW+8){p.x=-8;p.y=rnd()*SH}}
+      else if(c.pType==='orbit'){p.ph+=dt*(0.6+p.s*0.18);const rad=65+(i%12)*15;p.x=CX+Math.cos(p.ph)*rad;p.y=CY+Math.sin(p.ph)*rad}
+      else{p.x+=p.vx*dt;p.y+=p.vy*dt;if(p.x<0)p.x=SW;if(p.x>SW)p.x=0;if(p.y<0)p.y=SH;if(p.y>SH)p.y=0}
+    }
+    if(this.sigAct){this.sigAct.t+=dt;if(this.sigAct.t>=this.sigAct.d)this.sigAct=null}
+    else if(al&&al.length>=5&&!SD.on&&this.t>=this.nextSig&&this.sigCount<3){
+      const ef=(typeof getBal==='function'?getBal().evFreq:1)||1;
+      this.nextSig=this.t+(20+rnd()*12)/ef;
+      this.triggerSignature('RANDOM');
+    }
+  },
+  getRimCol(){
+    const c=this.cfg();if(!c)return null;
+    if(ED.leg==='prism')return 'hsl('+Math.floor((this.t*70)%360)+',88%,62%)';
+    if(ED.leg==='multiverse')return ['#818cf8','#34d399','#fb923c','#f472b6'][this.realmIdx%4];
+    return this.sigAct?this.sigAct.col:c.rim;
+  },
+  drawBack(){
+    const c=this.cfg();if(!c)return;
+    const mvBg=[['#0a0b24','#312e81'],['#041a18','#065f46'],['#1c0905','#7c2d12'],['#1e0a24','#701a75']];
+    const b1=ED.leg==='multiverse'?mvBg[this.realmIdx%4][0]:c.bg1;
+    const b2=ED.leg==='multiverse'?mvBg[this.realmIdx%4][1]:c.bg2;
+    ctx.fillStyle=b1;ctx.fillRect(0,0,SW,SH);
+    const gr=ctx.createRadialGradient(CX,CY,20,CX,CY,300);
+    gr.addColorStop(0,b2+'99');gr.addColorStop(1,b1+'00');
+    ctx.fillStyle=gr;ctx.fillRect(0,0,SW,SH);
+    if(ED.leg==='aurora'){
+      for(let i=0;i<3;i++){
+        ctx.save();ctx.globalAlpha=0.16;ctx.strokeStyle=['#34d399','#22d3ee','#a78bfa'][i];ctx.lineWidth=26;
+        ctx.beginPath();for(let x=0;x<=SW;x+=32){const y=110+i*48+Math.sin(x*0.02+this.t*1.2+i)*22;if(x===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)}ctx.stroke();ctx.restore();
+      }
+    }else if(ED.leg==='cyber'||ED.leg==='reality'){
+      ctx.save();ctx.strokeStyle=c.rim+'1a';ctx.lineWidth=1;
+      for(let y=0;y<SH;y+=28){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(SW,y);ctx.stroke()}
+      for(let x=0;x<SW;x+=32){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,SH);ctx.stroke()}
+      ctx.restore();
+    }else if(ED.leg==='titan'){
+      ctx.save();ctx.strokeStyle='#f9731624';ctx.lineWidth=6;ctx.setLineDash([12,10]);
+      ctx.translate(CX,CY);ctx.rotate(this.t*0.35);ctx.beginPath();ctx.arc(0,0,R+24,0,PI2);ctx.stroke();
+      ctx.rotate(-this.t*0.7);ctx.beginPath();ctx.arc(0,0,R+42,0,PI2);ctx.stroke();
+      ctx.restore();
+    }else if(ED.leg==='prism'||ED.leg==='infinity'){
+      ctx.save();ctx.globalAlpha=0.12;
+      for(let i=0;i<6;i++){const ang=this.t*0.3+i*PI/3;ctx.strokeStyle=c.pCol[i%c.pCol.length];ctx.lineWidth=18;ctx.beginPath();ctx.moveTo(CX,CY);ctx.lineTo(CX+Math.cos(ang)*320,CY+Math.sin(ang)*320);ctx.stroke()}
+      ctx.restore();
+    }else if(ED.leg==='duality'){
+      ctx.save();ctx.fillStyle='#e2e8f018';ctx.fillRect(0,0,CX,SH);ctx.fillStyle='#02061744';ctx.fillRect(CX,0,CX,SH);
+      ctx.strokeStyle='#ffffff28';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(CX,0);ctx.lineTo(CX,SH);ctx.stroke();ctx.restore();
+    }else if(ED.leg==='timebreak'){
+      ctx.save();ctx.strokeStyle='#f59e0b2a';ctx.lineWidth=2;
+      for(let i=0;i<12;i++){const ang=i*PI/6;ctx.beginPath();ctx.moveTo(CX+Math.cos(ang)*(R+12),CY+Math.sin(ang)*(R+12));ctx.lineTo(CX+Math.cos(ang)*(R+28),CY+Math.sin(ang)*(R+28));ctx.stroke()}
+      ctx.strokeStyle='#fde68a33';ctx.lineWidth=3;const hA=this.t*0.18,mA=this.t*0.95;
+      ctx.beginPath();ctx.moveTo(CX,CY);ctx.lineTo(CX+Math.cos(hA)*(R+38),CY+Math.sin(hA)*(R+38));ctx.stroke();
+      ctx.beginPath();ctx.moveTo(CX,CY);ctx.lineTo(CX+Math.cos(mA)*(R+56),CY+Math.sin(mA)*(R+56));ctx.stroke();ctx.restore();
+    }else if(ED.leg==='artdeco'){
+      ctx.save();ctx.strokeStyle='#d4af3728';ctx.lineWidth=1.5;
+      for(let i=-6;i<=6;i++){const ang=-PI/2+i*0.18;ctx.beginPath();ctx.moveTo(CX,SH);ctx.lineTo(CX+Math.cos(ang)*520,SH+Math.sin(ang)*520);ctx.stroke()}
+      ctx.strokeRect(10,10,SW-20,SH-20);ctx.strokeRect(16,16,SW-32,SH-32);ctx.restore();
+    }else if(ED.leg==='horizon_zero'){
+      ctx.save();const sunG=ctx.createRadialGradient(CX,260,10,CX,260,145);sunG.addColorStop(0,'#fde04788');sunG.addColorStop(0.55,'#fb718555');sunG.addColorStop(1,'#00000000');
+      ctx.fillStyle=sunG;ctx.beginPath();ctx.arc(CX,260,145,0,PI2);ctx.fill();
+      ctx.fillStyle='#120612cc';ctx.fillRect(0,470,SW,SH-470);ctx.restore();
+    }else if(ED.leg==='glasshouse'||ED.leg==='infinite_mirror'){
+      ctx.save();ctx.strokeStyle=ED.leg==='glasshouse'?'#67e8f924':'#e2e8f022';ctx.lineWidth=1.2;
+      for(let k=1;k<=5;k++){const pad=k*26;ctx.strokeRect(pad,pad*1.3,SW-pad*2,SH-pad*2.6)}
+      if(ED.leg==='glasshouse'){ctx.strokeStyle='#ffffff18';ctx.lineWidth=22;ctx.beginPath();ctx.moveTo(-20,180);ctx.lineTo(SW+20,60);ctx.moveTo(-20,540);ctx.lineTo(SW+20,420);ctx.stroke()}
+      ctx.restore();
+    }else if(ED.leg==='carnival'){
+      ctx.save();ctx.globalAlpha=0.1;for(let i=0;i<12;i++){ctx.fillStyle=i%2?'#f43f5e':'#fde047';ctx.beginPath();ctx.moveTo(CX,CY);ctx.arc(CX,CY,440,i*PI/6,(i+1)*PI/6);ctx.closePath();ctx.fill()}
+      ctx.globalAlpha=0.55;for(let i=0;i<16;i++){const ang=i*PI/8+this.t*0.2;ctx.fillStyle=(i+Math.floor(this.t*4))%2?'#fde047':'#f43f5e';ctx.beginPath();ctx.arc(CX+Math.cos(ang)*(R+18),CY+Math.sin(ang)*(R+18),3,0,PI2);ctx.fill()}ctx.restore();
+    }else if(ED.leg==='soundwave'){
+      ctx.save();for(let i=0;i<24;i++){const ang=i*PI2/24;const bar=8+Math.abs(Math.sin(this.t*4.5+i*0.7))*20;ctx.strokeStyle=i%2?'#22d3ee66':'#a855f766';ctx.lineWidth=3.5;ctx.beginPath();ctx.moveTo(CX+Math.cos(ang)*(R+6),CY+Math.sin(ang)*(R+6));ctx.lineTo(CX+Math.cos(ang)*(R+6+bar),CY+Math.sin(ang)*(R+6+bar));ctx.stroke()}ctx.restore();
+    }else if(ED.leg==='grand_opening'||ED.leg==='laser_symphony'||ED.leg==='runway_royale'){
+      ctx.save();ctx.globalAlpha=0.14;const beams=ED.leg==='laser_symphony'?6:2;
+      for(let i=0;i<beams;i++){const sway=Math.sin(this.t*(1.1+i*0.25)+i)*0.45;const ox=i%2===0?30:SW-30;const col=c.pCol[i%c.pCol.length];ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(ox,SH);ctx.lineTo(CX+Math.sin(sway)*180-36,0);ctx.lineTo(CX+Math.sin(sway)*180+36,0);ctx.closePath();ctx.fill()}ctx.restore();
+    }else if(ED.leg==='blueprint'){
+      ctx.save();ctx.strokeStyle='#60a5fa22';ctx.lineWidth=1;
+      for(let x=0;x<SW;x+=24){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,SH);ctx.stroke()}
+      for(let y=0;y<SH;y+=24){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(SW,y);ctx.stroke()}
+      ctx.strokeStyle='#ffffff30';ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(0,CY);ctx.lineTo(SW,CY);ctx.moveTo(CX,0);ctx.lineTo(CX,SH);ctx.stroke();ctx.restore();
+    }else if(ED.leg==='megacity'||ED.leg==='summit'){
+      ctx.save();ctx.fillStyle=ED.leg==='megacity'?'#02061799':'#0f172a88';
+      if(ED.leg==='megacity'){const hs=[130,190,110,220,160,205,140,185,120,175];hs.forEach((h,i)=>{ctx.fillRect(i*40,SH-h,36,h)})}
+      else{ctx.beginPath();ctx.moveTo(0,SH);ctx.lineTo(80,450);ctx.lineTo(192,390);ctx.lineTo(300,455);ctx.lineTo(SW,SH);ctx.closePath();ctx.fill()}ctx.restore();
+    }else if(ED.leg==='film_noir'){
+      ctx.save();const spG=ctx.createRadialGradient(CX+Math.sin(this.t*0.5)*35,CY,20,CX,CY,240);spG.addColorStop(0,'#ffffff24');spG.addColorStop(1,'#000000cc');ctx.fillStyle=spG;ctx.fillRect(0,0,SW,SH);ctx.restore();
+    }else if(ED.leg==='fireworks_finale'){
+      ctx.save();const fwT=(this.t*0.7)%1;const fx=70+((Math.floor(this.t*0.7)*97)%244),fy=120+((Math.floor(this.t*0.7)*53)%130);
+      ctx.globalAlpha=(1-fwT)*0.45;ctx.strokeStyle=c.pCol[Math.floor(this.t*0.7)%c.pCol.length];ctx.lineWidth=1.5;
+      for(let i=0;i<10;i++){const ang=i*PI2/10;ctx.beginPath();ctx.moveTo(fx+Math.cos(ang)*fwT*12,fy+Math.sin(ang)*fwT*12);ctx.lineTo(fx+Math.cos(ang)*fwT*42,fy+Math.sin(ang)*fwT*42);ctx.stroke()}ctx.restore();
+    }
+    const lowFx=!!(window.__FCA_ADM__&&((window.__FCA_ADM__.visual&&window.__FCA_ADM__.visual.reducedEffects)||window.__FCA_ADM__.perf?.adaptiveLevel==='REDUCED'));
+    const lim=c.pType==='none'?0:(lowFx?14:30);
+    ctx.save();
+    for(let i=0;i<lim;i++){
+      const p=this.pts[i];ctx.globalAlpha=p.a;ctx.fillStyle=p.c;
+      if(c.pType==='wind'){ctx.fillRect(p.x,p.y,p.s*5,1.5)}
+      else if(c.pType==='bubble'){ctx.strokeStyle=p.c;ctx.lineWidth=1;ctx.beginPath();ctx.arc(p.x,p.y,p.s+1,0,PI2);ctx.stroke()}
+      else{ctx.beginPath();ctx.arc(p.x,p.y,p.s,0,PI2);ctx.fill()}
+    }
+    ctx.restore();
+  },
+  drawArenaZone(){
+    const c=this.cfg();if(!c)return;
+    ctx.save();
+    ctx.fillStyle=c.arena;circ(ctx,CX,CY,R);
+    if(ED.leg==='singularity'||ED.leg==='infinity'){
+      for(let i=1;i<=3;i++){ctx.strokeStyle=c.accent+(i===1?'33':'1a');ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(CX,CY,R*(0.32*i),0,PI2);ctx.stroke()}
+    }else if(ED.leg==='volcanic'){
+      ctx.strokeStyle='#ff572226';ctx.lineWidth=2;
+      for(let i=0;i<5;i++){const a0=i*1.25+0.3;ctx.beginPath();ctx.moveTo(CX+Math.cos(a0)*30,CY+Math.sin(a0)*30);ctx.lineTo(CX+Math.cos(a0+0.15)*R*0.95,CY+Math.sin(a0+0.15)*R*0.95);ctx.stroke()}
+    }else if(ED.leg==='colosseum'||ED.leg==='omega'){
+      ctx.strokeStyle=c.rim+'30';ctx.lineWidth=2;ctx.beginPath();ctx.arc(CX,CY,R*0.72,0,PI2);ctx.stroke();
+    }else if(ED.leg==='duality'){
+      ctx.save();ctx.beginPath();ctx.arc(CX,CY,R,PI/2,PI*1.5);ctx.fillStyle='#f8fafc16';ctx.fill();ctx.restore();
+    }else if(ED.leg==='labyrinth'||ED.leg==='geometry'){
+      ctx.strokeStyle=c.rim+'28';ctx.lineWidth=1.5;
+      for(let k=1;k<=3;k++){ctx.beginPath();if(ED.leg==='geometry'){for(let s=0;s<=6;s++){const ag=s*PI/3+this.t*0.12*(k%2?1:-1);const px=CX+Math.cos(ag)*R*(0.26*k),py=CY+Math.sin(ag)*R*(0.26*k);s===0?ctx.moveTo(px,py):ctx.lineTo(px,py)}}else{ctx.arc(CX,CY,R*(0.28*k),k*0.4,PI2-0.5+k*0.4)}ctx.stroke()}
+    }else if(ED.leg==='world_expo'||ED.leg==='data_vault'){
+      ctx.strokeStyle=c.rim+'24';ctx.lineWidth=1;for(let k=1;k<=3;k++){ctx.beginPath();ctx.arc(CX,CY,R*(0.28*k),0,PI2);ctx.stroke()}
+      ctx.beginPath();ctx.moveTo(CX-R,CY);ctx.lineTo(CX+R,CY);ctx.moveTo(CX,CY-R);ctx.lineTo(CX,CY+R);ctx.stroke();
+    }else if(ED.leg==='grand_prix'){
+      ctx.strokeStyle='#ffffff26';ctx.lineWidth=4;ctx.setLineDash([10,10]);ctx.beginPath();ctx.arc(CX,CY,R*0.86,0,PI2);ctx.stroke();ctx.setLineDash([]);
+    }else if(ED.leg==='jewelstorm'||ED.leg==='paperworld'){
+      ctx.strokeStyle=c.accent+'28';ctx.lineWidth=1.5;ctx.beginPath();for(let s=0;s<=8;s++){const ag=s*PI/4;const px=CX+Math.cos(ag)*R*0.78,py=CY+Math.sin(ag)*R*0.78;s===0?ctx.moveTo(px,py):ctx.lineTo(px,py)}ctx.stroke();
+    }else if(ED.leg==='canyon_clash'||ED.leg==='pharaoh_empire'||ED.leg==='royal_court'||ED.leg==='infinite_library'){
+      ctx.strokeStyle=c.rim+'2a';ctx.lineWidth=2;ctx.beginPath();ctx.arc(CX,CY,R*0.76,0,PI2);ctx.stroke();ctx.beginPath();ctx.arc(CX,CY,R*0.52,0,PI2);ctx.stroke();
+    }
+    if(this.sigAct){
+      const pulse=0.14+0.1*Math.sin(this.sigAct.t*10);
+      ctx.strokeStyle=this.sigAct.col;ctx.globalAlpha=pulse;ctx.lineWidth=8;
+      ctx.beginPath();ctx.arc(CX,CY,R*0.85,0,PI2);ctx.stroke();
+    }
+    ctx.restore();
+  },
+  drawFront(){
+    const c=this.cfg();if(!c)return;
+    if(this.boltT>0&&ED.leg==='thunderbreak'){
+      ctx.save();ctx.strokeStyle='#fde047';ctx.globalAlpha=Math.min(1,this.boltT*2.5);ctx.lineWidth=2.2;
+      ctx.beginPath();ctx.moveTo(40,120);ctx.lineTo(120,210);ctx.lineTo(95,240);ctx.lineTo(192,314);ctx.stroke();
+      ctx.restore();
+    }
+    if(this.sigAct&&phase===0){
+      const a=Math.max(0,Math.min(1,this.sigAct.t*4,(this.sigAct.d-this.sigAct.t)*2));
+      ctx.save();ctx.globalAlpha=a;
+      pill(56,138,272,34,7,'#070b1aee',this.sigAct.col);
+      T(this.sigAct.name.toUpperCase()+' · '+this.sigAct.source,192,152,9.5,this.sigAct.col,'center',AN);
+      T(this.sigAct.sub,192,165,7.5,'#e2e8f0','center','bold system-ui,sans-serif');
+      ctx.restore();
+    }
+  }
+};
+
 function getBal(){const adm=window.__FCA_ADM__,g=adm&&adm.gameplay;if(!g||(ED.n==='Classic'&&g.classicPhysicsLock!==false))return{sp:1,pull:1,rot:1,shCd:22,evFreq:1,comeback:0,dmg:1};const diffMul=g.difficulty==='intense'?1.15:g.difficulty==='casual'?.88:1;return{sp:Math.max(.5,Math.min(2,+g.speedMul||1))*diffMul,pull:Math.max(.5,Math.min(2,+g.pullMul||1))*diffMul,rot:Math.max(.5,Math.min(2,+g.rotMul||1)),shCd:Math.max(6,Math.min(60,+g.shieldCooldown||22)),evFreq:Math.max(.25,Math.min(2.5,+g.eventFreqMul||1)),comeback:g.comebackEnabled?Math.max(0,Math.min(2,+g.comebackStrength||.5)):0,dmg:Math.max(.5,Math.min(2.5,+g.bossDmgMul||1))}}
 function triggerFxImpact(shakeAmt,hitStopSec){const adm=window.__FCA_ADM__;if(!adm)return;const v=adm.visual||{};if((v.screenShake??60)>0)adm.shakeT=Math.min(.45,Math.max(adm.shakeT||0,shakeAmt*(v.screenShake/100)));if(v.hitStopEnabled&&hitStopSec>0)adm.hitStopT=Math.max(adm.hitStopT||0,Math.min(.06,hitStopSec))}
 function step(dt){
@@ -2625,7 +2968,7 @@ t+=dt;a+=ED.rot*BAL.rot*EV.rot*(ED.sudden?SUDDEN.rotMul:1)*(ED.boss?BOSS.rotMul:
 let al=F.filter(f=>f.on);if(al.length===2&&!showdownDone)beginShowdown();if(showdown){if(al.length!==2)showdown=null;else{showdown.t+=dt;if(showdown.t>=showdown.d)showdown=null}}
 if(t>nextTalk&&!cap&&al.length>3&&!ED.bt){nextTalk=t+40+rnd()*25;say(ED.king&&KING.kingAlive?pk(['King '+C[KING.kingC].n+' still holds the crown',al.length+' flags remain in King of the Arena','Who will dethrone King '+C[KING.kingC].n+'?']):pk([al.length+' flags remain','The hole is hungry','Who will survive?','Keep your eyes on your flag','Round '+round+' is heating up']))}
 let gap=(1.8+2*Math.min(1,al.length/40))*ED.gap,pull=Math.min(.2+t*.01,1.5)*ED.pull,CD=1.2,el=0;if(ED.lim){el=(Date.now()-rStart)/1000;if(el<55){gap=.3;pull=.8+el*.04;CD=.7}else{gap=0;pull=4;CD=.4}}else if(ED.bt){el=BEL();if(el<55){gap=.35;CD=.7}else{gap=.15;pull=3;CD=.45}}else if(ED.storm){pull=.18;gap=2.2}
-EV.tick(dt*uK,al);STORM.tick(dt*uK,al);KING.tick(dt*uK);TEAM.tick(dt*uK);SUDDEN.tick(dt*uK,al);BOSS.tick(dt*uK,al);CHAOS.tick(dt*uK,al);POWER.tick(dt*uK,al);
+EV.tick(dt*uK,al);LEGEND_ED.tick(dt*uK,al);STORM.tick(dt*uK,al);KING.tick(dt*uK);TEAM.tick(dt*uK);SUDDEN.tick(dt*uK,al);BOSS.tick(dt*uK,al);CHAOS.tick(dt*uK,al);POWER.tick(dt*uK,al);
 if(ED.sudden){gap=SUDDEN.gap;CD=SUDDEN.cd;pull*=SUDDEN.pullMul}
 if(ED.boss){pull*=BOSS.pullMul}
 if(ED.chaos){pull*=CHAOS.pull}
@@ -2757,7 +3100,7 @@ const _adm=window.__FCA_ADM__,_shk=_adm&&_adm.shakeT>0?Math.min(8,_adm.shakeT*24
 ctx.setTransform(dpr*sc,0,0,dpr*sc,(ox+_sx*sc)*dpr,(oy+_sy*sc)*dpr);ctx.save();ctx.beginPath();ctx.rect(0,0,SW,SH);ctx.clip();
 ctx.fillStyle='#070b1a';ctx.fillRect(0,0,SW,SH);
 let g=ctx.createRadialGradient(0,300,0,0,300,260);g.addColorStop(0,ED.storm?'#0ea5e955':ED.king?'#f59e0b44':'#2d5fd066');g.addColorStop(1,'#2d5fd000');ctx.fillStyle=g;ctx.fillRect(0,0,SW,SH);
-g=ctx.createRadialGradient(384,430,0,384,430,260);g.addColorStop(0,ED.storm&&STORM.stage>=3?'#e11d4866':ED.storm?'#6366f155':ED.king?'#b4530955':'#d6303066');g.addColorStop(1,'#d6303000');ctx.fillStyle=g;ctx.fillRect(0,0,SW,SH);STORM.drawBack();KING.drawBack();TEAM.drawBack();SUDDEN.drawBack();BOSS.drawBack();CHAOS.drawBack();POWER.drawBack();EVD.back();
+g=ctx.createRadialGradient(384,430,0,384,430,260);g.addColorStop(0,ED.storm&&STORM.stage>=3?'#e11d4866':ED.storm?'#6366f155':ED.king?'#b4530955':'#d6303066');g.addColorStop(1,'#d6303000');ctx.fillStyle=g;ctx.fillRect(0,0,SW,SH);STORM.drawBack();KING.drawBack();TEAM.drawBack();SUDDEN.drawBack();BOSS.drawBack();CHAOS.drawBack();POWER.drawBack();LEGEND_ED.drawBack();if(window.__FCA_ROT__&&window.__FCA_ROT__.drawThemeAtmosphere)window.__FCA_ROT__.drawThemeAtmosphere(ctx);EVD.back();
 const E=outs.length;
 const _ov=(_adm&&_adm.visual&&_adm.visual.overlays)||{};
 if(_ov.hud!==false){T('FLAG CLASH ',10,36,17,'#fff','left',AN);ctx.font='17px '+AN;const tw=ctx.measureText('FLAG CLASH ').width;T('ARENA',10+tw,36,17,'#ffd23f','left',AN);
@@ -2783,6 +3126,7 @@ else if(!(ED.storm&&phase===0&&STORM.drawCenterBanner())&&!(ED.king&&phase===0&&
  else if(ED.boss){const bn=APPS.has(BOSS.bossC)?C[BOSS.bossC].n.toUpperCase():'BOSS';T('ROUND '+round+' · BOSS BATTLE',192,76,8.5,'#f59e0b','center');T(BOSS.bossAlive?'DEFEAT BOSS':'BOSS FALLEN',192,100,23,BOSS.bossAlive?'#fff':'#ff4d6d','center',AN);T(BOSS.bossAlive?bn+'!':'SURVIVE!',192,125,bn.length>11?20:23,'#ffd23f','center',AN)}
  else if(ED.chaos){T('ROUND '+round+' · CHAOS ARENA',192,76,8.5,'#e879f9','center');T('CHAOS',192,100,25,'#fff','center',AN);T('ARENA!',192,128,25,'#d946ef','center',AN)}
  else if(ED.power){T('ROUND '+round+' · POWER-UP BATTLE',192,76,8.5,'#6ee7b7','center');T('POWER-UP',192,100,25,'#fff','center',AN);T('BATTLE!',192,128,25,'#10b981','center',AN)}
+ else if(ED.leg&&LEGEND_ED.cfg()){const _lc=LEGEND_ED.cfg();T('ROUND '+round+' · '+_lc.sub+' · '+(ED.rarity||'SPECIAL').toUpperCase(),192,76,8,'#cbd5e1','center');T(_lc.h1,192,100,25,'#fff','center',AN);T(_lc.h2,192,128,25,_lc.rim,'center',AN)}
  else{T('ROUND '+round+' · '+ED.n.toUpperCase()+' EDITION',192,76,9,'#9aa4c7','center');T('WHICH FLAG',192,100,26,'#fff','center',AN);T('SURVIVES?',192,130,26,'#ffd23f','center',AN)}
 }
 if(ann&&ann.t<3.2&&!(banner&&banner.t<3.2)&&!EV.show()&&!(ED.storm&&STORM.state==='warning')&&!(ED.king&&((KING.introT>0&&KING.introT<3.4&&KING.kingAlive)||(KING.defeatAnim&&KING.defeatAnim.t<3.2)))){ctx.globalAlpha=Math.max(0,Math.min(1,(3.2-ann.t)*2));pill(76,62,232,58,8,'#070b1a',ED.storm?STORM.stageCol():'#ffd23f');T(ann.s,192,98,ann.s.length>22?12.5:16,'#fff','center',AN);ctx.globalAlpha=1}
@@ -2790,13 +3134,13 @@ if(ED.lim&&phase==0){const rem=Math.max(0,Math.ceil(60-(Date.now()-rStart)/1000)
 if(ED.bt&&phase==0){const e=BEL(),rem=Math.max(0,Math.ceil(60-e)),sp=bsp(e),stg=BSP.findIndex(x=>e<x[0]);T(String(rem),350,110,30,rem<=10?'#ff4d6d':'#ffd23f','center',AN);T('SEC',350,122,8,'#9aa4c7','center');T('SPEED',36,92,8,'#9aa4c7','center');T(sp+'X',36,112,22,sp>=4?'#ff4d6d':'#22d3ee','center',AN);T('STAGE '+(stg<0?7:stg+1)+'/7',36,124,8,'#9aa4c7','center')}
 STORM.drawHUD();KING.drawHUD();TEAM.drawHUD();SUDDEN.drawHUD();BOSS.drawHUD();CHAOS.drawHUD();POWER.drawHUD();
 ctx.fillStyle=ED.storm?'#081028':ED.king?'#110e24':'#0c1330';circ(ctx,CX,CY,R);
-STORM.drawArenaZone();KING.drawArenaZone();SUDDEN.drawArenaZone();BOSS.drawArenaZone();CHAOS.drawArenaZone();POWER.drawOrbs();
+STORM.drawArenaZone();KING.drawArenaZone();SUDDEN.drawArenaZone();BOSS.drawArenaZone();CHAOS.drawArenaZone();LEGEND_ED.drawArenaZone();POWER.drawOrbs();
 ctx.strokeStyle=ED.king?'#b45309':'#7c6fd6';ctx.lineWidth=.048*R;ctx.lineCap='round';
 for(let k=0;k<NB;k++){const th=a+k*PI/3;ctx.beginPath();ctx.moveTo(CX+Math.cos(th)*.98*R,CY+Math.sin(th)*.98*R);ctx.lineTo(CX+Math.cos(th)*.66*R,CY+Math.sin(th)*.66*R);ctx.stroke()}
 ctx.lineCap='butt';const holeRadius=HR*R;
 if(cap){ctx.fillStyle='#0a0418';circ(ctx,CX,CY,holeRadius);ctx.save();const capKing=ED.king&&cap.f&&cap.f.c===KING.kingC;ctx.shadowColor=capKing?'#ffd23f':'#ff2bd6';ctx.shadowBlur=18;ctx.strokeStyle=capKing?'#ffd23f':'#ff2bd6';ctx.lineWidth=3;ctx.beginPath();ctx.arc(CX,CY,holeRadius,0,2*PI);ctx.stroke();ctx.restore()}
 else{for(let k=0;k<8;k++){const s0=-a*1.5+k*.785;ctx.fillStyle=ED.king?(k%2?'#3b2510':'#523414'):(k%2?'#2a2f6a':'#3a3f86');ctx.beginPath();ctx.moveTo(CX,CY);ctx.arc(CX,CY,holeRadius,s0,s0+.785);ctx.closePath();ctx.fill()}ctx.strokeStyle='#e0a800';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(CX,CY,holeRadius,0,2*PI);ctx.stroke()}
-ctx.save();const rimCol=ED.storm?STORM.stageCol():ED.king?(KING.kingAlive?'#ffd23f':'#f59e0b'):ED.team?'#ffd23f':ED.sudden?SUDDEN.cfg().col:ED.boss?(BOSS.bossAlive?'#f59e0b':'#ff4d6d'):ED.chaos?(CHAOS.act?CHAOS.act.col:'#d946ef'):ED.power?'#10b981':'#22d3ee';ctx.shadowColor=rimCol;ctx.shadowBlur=14;ctx.strokeStyle=rimCol;ctx.lineWidth=3;ctx.beginPath();ctx.arc(CX,CY,R+1.5,0,2*PI);ctx.stroke();ctx.restore();
+ctx.save();const rimCol=ED.storm?STORM.stageCol():ED.king?(KING.kingAlive?'#ffd23f':'#f59e0b'):ED.team?'#ffd23f':ED.sudden?SUDDEN.cfg().col:ED.boss?(BOSS.bossAlive?'#f59e0b':'#ff4d6d'):ED.chaos?(CHAOS.act?CHAOS.act.col:'#d946ef'):ED.power?'#10b981':(LEGEND_ED.getRimCol()||'#22d3ee');ctx.shadowColor=rimCol;ctx.shadowBlur=14;ctx.strokeStyle=rimCol;ctx.lineWidth=3;ctx.beginPath();ctx.arc(CX,CY,R+1.5,0,2*PI);ctx.stroke();ctx.restore();
 for(const f of F){if(!f.on)continue;const d=Math.hypot(f.x,f.y);let k=1;
 if(f.stElim)k=1-Math.min(1,f.stElim.t/Math.max(.01,f.stElim.d))*.78;
 else if(f.cp&&f.cp.s)k=1-Math.min(1,f.cp.t/f.cp.d)*.7;else if(cap&&cap.f===f)k=1-Math.min(1,cap.t/(cap.d||1.2))*.7;else if(!isW(f)&&!(f.sh>0)&&f.h)k=Math.min(1,Math.max(.45,d/HR+.3));
@@ -2812,7 +3156,7 @@ if(showdown&&phase===0){const alive=F.filter(f=>f.on);ctx.save();ctx.globalAlpha
   T((ED.king&&KING.kingAlive?'ROYAL SHOWDOWN · ':'FINAL TWO · ')+C[alive[0].c].n.toUpperCase()+' VS '+C[alive[1].c].n.toUpperCase(),192,504,9,'#ffd23f','center',AN);ctx.restore();
  }
  if(showdown.countdown&&showdown.t<3){const n=Math.max(1,3-Math.floor(showdown.t));ctx.save();ctx.fillStyle='#070b1acc';circ(ctx,CX,CY,28);T(String(n),CX,CY+13,42,'#ffd23f','center',AN);ctx.restore()}}
-STORM.drawFront();KING.drawFront();BOSS.drawFront();POWER.drawFront();EVD.front();T('ALL ELIMINATED',192,513,13,'#fff','center');
+STORM.drawFront();KING.drawFront();BOSS.drawFront();POWER.drawFront();LEGEND_ED.drawFront();EVD.front();T('ALL ELIMINATED',192,513,13,'#fff','center');
 outs.forEach((c,j)=>{const sx=7+(j%19)*19,sy=545+Math.floor(j/19)*19;sprite(c,sx,sy,14);if(ED.king&&c===KING.kingC){ctx.save();ctx.strokeStyle='#ffd23f';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(sx+7,sy+7,8,0,PI2);ctx.stroke();ctx.restore()}if(ED.team&&(TEAM.teamByC[c]===0||TEAM.teamByC[c]===1)){ctx.save();ctx.strokeStyle=TEAM_CFG.teams[TEAM.teamByC[c]].col;ctx.lineWidth=1.4;ctx.beginPath();ctx.arc(sx+7,sy+7,8,0,PI2);ctx.stroke();ctx.restore()}});
 pill(12,610,360,4,2,'#ffffff22');pill(12,610,Math.max(4,360*E/N),4,2,ED.king?'#ffd23f':'#22d3ee');
 T(E+' / '+N+' ELIMINATED',192,632,9,'#9aa4c7','center');
@@ -3741,6 +4085,1260 @@ requestAnimationFrame(loop);
       return{ok:true,record:gift};
     }
   };
+})();
+
+
+// ===== FLAG CLASH ARENA — MASTER ENTERTAINMENT, RETENTION & REAL-TIME SYNC EXTENSION =====
+(function(){
+  const adm=window.__FCA_ADM__;
+  if(!adm)return;
+  const LEGACY_KEY='fca_champion_legacy';
+  const HIGHLIGHT_KEY='fca_highlights';
+  const RECAP_KEY='fca_recaps';
+  const SYNC_CMD_KEY='fca_sync_cmd';
+  const SYNC_ACK_KEY='fca_sync_ack';
+  const SYNC_STATE_KEY='fca_sync_state';
+
+  const readJ=(k,fb)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):fb}catch(_){return fb}};
+  const writeJ=(k,v)=>{if(IS_PREVIEW)return;try{localStorage.setItem(k,JSON.stringify(v))}catch(_){}};
+
+  // Ensure new config defaults exist without touching existing keys
+  if(!adm.visual.overlays)adm.visual.overlays={};
+  if(adm.visual.overlays.statusBar===undefined)adm.visual.overlays.statusBar=true;
+  if(!adm.showDirector.preset)adm.showDirector.preset='hybrid';
+  if(!adm.showDirector.pacingMode)adm.showDirector.pacingMode='standard';
+  if(adm.showDirector.intensityDirectorEnabled===undefined)adm.showDirector.intensityDirectorEnabled=true;
+  if(adm.showDirector.safeEditionQueue===undefined)adm.showDirector.safeEditionQueue=true;
+  if(!adm.showDirector.rareConfig)adm.showDirector.rareConfig={enabled:true,chance:0.12,cooldownRounds:5,lastRareRound:-99,lastRareId:''};
+  if(!adm.showDirector.antiRepetition)adm.showDirector.antiRepetition={enabled:true,threshold:3};
+
+  // Persistent Champion Legacy, Highlights, Story Recaps
+  let championLegacy=readJ(LEGACY_KEY,{
+    currentChampion:-1,reignDefenses:0,totalTitleChanges:0,longestReign:0,longestReignC:-1,
+    reclamations:{},championWins:{},history:[],
+    gauntlet:{active:false,championId:-1,defeated:0,targetDefenses:5,bestSurvival:0,bestSurvivalC:-1}
+  });
+  let highlights=readJ(HIGHLIGHT_KEY,[]);
+  if(!Array.isArray(highlights))highlights=[];
+  let recaps=readJ(RECAP_KEY,[]);
+  if(!Array.isArray(recaps))recaps=[];
+
+  // Runtime state for new systems
+  adm.pendingEditionIdx=-1;
+  adm.lastQueuedAppliedAt=0;
+  adm.stateSeq=1;
+  adm.currentStakes=null;
+  adm.currentBattlePersonality=null;
+  adm.intensityStage=1; // 1 Normal, 2 Rising, 3 High, 4 Final Climax
+  adm.activeRareMoment=null;
+  adm.finaleState={active:false,format:'',completedBanner:null};
+  adm.recentEditionIds=[];
+  const processedReqIds=new Set();
+
+  const RARE_EVENTS=[
+    {id:'golden_arena',name:'Golden Arena',rarity:'Legendary',col:'#ffd23f',sub:'GOLDEN RADIANCE ACROSS THE ARENA!'},
+    {id:'double_event',name:'Double Event',rarity:'Ultimate',col:'#e879f9',sub:'DUAL SURPRISE SURGE!'},
+    {id:'legendary_entrance',name:'Legendary Entrance',rarity:'Special',col:'#38bdf8',sub:'HIGH-IMPACT BROADCAST ENTRANCE!'},
+    {id:'arena_transform',name:'Arena Transformation',rarity:'Legendary',col:'#34d399',sub:'DYNAMIC ATMOSPHERE SHIFT!'},
+    {id:'singularity_omen',name:'Singularity Omen',rarity:'Singularity',col:'#a855f7',sub:'COSMIC RESONANCE DETECTED!'}
+  ];
+
+  const SHOW_PRESETS={
+    competitive:{label:'Competitive Mode',pacingMode:'standard',intensityDirectorEnabled:true,introEnabled:true,dramaticAlerts:true,rareEnabled:false,eventFreqMul:0.75,reducedEffects:false},
+    chaos_show:{label:'Chaos Show',pacingMode:'quick',intensityDirectorEnabled:true,introEnabled:true,dramaticAlerts:true,rareEnabled:true,eventFreqMul:1.5,reducedEffects:false},
+    championship:{label:'Championship Mode',pacingMode:'high_stakes',intensityDirectorEnabled:true,introEnabled:true,dramaticAlerts:true,rareEnabled:true,eventFreqMul:0.9,reducedEffects:false},
+    retention:{label:'Retention Mode',pacingMode:'standard',intensityDirectorEnabled:true,introEnabled:true,dramaticAlerts:true,rareEnabled:true,eventFreqMul:1.15,reducedEffects:false},
+    chill:{label:'Chill Mode',pacingMode:'quick',intensityDirectorEnabled:false,introEnabled:false,dramaticAlerts:false,rareEnabled:false,eventFreqMul:0.6,reducedEffects:true},
+    manual:{label:'Manual Mode',pacingMode:'standard',intensityDirectorEnabled:false,introEnabled:true,dramaticAlerts:true,rareEnabled:false,eventFreqMul:1.0,reducedEffects:false}
+  };
+
+  function detectBattleStakes(queued){
+    if(adm.finaleState.active)return{type:'GRAND FINALE',label:'GRAND FINALE · '+(adm.finaleState.format||'SHOWDOWN'),col:'#ffd23f'};
+    if(championLegacy.gauntlet.active&&APPS.has(championLegacy.gauntlet.championId)){
+      return{type:'GAUNTLET DEFENSE',label:'GAUNTLET '+(championLegacy.gauntlet.defeated+1)+'/'+championLegacy.gauntlet.targetDefenses+' · '+C[championLegacy.gauntlet.championId].n.toUpperCase(),col:'#f97316'};
+    }
+    if(ED.n==='Championship'||ED.leg==='omega')return{type:'CHAMPIONSHIP',label:'CHAMPIONSHIP STAKES · ROUND '+Math.min(TOURNEY_ROUNDS,tourney.round+1)+'/'+TOURNEY_ROUNDS,col:'#ffd23f'};
+    if(APPS.has(championLegacy.currentChampion)&&championLegacy.reignDefenses>=2){
+      return{type:'WIN STREAK AT RISK',label:C[championLegacy.currentChampion].n.toUpperCase()+' · '+championLegacy.reignDefenses+' DEFENSES',col:'#ff4d6d'};
+    }
+    if(ED.n==='Rivalry'||ED.leg==='ronin'||(queued&&queued.specialTag==='revenge_match')){
+      return{type:'RIVALRY DECIDER',label:'HISTORIC RIVALRY MATCHUP',col:'#fb7185'};
+    }
+    if(queued&&queued.specialTag==='underdog_challenge'){
+      return{type:'GIANT SLAYER OPPORTUNITY',label:'UNDERDOGS CHALLENGE THE ARENA',col:'#80ed99'};
+    }
+    return null;
+  }
+
+  function applyPacingDurations(){
+    const pm=adm.showDirector.pacingMode||'standard';
+    if(pm==='quick'){DUR[1]=ED.lim?2.6:5.5;adm.showDirector.introDurationSec=1.8;}
+    else if(pm==='high_stakes'){DUR[1]=ED.lim?4.0:9.0;adm.showDirector.introDurationSec=3.2;}
+    else if(pm==='finale'){DUR[1]=10.5;adm.showDirector.introDurationSec=3.6;}
+    else{DUR[1]=ED.lim?3.2:8.0;adm.showDirector.introDurationSec=2.5;}
+  }
+
+  function computeHallOfLegends(){
+    const out=[];
+    const wEntries=Object.entries(life.w||{}).filter(([k])=>APPS.has(+k)).sort((a,b)=>b[1]-a[1]);
+    if(wEntries[0]&&wEntries[0][1]>=3)out.push({title:'Arena Dominator',country:C[+wEntries[0][0]].n,metric:wEntries[0][1]+' Lifetime Wins'});
+    if(APPS.has(championLegacy.longestReignC)&&championLegacy.longestReign>=2)out.push({title:'Longest Reign',country:C[championLegacy.longestReignC].n,metric:championLegacy.longestReign+' Defenses'});
+    if(APPS.has(championLegacy.currentChampion))out.push({title:'Current Throne Holder',country:C[championLegacy.currentChampion].n,metric:championLegacy.reignDefenses+' Active Defenses'});
+    if(APPS.has(championLegacy.gauntlet.bestSurvivalC)&&championLegacy.gauntlet.bestSurvival>=1)out.push({title:'Gauntlet Survivor',country:C[championLegacy.gauntlet.bestSurvivalC].n,metric:championLegacy.gauntlet.bestSurvival+' Gauntlet Wins'});
+    if(S&&S.sb&&APPS.has(S.sb.c)&&S.sb.n>=3)out.push({title:'Unstoppable Streak',country:C[S.sb.c].n,metric:S.sb.n+'x Session Streak'});
+    if(tourneyHistory.length){const lastT=tourneyHistory[tourneyHistory.length-1];if(APPS.has(lastT.champion))out.push({title:'Tournament Master',country:C[lastT.champion].n,metric:'Tourney #'+lastT.id+' Winner'});}
+    const recl=Object.entries(championLegacy.reclamations||{}).filter(([k])=>APPS.has(+k)).sort((a,b)=>b[1]-a[1])[0];
+    if(recl&&recl[1]>=1)out.push({title:'Crown Reclaimer',country:C[+recl[0]].n,metric:recl[1]+' Reclamations'});
+    return out;
+  }
+
+  function computeRetentionIntelligence(){
+    const edHist=adm.recentEditionIds.slice(-8);
+    const sameEdStreak=edHist.length>=3&&edHist.slice(-3).every(x=>x===edHist[edHist.length-1]);
+    const recList=recaps.slice(0,8);
+    const avgDur=recList.length?+(recList.reduce((a,r)=>a+(r.durationSec||0),0)/recList.length).toFixed(1):0;
+    const recs=[];
+    if(sameEdStreak)recs.push({level:'warn',text:'Same edition played 3+ rounds in a row — consider switching edition for variety (gameplay-based estimate).'});
+    if(avgDur>0&&avgDur<18)recs.push({level:'info',text:'Recent battles are very fast ('+avgDur+'s avg) — try Great Colosseum or Survival Storm for longer tension (gameplay-based estimate).'});
+    if(APPS.has(championLegacy.currentChampion)&&championLegacy.reignDefenses>=3)recs.push({level:'hot',text:C[championLegacy.currentChampion].n+' has '+championLegacy.reignDefenses+' defenses — great moment for a Champion Gauntlet or Omega Championship (gameplay-based estimate).'});
+    if(!recs.length)recs.push({level:'ok',text:'Show pacing and edition variety look balanced based on recent gameplay logs (gameplay-based estimate; no live viewer analytics connected).'});
+    return {
+      basis:'gameplay_estimates_only',
+      avgBattleDurationSec:avgDur,
+      sameEditionStreak:sameEdStreak,
+      recentEditions:edHist.map(i=>EDS[i]?.n||'Classic'),
+      recommendations:recs
+    };
+  }
+
+  function recordHighlight(category,reason,extra={}){
+    if(IS_PREVIEW||adm.activeMatchType==='showcase')return;
+    const item={
+      id:'hl_'+Date.now()+'_'+Math.floor(Math.random()*999),
+      battleRound:round,
+      at:new Date().toISOString(),
+      edition:ED?ED.n:'Classic',
+      winner:APPS.has(wIdx)?C[wIdx].n:'',
+      durationSec:Math.max(1,Math.round((Date.now()-rStart)/1000)),
+      category,
+      reason,
+      note:'Metadata highlight (no video clip capture)',
+      ...extra
+    };
+    highlights.unshift(item);
+    if(highlights.length>100)highlights.length=100;
+    writeJ(HIGHLIGHT_KEY,highlights);
+  }
+
+  function triggerRareMoment(rareId,source='MANUAL'){
+    const r=RARE_EVENTS.find(x=>x.id===rareId)||RARE_EVENTS[Math.floor(rnd()*RARE_EVENTS.length)];
+    if(!r)return{ok:false,error:'Unknown rare event.'};
+    adm.activeRareMoment={...r,source,t:0,ttl:5.5};
+    adm.showDirector.rareConfig.lastRareRound=round;
+    adm.showDirector.rareConfig.lastRareId=r.id;
+    adm.saveConfig();
+    if(r.id==='double_event'&&phase===0&&F){
+      const al=F.filter(x=>x.on);
+      if(EVDEF.spot)EV.go('spot',{mag:1,hidden:0},al);
+    }
+    if(run()){const n=AC.currentTime;tone(523,n,.15,'triangle',.18);tone(784,n+.14,.22,'triangle',.2)}
+    recordHighlight('Rare Moment',r.name+' ('+r.rarity+' · '+source+')');
+    return{ok:true,rare:r};
+  }
+
+  adm.onSignatureEvent=(sigName,source)=>{
+    recordHighlight('Signature Event',sigName+' triggered ('+source+')');
+  };
+
+  // Wrap onRoundStart to compute Battle Stakes, Pacing, Rare Moment check, and Anti-Repetition tracking
+  const origOnRoundStart=adm.onRoundStart.bind(adm);
+  adm.onRoundStart=(queued)=>{
+    adm.recentEditionIds.push(curEi);
+    if(adm.recentEditionIds.length>20)adm.recentEditionIds.shift();
+    adm.currentBattlePersonality=null;
+    adm.intensityStage=1;
+    adm.currentStakes=detectBattleStakes(queued);
+    applyPacingDurations();
+    origOnRoundStart(queued);
+    if(adm.currentStakes&&adm.introBanner){
+      adm.introBanner.sub=adm.currentStakes.label.slice(0,44);
+      adm.introBanner.col=adm.currentStakes.col;
+    }
+    // Controlled Rare Moment random roll (respects cooldowns, enabled flag, Classic lock)
+    const rc=adm.showDirector.rareConfig;
+    if(rc&&rc.enabled&&ED.n!=='Classic'&&!IS_PREVIEW&&adm.activeMatchType==='normal'){
+      const roundsSince=round-(rc.lastRareRound||-99);
+      if(roundsSince>=(rc.cooldownRounds||5)&&rnd()<(rc.chance||0.12)){
+        const poolR=RARE_EVENTS.filter(x=>x.id!==rc.lastRareId);
+        const pickR=poolR[Math.floor(rnd()*poolR.length)];
+        if(pickR)triggerRareMoment(pickR.id,'RANDOM');
+      }
+    }
+  };
+
+  // Wrap tickEntertainment to drive Battle Intensity Director & Rare Moment timers
+  const origTickEnt=adm.tickEntertainment.bind(adm);
+  adm.tickEntertainment=(dt)=>{
+    origTickEnt(dt);
+    if(adm.activeRareMoment){
+      adm.activeRareMoment.t+=dt;
+      if(adm.activeRareMoment.t>=adm.activeRareMoment.ttl)adm.activeRareMoment=null;
+    }
+    if(adm.finaleState.completedBanner){
+      adm.finaleState.completedBanner.t+=dt;
+      if(adm.finaleState.completedBanner.t>=adm.finaleState.completedBanner.ttl)adm.finaleState.completedBanner=null;
+    }
+    if(phase===0&&F&&adm.showDirector.intensityDirectorEnabled!==false){
+      const aliveCnt=F.reduce((a,f)=>a+(f.on?1:0),0);
+      const bossLow=ED.boss&&BOSS.bossAlive&&BOSS.maxHp>0&&(BOSS.hp/BOSS.maxHp)<0.3;
+      if(aliveCnt<=2||showdown||bossLow)adm.intensityStage=4;
+      else if(aliveCnt<=6)adm.intensityStage=3;
+      else if(aliveCnt<=14)adm.intensityStage=2;
+      else adm.intensityStage=1;
+    }else if(phase!==0){
+      adm.intensityStage=1;
+    }
+  };
+
+  // Wrap recordMatchResult to update Champion Legacy, Gauntlet, Giant Slayer, Battle Personality, Highlights, Story Recaps
+  const origRecordMatch=adm.recordMatchResult.bind(adm);
+  adm.recordMatchResult=(rec)=>{
+    origRecordMatch(rec);
+    if(IS_PREVIEW||rec.matchType==='showcase')return;
+    const winId=rec.winner;
+    const dur=Math.max(1,Math.round(rec.durationSec||((Date.now()-rStart)/1000)));
+    const prevChamp=championLegacy.currentChampion;
+    const prevDef=championLegacy.reignDefenses||0;
+
+    // 1. Giant Slayer / Upset check (transparent measurable criteria from real life.w + reignDefenses)
+    const maxWins=Math.max(0,...Object.values(life.w||{}));
+    const winBefore=Math.max(0,(life.w[winId]||1)-1);
+    const isUpset=(maxWins>=6&&winBefore<=Math.max(1,Math.floor(maxWins*0.25)))||(prevChamp>=0&&prevChamp!==winId&&prevDef>=3);
+
+    // 2. Champion's Throne & Legacy update (real competitive outcomes only)
+    let titleChanged=false;
+    if(APPS.has(winId)){
+      if(prevChamp===winId){
+        championLegacy.reignDefenses++;
+      }else{
+        titleChanged=prevChamp>=0;
+        if(championLegacy.championWins[winId]>0){
+          championLegacy.reclamations[winId]=(championLegacy.reclamations[winId]||0)+1;
+        }
+        championLegacy.currentChampion=winId;
+        championLegacy.reignDefenses=1;
+        championLegacy.totalTitleChanges++;
+      }
+      championLegacy.championWins[winId]=(championLegacy.championWins[winId]||0)+1;
+      if(championLegacy.reignDefenses>championLegacy.longestReign){
+        championLegacy.longestReign=championLegacy.reignDefenses;
+        championLegacy.longestReignC=winId;
+      }
+      championLegacy.history.unshift({round,champion:winId,name:C[winId].n,defenses:championLegacy.reignDefenses,edition:ED.n,at:new Date().toISOString()});
+      championLegacy.history=championLegacy.history.slice(0,40);
+
+      // Champion's Gauntlet progression
+      if(championLegacy.gauntlet.active){
+        if(winId===championLegacy.gauntlet.championId){
+          championLegacy.gauntlet.defeated++;
+          if(championLegacy.gauntlet.defeated>championLegacy.gauntlet.bestSurvival){
+            championLegacy.gauntlet.bestSurvival=championLegacy.gauntlet.defeated;
+            championLegacy.gauntlet.bestSurvivalC=winId;
+          }
+          if(championLegacy.gauntlet.defeated>=championLegacy.gauntlet.targetDefenses){
+            recordHighlight('Gauntlet Complete',C[winId].n+' survived the full '+championLegacy.gauntlet.targetDefenses+'-match Champion Gauntlet!');
+            championLegacy.gauntlet.active=false;
+          }
+        }else{
+          recordHighlight('Gauntlet Ended',C[winId].n+' defeated Gauntlet Champion '+C[championLegacy.gauntlet.championId]?.n+' after '+championLegacy.gauntlet.defeated+' defenses!');
+          championLegacy.gauntlet.active=false;
+        }
+      }
+      writeJ(LEGACY_KEY,championLegacy);
+    }
+
+    // 3. Battle Personality Classification (genuine metrics only)
+    let personality='Standard Clash';
+    if(isUpset)personality='Giant Slayer Upset';
+    else if(dur<=14)personality='Quick Destruction';
+    else if(dur>=65)personality='War of Attrition';
+    else if(ED.chaos||(LEGEND_ED.sigCount>=2))personality='Chaos Spectacle';
+    else if(ED.n==='Rivalry'||ED.leg==='ronin')personality='Rivalry Showdown';
+    else if(ED.storm||ED.leg==='expedition')personality='Survival Endurance';
+    else if(championLegacy.reignDefenses>=3)personality='Unstoppable Streak';
+    else if(showdownDone)personality='Nail-Biter Finish';
+    adm.currentBattlePersonality=personality;
+
+    // 4. Highlight Moment Detector
+    if(isUpset)recordHighlight('Giant Slayer Upset',C[winId]?.n+' pulled off a genuine underdog victory!');
+    else if(titleChanged&&prevDef>=2)recordHighlight('Champion Defeated',C[winId]?.n+' ended '+C[prevChamp]?.n+' ('+prevDef+' defenses)!');
+    else if(championLegacy.reignDefenses>=3)recordHighlight('Streak Milestone',C[winId]?.n+' reached '+championLegacy.reignDefenses+' consecutive defenses!');
+    else if(dur<=12)recordHighlight('Quick Destruction',C[winId]?.n+' won in '+dur+'s!');
+
+    // 5. Battle Story Recap
+    recaps.unshift({
+      round,
+      at:new Date().toISOString(),
+      edition:ED.n,
+      winner:APPS.has(winId)?C[winId].n:'',
+      runnerUp:APPS.has(rec.runnerUp)?C[rec.runnerUp].n:'',
+      durationSec:dur,
+      personality,
+      stakes:adm.currentStakes?adm.currentStakes.label:'',
+      upset:isUpset,
+      titleChanged
+    });
+    if(recaps.length>60)recaps.length=60;
+    writeJ(RECAP_KEY,recaps);
+
+    // 6. Finale closing banner
+    if(adm.finaleState.active){
+      adm.finaleState.completedBanner={winner:APPS.has(winId)?C[winId].n:'',format:adm.finaleState.format,t:0,ttl:9};
+      recordHighlight('Grand Finale',C[winId]?.n+' won the '+adm.finaleState.format+'!');
+      adm.finaleState.active=false;
+    }
+    adm.broadcastState();
+  };
+
+  // Wrap drawOverlays to add Live Show Status Bar, Battle Intensity rim aura, Rare Moment banner, Battle Personality badge, and Finale closing overlay
+  const origDrawOverlays=adm.drawOverlays.bind(adm);
+  adm.drawOverlays=(g)=>{
+    const ov=(adm.visual&&adm.visual.overlays)||{};
+    // Live Show Status Bar (compact, top-safe, zero obstruction to arena ring)
+    if(ov.statusBar!==false&&phase===0&&!adm.emergencyStop){
+      const champName=APPS.has(championLegacy.currentChampion)?C[championLegacy.currentChampion].n.toUpperCase().slice(0,11):'OPEN';
+      const stTxt=adm.currentStakes?adm.currentStakes.type:(ED.rarity?ED.rarity.toUpperCase():'LIVE');
+      const intCol=['#22d3ee','#22d3ee','#38bdf8','#f59e0b','#ff4d6d'][adm.intensityStage]||'#22d3ee';
+      g.save();
+      pill(12,674,360,20,5,'#070b1ae6',intCol+'99');
+      T('CHAMP: '+champName+(championLegacy.reignDefenses>1?' x'+championLegacy.reignDefenses:'')+'  ·  '+stTxt+(adm.pendingEditionIdx>=0?'  ·  NEXT: '+EDS[adm.pendingEditionIdx].n.toUpperCase().slice(0,10):''),192,687,7.5,'#e2e8f0','center','bold system-ui,sans-serif');
+      g.restore();
+    }
+    // Rare Moment Banner
+    if(adm.activeRareMoment&&phase===0){
+      const rm=adm.activeRareMoment;
+      const alpha=Math.max(0,Math.min(1,rm.t*4,(rm.ttl-rm.t)*2));
+      g.save();g.globalAlpha=alpha;
+      pill(44,204,296,38,8,'#09051af2',rm.col);
+      T('★ '+rm.rarity.toUpperCase()+' MOMENT: '+rm.name.toUpperCase(),192,220,9.5,rm.col,'center',AN);
+      T(rm.sub+' ('+rm.source+')',192,234,7.5,'#f8fafc','center','bold system-ui,sans-serif');
+      g.restore();
+    }
+    // Victory Screen Battle Personality Badge
+    if(phase===1&&adm.currentBattlePersonality){
+      g.save();
+      pill(84,18,216,22,5,'#09152cee','#c084fc');
+      T('BATTLE: '+adm.currentBattlePersonality.toUpperCase(),192,32,8.5,'#e9d5ff','center',AN);
+      g.restore();
+    }
+    // Finale Closing Banner
+    if(adm.finaleState.completedBanner){
+      const fb=adm.finaleState.completedBanner;
+      g.save();
+      pill(34,536,316,38,8,'#1a1004f5','#ffd23f');
+      T('★ GRAND FINALE COMPLETE · '+fb.format.toUpperCase(),192,552,9,'#ffd23f','center',AN);
+      T('CHAMPION: '+fb.winner.toUpperCase()+' · THANKS FOR WATCHING!',192,566,8.5,'#fff','center','bold system-ui,sans-serif');
+      g.restore();
+    }
+    origDrawOverlays(g);
+  };
+
+  // Wrap getSnapshot to include all new real state & monotonic stateSeq
+  const origGetSnapshot=adm.getSnapshot.bind(adm);
+  adm.getSnapshot=()=>{
+    const base=origGetSnapshot();
+    base.stateSeq=++adm.stateSeq;
+    base.editions=EDS.map((e,i)=>({
+      idx:i,
+      name:e.n,
+      tier:e.tier||(i===0?1:3),
+      rarity:e.rarity||(i===0?'Classic':'Standard'),
+      desc:e.desc||(i===0?'Original protected Flag Clash Arena experience.':e.n+' Edition'),
+      isLegendary:!!e.leg
+    }));
+    base.pendingEditionIdx=adm.pendingEditionIdx;
+    base.pendingEditionName=adm.pendingEditionIdx>=0&&EDS[adm.pendingEditionIdx]?EDS[adm.pendingEditionIdx].n:'';
+    base.championLegacy=championLegacy;
+    base.currentStakes=adm.currentStakes;
+    base.currentBattlePersonality=adm.currentBattlePersonality;
+    base.intensityStage=adm.intensityStage;
+    base.activeRareMoment=adm.activeRareMoment?{id:adm.activeRareMoment.id,name:adm.activeRareMoment.name,rarity:adm.activeRareMoment.rarity,source:adm.activeRareMoment.source}:null;
+    base.finaleActive=adm.finaleState.active;
+    base.highlights=highlights.slice(0,30);
+    base.recaps=recaps.slice(0,25);
+    base.hallOfLegends=computeHallOfLegends();
+    base.retentionIntel=computeRetentionIntelligence();
+    return base;
+  };
+
+  // Wrap handleCommand to add deduplication, safe mid-battle edition queuing, and new commands
+  const origHandleCommand=adm.handleCommand.bind(adm);
+  adm.handleCommand=(cmd)=>{
+    if(!cmd||typeof cmd!=='object')return{ok:false,error:'Invalid command'};
+    if(cmd.reqId){
+      if(processedReqIds.has(cmd.reqId)){
+        return{ok:true,deduplicated:true,stateSeq:adm.stateSeq,activeEditionIdx:curEi,pendingEditionIdx:adm.pendingEditionIdx};
+      }
+      processedReqIds.add(cmd.reqId);
+      if(processedReqIds.size>200){
+        const first=processedReqIds.values().next().value;
+        processedReqIds.delete(first);
+      }
+    }
+    const {action,payload={}}=cmd;
+    try{
+      if(action==='battle.set_edition'){
+        const idx=+payload.editionIdx;
+        if(!EDS[idx])return{ok:false,error:'Invalid edition index.'};
+        const safeQueue=payload.immediate===true?false:(payload.safeQueue!==undefined?!!payload.safeQueue:adm.showDirector.safeEditionQueue!==false);
+        if(safeQueue&&phase===0&&!adm.paused&&idx!==curEi){
+          adm.pendingEditionIdx=idx;
+          adm.broadcastState();
+          return{ok:true,queued:true,applied:false,activeEditionIdx:curEi,pendingEditionIdx:idx,stateSeq:adm.stateSeq};
+        }
+        adm.pendingEditionIdx=-1;
+        adm.paused=false;
+        setEdition(idx);
+        if(phase===4)fin();
+        adm.broadcastState();
+        return{ok:true,queued:false,applied:true,activeEditionIdx:curEi,pendingEditionIdx:-1,stateSeq:adm.stateSeq};
+      }
+      if(action==='edition.queue'){
+        const idx=+payload.editionIdx;
+        if(!EDS[idx])return{ok:false,error:'Invalid edition index.'};
+        adm.pendingEditionIdx=idx;
+        adm.broadcastState();
+        return{ok:true,queued:true,pendingEditionIdx:idx,activeEditionIdx:curEi,stateSeq:adm.stateSeq};
+      }
+      if(action==='edition.cancel_queue'){
+        adm.pendingEditionIdx=-1;
+        adm.broadcastState();
+        return{ok:true,pendingEditionIdx:-1,activeEditionIdx:curEi,stateSeq:adm.stateSeq};
+      }
+      if(action==='edition.switch_classic'){
+        adm.pendingEditionIdx=-1;
+        adm.paused=false;
+        setEdition(0);
+        if(phase===4)fin();
+        adm.broadcastState();
+        return{ok:true,applied:true,activeEditionIdx:0,pendingEditionIdx:-1,stateSeq:adm.stateSeq};
+      }
+      if(action==='showdirector.apply_preset'){
+        const p=SHOW_PRESETS[payload.preset];
+        if(!p)return{ok:false,error:'Unknown show preset.'};
+        adm.showDirector.preset=payload.preset;
+        adm.showDirector.pacingMode=p.pacingMode;
+        adm.showDirector.intensityDirectorEnabled=p.intensityDirectorEnabled;
+        adm.showDirector.introEnabled=p.introEnabled;
+        adm.showDirector.dramaticAlerts=p.dramaticAlerts;
+        adm.showDirector.rareConfig.enabled=p.rareEnabled;
+        adm.gameplay.eventFreqMul=p.eventFreqMul;
+        adm.visual.reducedEffects=p.reducedEffects;
+        applyPacingDurations();
+        adm.saveConfig();
+        adm.broadcastState();
+        return{ok:true,applied:true,preset:payload.preset,stateSeq:adm.stateSeq};
+      }
+      if(action==='showdirector.set_pacing'){
+        const valid=['quick','standard','high_stakes','finale'];
+        if(!valid.includes(payload.pacingMode))return{ok:false,error:'Invalid pacing mode.'};
+        adm.showDirector.pacingMode=payload.pacingMode;
+        applyPacingDurations();
+        adm.saveConfig();adm.broadcastState();
+        return{ok:true,applied:true,stateSeq:adm.stateSeq};
+      }
+      if(action==='showdirector.set_intensity'){
+        adm.showDirector.intensityDirectorEnabled=!!payload.enabled;
+        adm.saveConfig();adm.broadcastState();
+        return{ok:true,applied:true,stateSeq:adm.stateSeq};
+      }
+      if(action==='showdirector.update_rare_config'){
+        adm.showDirector.rareConfig={
+          ...adm.showDirector.rareConfig,
+          enabled:payload.enabled!==undefined?!!payload.enabled:adm.showDirector.rareConfig.enabled,
+          chance:payload.chance!==undefined?Math.max(0,Math.min(0.5,+payload.chance)):adm.showDirector.rareConfig.chance,
+          cooldownRounds:payload.cooldownRounds!==undefined?Math.max(1,Math.min(20,Math.floor(+payload.cooldownRounds))):adm.showDirector.rareConfig.cooldownRounds
+        };
+        adm.saveConfig();adm.broadcastState();
+        return{ok:true,applied:true,stateSeq:adm.stateSeq};
+      }
+      if(action==='showdirector.trigger_rare'){
+        const res=triggerRareMoment(payload.rareId,'MANUAL');
+        adm.broadcastState();
+        return{...res,stateSeq:adm.stateSeq};
+      }
+      if(action==='showdirector.trigger_finale'){
+        if(adm.emergencyStop)return{ok:false,error:'Clear Emergency Stop first.'};
+        const fmt=String(payload.format||'Grand Championship Finale').slice(0,48);
+        const edIdxFin=Number.isInteger(+payload.editionIdx)&&EDS[+payload.editionIdx]?+payload.editionIdx:36; // Legendary Infinity default
+        adm.finaleState={active:true,format:fmt,completedBanner:null};
+        adm.showDirector.pacingMode='finale';
+        applyPacingDurations();
+        adm.paused=false;
+        start({editionIdx:edIdxFin,matchType:'normal',label:'FINALE: '+fmt,specialTag:'finale'});
+        adm.broadcastState();
+        return{ok:true,applied:true,activeEditionIdx:curEi,stateSeq:adm.stateSeq};
+      }
+      if(action==='gauntlet.start'){
+        if(adm.emergencyStop)return{ok:false,error:'Clear Emergency Stop first.'};
+        const champId=APPS.has(+payload.championId)?+payload.championId:(APPS.has(championLegacy.currentChampion)?championLegacy.currentChampion:getEligibleCountries()[0]);
+        const target=Math.max(2,Math.min(10,Math.floor(+payload.targetDefenses||5)));
+        championLegacy.gauntlet={...championLegacy.gauntlet,active:true,championId:champId,defeated:0,targetDefenses:target};
+        writeJ(LEGACY_KEY,championLegacy);
+        adm.paused=false;
+        start({editionIdx:curEi,countries:[champId],matchType:'normal',label:"GAUNTLET: "+C[champId].n,specialTag:'champions_challenge'});
+        adm.broadcastState();
+        return{ok:true,applied:true,stateSeq:adm.stateSeq};
+      }
+      if(action==='gauntlet.stop'){
+        championLegacy.gauntlet.active=false;
+        writeJ(LEGACY_KEY,championLegacy);
+        adm.broadcastState();
+        return{ok:true,applied:true,stateSeq:adm.stateSeq};
+      }
+      if(action==='queue.smart_fill'){
+        const count=Math.max(1,Math.min(6,Math.floor(+payload.count||3)));
+        const recentSet=new Set(adm.recentEditionIds.slice(-4));
+        const candEds=EDS.map((e,i)=>i).filter(i=>!recentSet.has(i));
+        const pickPool=candEds.length?candEds:EDS.map((_,i)=>i);
+        const items=[];
+        for(let k=0;k<count;k++){
+          const eId=pickPool[Math.floor(rnd()*pickPool.length)];
+          items.push({id:'smart_'+Date.now()+'_'+k,editionIdx:eId,countries:[],matchType:'normal',showcaseWinner:-1,durationSec:0,label:'SMART: '+EDS[eId].n,tournamentId:'',specialTag:''});
+        }
+        adm.battleQueue=[...adm.battleQueue,...items].slice(0,50);
+        adm.saveConfig();adm.broadcastState();
+        return{ok:true,applied:true,added:items.length,stateSeq:adm.stateSeq};
+      }
+      if(action==='highlights.clear'){
+        highlights.length=0;writeJ(HIGHLIGHT_KEY,highlights);
+        adm.broadcastState();
+        return{ok:true,applied:true,stateSeq:adm.stateSeq};
+      }
+      if(action==='sync.resync'){
+        adm.broadcastState();
+        return{ok:true,applied:true,stateSeq:adm.stateSeq,activeEditionIdx:curEi,pendingEditionIdx:adm.pendingEditionIdx};
+      }
+      const res=origHandleCommand(cmd);
+      return{...res,stateSeq:adm.stateSeq,activeEditionIdx:curEi,pendingEditionIdx:adm.pendingEditionIdx};
+    }catch(e){
+      adm.recordDiagnostic('sync_ext',e.message||'Extension command failed',action);
+      return{ok:false,error:e.message||'Extension command failed'};
+    }
+  };
+
+  // Dual-transport sync: mirror telemetry & commands through localStorage storage events as fallback
+  const origBroadcast=adm.broadcastState.bind(adm);
+  let lastStoragePush=0;
+  adm.broadcastState=()=>{
+    origBroadcast();
+    if(IS_PREVIEW)return;
+    const now=Date.now();
+    if(now-lastStoragePush>=300){
+      lastStoragePush=now;
+      try{localStorage.setItem(SYNC_STATE_KEY,JSON.stringify(adm.getSnapshot()))}catch(_){}
+    }
+  };
+
+  if(!IS_PREVIEW){
+    window.addEventListener('storage',ev=>{
+      if(ev.key!==SYNC_CMD_KEY||!ev.newValue)return;
+      try{
+        const msg=JSON.parse(ev.newValue);
+        if(!msg||msg.target!=='game')return;
+        const res=adm.handleCommand(msg);
+        try{localStorage.setItem(SYNC_ACK_KEY,JSON.stringify({reqId:msg.reqId,ts:Date.now(),res}))}catch(_){}
+      }catch(_){}
+    });
+    // Push initial state immediately for fast Admin hydration
+    adm.broadcastState();
+  }
+})();
+
+
+// ===== FLAG CLASH ARENA v5.0 ROTATION ENGINE + v6.0 BATTLE INTELLIGENCE & ENTERTAINMENT =====
+(function(){
+  const adm=window.__FCA_ADM__;
+  if(!adm)return;
+
+  const ROT_KEY='fca_rotation_v5';
+  const V6_CFG_KEY='fca_v6_config';
+  const JOURNEY_KEY='fca_country_journey';
+  const TIMELINE_KEY='fca_moment_timelines';
+  const RIVAL_EXT_KEY='fca_rivalry_ext';
+
+  const readJ=(k,fb)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):fb}catch(_){return fb}};
+  const writeJ=(k,v)=>{if(IS_PREVIEW)return;try{localStorage.setItem(k,JSON.stringify(v))}catch(_){}};
+
+  // -------------------------------------------------------------------------
+  // PART A: INDEPENDENT ROUND-BASED ROTATION ENGINE (Edition / Theme / Mode / Difficulty)
+  // -------------------------------------------------------------------------
+  const THEMES=[
+    {id:'default',name:'Edition Native',tint:'',accent:''},
+    {id:'midnight_neon',name:'Midnight Neon',tint:'rgba(14,165,233,0.09)',accent:'#38bdf8'},
+    {id:'golden_gala',name:'Golden Gala',tint:'rgba(250,204,21,0.09)',accent:'#facc15'},
+    {id:'arctic_ice',name:'Arctic Ice',tint:'rgba(186,230,253,0.09)',accent:'#bae6fd'},
+    {id:'crimson_forge',name:'Crimson Forge',tint:'rgba(244,63,94,0.09)',accent:'#f43f5e'},
+    {id:'emerald_pulse',name:'Emerald Pulse',tint:'rgba(16,185,129,0.09)',accent:'#10b981'},
+    {id:'royal_velvet',name:'Royal Velvet',tint:'rgba(168,85,247,0.10)',accent:'#a855f7'},
+    {id:'solar_dawn',name:'Solar Dawn',tint:'rgba(251,146,60,0.09)',accent:'#fb923c'}
+  ];
+  const MODES=['standard','quick','high_stakes'];
+  const DIFFS=['casual','normal','intense'];
+  const VALID_ROT_MODES=new Set(['every_battle','every_2','every_3','smart','timed','manual']);
+
+  const defaultRot=()=>({
+    edition:{mode:'every_battle',timedSec:300,battlesSince:0,lastSwitchAt:Date.now(),currentIdx:curEi||0,nextIdx:-1},
+    theme:{mode:'manual',timedSec:300,battlesSince:0,lastSwitchAt:Date.now(),current:'default'},
+    mode:{mode:'manual',timedSec:300,battlesSince:0,lastSwitchAt:Date.now(),current:'standard'},
+    difficulty:{mode:'manual',timedSec:300,battlesSince:0,lastSwitchAt:Date.now(),current:'normal'},
+    disabledEditions:[],
+    recentEditions:[],
+    recentThemes:[],
+    recentModes:[],
+    recentDiffs:[],
+    manualOverrideEdition:-1,
+    totalSwitches:0
+  });
+
+  let rot=Object.assign(defaultRot(),readJ(ROT_KEY,{}));
+  for(const k of ['edition','theme','mode','difficulty']){
+    rot[k]=Object.assign(defaultRot()[k],rot[k]||{});
+    if(!VALID_ROT_MODES.has(rot[k].mode))rot[k].mode=k==='edition'?'every_battle':'manual';
+    rot[k].timedSec=Math.max(30,Math.min(7200,Math.floor(+rot[k].timedSec||300)));
+  }
+  if(!Array.isArray(rot.disabledEditions))rot.disabledEditions=[];
+  rot.disabledEditions=[...new Set(rot.disabledEditions.map(Number).filter(i=>Number.isInteger(i)&&i>=1&&i<EDS.length))];
+  if(!Array.isArray(rot.recentEditions))rot.recentEditions=[];
+  if(!Array.isArray(rot.recentThemes))rot.recentThemes=[];
+  if(!Array.isArray(rot.recentModes))rot.recentModes=[];
+  if(!Array.isArray(rot.recentDiffs))rot.recentDiffs=[];
+
+  const saveRot=()=>writeJ(ROT_KEY,rot);
+
+  function getEnabledEditionIndices(){
+    const dis=new Set(rot.disabledEditions);
+    const list=[];
+    for(let i=0;i<EDS.length;i++)if(!dis.has(i))list.push(i);
+    return list.length?list:[0];
+  }
+
+  function pickNonRepeating(pool,recent,current){
+    const recSet=new Set(recent.slice(-Math.min(6,Math.max(1,pool.length-1))));
+    let cands=pool.filter(x=>x!==current&&!recSet.has(x));
+    if(!cands.length)cands=pool.filter(x=>x!==current);
+    if(!cands.length)cands=pool;
+    return cands[Math.floor(rnd()*cands.length)];
+  }
+
+  function shouldRotate(cfg){
+    if(cfg.mode==='manual')return false;
+    if(cfg.mode==='every_battle')return cfg.battlesSince>=1;
+    if(cfg.mode==='every_2')return cfg.battlesSince>=2;
+    if(cfg.mode==='every_3')return cfg.battlesSince>=3;
+    if(cfg.mode==='smart')return cfg.battlesSince>=1;
+    if(cfg.mode==='timed')return (Date.now()-(cfg.lastSwitchAt||0))>=Math.max(30,cfg.timedSec||300)*1000;
+    return false;
+  }
+
+  let rotEvaluatedRound=-1;
+  const ROT_API={
+    THEMES,MODES,DIFFS,
+    getConfig(){return rot;},
+    getDisabledEditions(){return rot.disabledEditions.slice();},
+    isEditionDisabled(idx){return rot.disabledEditions.includes(idx);},
+    resolveEditionIdx(){
+      if(adm.pendingEditionIdx>=0&&EDS[adm.pendingEditionIdx])return adm.pendingEditionIdx;
+      if(rot.edition.mode==='manual'){
+        if(rot.manualOverrideEdition>=0&&EDS[rot.manualOverrideEdition])return rot.manualOverrideEdition;
+        return edForce>=0&&EDS[edForce]?edForce:(rot.edition.currentIdx>=0&&EDS[rot.edition.currentIdx]?rot.edition.currentIdx:0);
+      }
+      if(rot.edition.currentIdx>=0&&EDS[rot.edition.currentIdx]&&!rot.disabledEditions.includes(rot.edition.currentIdx)){
+        return rot.edition.currentIdx;
+      }
+      return getEnabledEditionIndices()[0];
+    },
+    onManualEdition(idx){
+      rot.manualOverrideEdition=idx;
+      rot.edition.currentIdx=idx;
+      rot.edition.battlesSince=0;
+      rot.edition.lastSwitchAt=Date.now();
+      saveRot();
+    },
+    onBattleCompleted(){
+      // Strict single-evaluation guard per round to prevent duplicate triggers or rapid loops
+      if(rotEvaluatedRound===round)return;
+      rotEvaluatedRound=round;
+      const now=Date.now();
+
+      // 1. Edition rotation (only if no explicit queued edition is already pending)
+      rot.edition.battlesSince=(rot.edition.battlesSince||0)+1;
+      if(adm.pendingEditionIdx<0&&shouldRotate(rot.edition)){
+        const enabled=getEnabledEditionIndices();
+        const nextE=pickNonRepeating(enabled,rot.recentEditions,curEi);
+        rot.edition.currentIdx=nextE;
+        rot.edition.nextIdx=nextE;
+        rot.edition.battlesSince=0;
+        rot.edition.lastSwitchAt=now;
+        edForce=nextE;
+        rot.recentEditions.push(nextE);
+        if(rot.recentEditions.length>24)rot.recentEditions.shift();
+        rot.totalSwitches++;
+      }
+
+      // 2. Theme overlay rotation
+      rot.theme.battlesSince=(rot.theme.battlesSince||0)+1;
+      if(shouldRotate(rot.theme)){
+        const tIds=THEMES.map(x=>x.id);
+        const nextT=pickNonRepeating(tIds,rot.recentThemes,rot.theme.current);
+        rot.theme.current=nextT;
+        rot.theme.battlesSince=0;
+        rot.theme.lastSwitchAt=now;
+        rot.recentThemes.push(nextT);
+        if(rot.recentThemes.length>12)rot.recentThemes.shift();
+      }
+
+      // 3. Pacing Mode rotation
+      rot.mode.battlesSince=(rot.mode.battlesSince||0)+1;
+      if(shouldRotate(rot.mode)&&!adm.finaleState?.active){
+        const nextM=pickNonRepeating(MODES,rot.recentModes,rot.mode.current);
+        rot.mode.current=nextM;
+        rot.mode.battlesSince=0;
+        rot.mode.lastSwitchAt=now;
+        adm.showDirector.pacingMode=nextM;
+        rot.recentModes.push(nextM);
+        if(rot.recentModes.length>12)rot.recentModes.shift();
+      }
+
+      // 4. Difficulty rotation (Classic physics lock still respected automatically in getBal())
+      rot.difficulty.battlesSince=(rot.difficulty.battlesSince||0)+1;
+      if(shouldRotate(rot.difficulty)){
+        const nextD=pickNonRepeating(DIFFS,rot.recentDiffs,rot.difficulty.current);
+        rot.difficulty.current=nextD;
+        rot.difficulty.battlesSince=0;
+        rot.difficulty.lastSwitchAt=now;
+        if(adm.gameplay)adm.gameplay.difficulty=nextD;
+        rot.recentDiffs.push(nextD);
+        if(rot.recentDiffs.length>12)rot.recentDiffs.shift();
+      }
+      saveRot();
+    },
+    drawThemeAtmosphere(g){
+      if(!rot.theme||rot.theme.current==='default')return;
+      const th=THEMES.find(x=>x.id===rot.theme.current);
+      if(!th||!th.tint)return;
+      g.save();g.fillStyle=th.tint;g.fillRect(0,0,SW,SH);g.restore();
+    },
+    updateConfig(payload){
+      for(const k of ['edition','theme','mode','difficulty']){
+        if(payload[k]&&typeof payload[k]==='object'){
+          if(payload[k].mode&&VALID_ROT_MODES.has(payload[k].mode)){
+            rot[k].mode=payload[k].mode;
+            rot[k].battlesSince=0;
+            rot[k].lastSwitchAt=Date.now();
+          }
+          if(payload[k].timedSec!==undefined){
+            rot[k].timedSec=Math.max(30,Math.min(7200,Math.floor(+payload[k].timedSec||300)));
+          }
+          if(k==='theme'&&typeof payload[k].current==='string'&&THEMES.some(x=>x.id===payload[k].current)){
+            rot.theme.current=payload[k].current;
+          }
+          if(k==='mode'&&MODES.includes(payload[k].current)){
+            rot.mode.current=payload[k].current;
+            adm.showDirector.pacingMode=payload[k].current;
+          }
+          if(k==='difficulty'&&DIFFS.includes(payload[k].current)){
+            rot.difficulty.current=payload[k].current;
+            if(adm.gameplay)adm.gameplay.difficulty=payload[k].current;
+          }
+        }
+      }
+      if(Array.isArray(payload.disabledEditions)){
+        rot.disabledEditions=[...new Set(payload.disabledEditions.map(Number).filter(i=>Number.isInteger(i)&&i>=1&&i<EDS.length))];
+      }
+      saveRot();
+      return {ok:true,rotation:rot};
+    },
+    toggleEditionEnabled(idx,enabled){
+      if(!Number.isInteger(idx)||idx<=0||idx>=EDS.length)return{ok:false,error:'Classic Edition cannot be disabled; index out of range.'};
+      const set=new Set(rot.disabledEditions);
+      if(enabled)set.delete(idx);else set.add(idx);
+      rot.disabledEditions=[...set];
+      saveRot();
+      return {ok:true,disabledEditions:rot.disabledEditions};
+    },
+    getSummary(){
+      const fmtNext=(cfg)=>{
+        if(cfg.mode==='manual')return 'Manual';
+        if(cfg.mode==='every_battle'||cfg.mode==='smart')return 'Next battle';
+        if(cfg.mode==='every_2')return 'In '+Math.max(1,2-(cfg.battlesSince||0))+' battle(s)';
+        if(cfg.mode==='every_3')return 'In '+Math.max(1,3-(cfg.battlesSince||0))+' battle(s)';
+        if(cfg.mode==='timed'){
+          const rem=Math.max(0,Math.ceil((cfg.timedSec*1000-(Date.now()-(cfg.lastSwitchAt||0)))/1000));
+          return rem<=0?'Next battle boundary':('In '+rem+'s (at battle end)');
+        }
+        return cfg.mode;
+      };
+      return {
+        edition:{...rot.edition,nextLabel:fmtNext(rot.edition),currentName:EDS[curEi]?.n||'Classic'},
+        theme:{...rot.theme,nextLabel:fmtNext(rot.theme),currentName:(THEMES.find(x=>x.id===rot.theme.current)||THEMES[0]).name},
+        mode:{...rot.mode,nextLabel:fmtNext(rot.mode),current:adm.showDirector.pacingMode||rot.mode.current},
+        difficulty:{...rot.difficulty,nextLabel:fmtNext(rot.difficulty),current:(adm.gameplay&&adm.gameplay.difficulty)||rot.difficulty.current},
+        disabledEditions:rot.disabledEditions.slice(),
+        totalSwitches:rot.totalSwitches
+      };
+    }
+  };
+  window.__FCA_ROT__=ROT_API;
+
+  // -------------------------------------------------------------------------
+  // PART B: v6.0 BATTLE INTELLIGENCE & ENTERTAINMENT ENGINE (15 SYSTEMS)
+  // -------------------------------------------------------------------------
+  const PROFILES={
+    auto:{label:'Auto (Dynamic)',col:'#38bdf8',sub:'ADAPTIVE BROADCAST'},
+    energetic:{label:'Fast & Energetic',col:'#facc15',sub:'HIGH-TEMPO SHOWCASE'},
+    dramatic:{label:'Dramatic',col:'#f43f5e',sub:'HIGH-TENSION CLASH'},
+    tactical:{label:'Tactical Presentation',col:'#22d3ee',sub:'STRATEGIC ANALYSIS'},
+    rivalry_focus:{label:'Rivalry-Focused',col:'#fb7185',sub:'HEAD-TO-HEAD GRUDGE'},
+    championship_focus:{label:'Championship-Focused',col:'#ffd23f',sub:'TITLE PRESTIGE'},
+    minimal:{label:'Minimal Presentation',col:'#94a3b8',sub:'CLEAN PURE ARENA'},
+    cinematic:{label:'Cinematic',col:'#c084fc',sub:'WIDESCREEN SPECTACLE'},
+    celebration:{label:'Celebration-Focused',col:'#4ade80',sub:'FESTIVAL SHOWTIME'}
+  };
+
+  const defaultV6=()=>({
+    suddenDeath:{enabled:true,triggerSec:75,minAlive:3},
+    rivalry:{enabled:true,minMatches:2,cooldownRounds:3},
+    eventDirector:{enabled:true,cooldownRounds:3},
+    upsetDetector:{enabled:true,minRoundsData:6,winRatioMax:0.25,defensesThreshold:3},
+    comeback:{enabled:true,minEscapes:2},
+    entranceEvolution:{enabled:true},
+    personalityProfile:'auto',
+    hud:{showRivalry:true,showRotation:true,showSuddenDeath:true,showEventTag:true},
+    replayMoments:{enabled:true,maxStored:25}
+  });
+
+  let v6Cfg=Object.assign(defaultV6(),readJ(V6_CFG_KEY,{}));
+  for(const k of ['suddenDeath','rivalry','eventDirector','upsetDetector','comeback','entranceEvolution','hud','replayMoments']){
+    v6Cfg[k]=Object.assign(defaultV6()[k],v6Cfg[k]||{});
+  }
+  const saveV6Cfg=()=>writeJ(V6_CFG_KEY,v6Cfg);
+
+  // Country Journey (genuine persisted progression — strictly cosmetic)
+  let journey=readJ(JOURNEY_KEY,{});
+  if(!journey||typeof journey!=='object'||Array.isArray(journey))journey={};
+  const saveJourney=()=>writeJ(JOURNEY_KEY,journey);
+
+  // Moment Timelines (bounded structured event-timeline capture — NOT video)
+  let timelines=readJ(TIMELINE_KEY,[]);
+  if(!Array.isArray(timelines))timelines=[];
+  const saveTimelines=()=>writeJ(TIMELINE_KEY,timelines.slice(0,v6Cfg.replayMoments.maxStored||25));
+
+  // Extended Rivalry Metadata (revenge counts, streaks, cooldown)
+  let rivalExt=readJ(RIVAL_EXT_KEY,{revengeWins:0,lastCalloutRound:-99,recentRevenge:null,topRivalry:null});
+  const saveRivalExt=()=>writeJ(RIVAL_EXT_KEY,rivalExt);
+
+  // Runtime per-battle state (always cleaned up on round start / reset)
+  let rt={
+    suddenActive:false,
+    suddenTriggeredAt:0,
+    suddenBannerT:0,
+    activeRivalry:null,
+    activeDirectorEvent:null,
+    entranceTier:'Standard',
+    activeProfile:'auto',
+    upsetBanner:null,
+    comebackBanner:null,
+    recordBanner:null,
+    dangerEscapes:{}, // countryId -> {inDanger:bool, count:int}
+    currentTimeline:[],
+    lastDirectorRound:-99,
+    lastDirectorType:'',
+    hadRareThisRound:false
+  };
+
+  function pushMoment(type,detail){
+    if(!v6Cfg.replayMoments.enabled||IS_PREVIEW)return;
+    if(rt.currentTimeline.length>=24)return;
+    rt.currentTimeline.push({
+      sec:+Math.max(0,(Date.now()-rStart)/1000).toFixed(1),
+      type,
+      detail:String(detail||'').slice(0,80)
+    });
+  }
+
+  function computeJourneyTier(j){
+    if(!j)return 'Contender';
+    if((j.wins||0)>=25||(j.championships||0)>=2)return 'Legend';
+    if((j.wins||0)>=10||(j.championships||0)>=1)return 'Elite';
+    if((j.wins||0)>=3||(j.battles||0)>=15)return 'Veteran';
+    return 'Contender';
+  }
+
+  function detectActiveRivalryInField(){
+    if(!v6Cfg.rivalry.enabled||!F)return null;
+    const rh=adm.getSnapshot?null:null;
+    const rawR=readJ('fca_rivalry_history',null);
+    if(!rawR||!rawR.pairs)return null;
+    const inField=new Set(F.map(f=>f.c));
+    let best=null;
+    for(const key of Object.keys(rawR.pairs)){
+      const p=rawR.pairs[key];
+      if(!p||p.matches<(v6Cfg.rivalry.minMatches||2))continue;
+      if(inField.has(p.a)&&inField.has(p.b)){
+        if(!best||p.matches>best.matches)best=p;
+      }
+    }
+    if(!best||!APPS.has(best.a)||!APPS.has(best.b))return null;
+    return {a:best.a,b:best.b,nameA:C[best.a].n,nameB:C[best.b].n,winsA:best.winsA||0,winsB:best.winsB||0,matches:best.matches,lastWinner:best.lastWinner};
+  }
+
+  function selectEntranceTier(riv){
+    if(!v6Cfg.entranceEvolution.enabled)return 'Standard';
+    if(adm.finaleState&&adm.finaleState.active)return 'Special Event';
+    const cl=readJ('fca_champion_legacy',null);
+    if(cl&&APPS.has(cl.longestReignC)&&F&&F.some(f=>f.c===cl.longestReignC)&&cl.longestReign>=3)return 'Record Holder';
+    if(cl&&APPS.has(cl.currentChampion)&&F&&F.some(f=>f.c===cl.currentChampion)&&cl.reignDefenses>=2)return 'Champion';
+    if(riv)return 'Rivalry';
+    if(S&&S.cs&&S.cs.n>=3)return 'Win Streak';
+    if(life.r>0&&life.r%25===0)return 'Milestone';
+    return 'Standard';
+  }
+
+  function runEventDirector(riv){
+    if(!v6Cfg.eventDirector.enabled||ED.n==='Classic'||IS_PREVIEW)return null;
+    if(round-rt.lastDirectorRound<(v6Cfg.eventDirector.cooldownRounds||3))return null;
+    const cl=readJ('fca_champion_legacy',null);
+    const cands=[];
+    if(adm.finaleState&&adm.finaleState.active)cands.push({type:'Special Finale',label:'CHAMPIONSHIP FINALE EVENT',col:'#ffd23f'});
+    if(cl&&cl.reignDefenses>=3&&APPS.has(cl.currentChampion))cands.push({type:'Streak Challenge',label:'STREAK CHALLENGE · STOP '+C[cl.currentChampion].n.toUpperCase(),col:'#f97316'});
+    if(cl&&cl.reignDefenses>0&&cl.reignDefenses===cl.longestReign&&cl.longestReign>=2)cands.push({type:'Record-Breaking Challenge',label:'RECORD REIGN ON THE LINE',col:'#e879f9'});
+    if(riv)cands.push({type:'Rivalry Battle',label:'RIVALRY: '+riv.nameA.toUpperCase()+' VS '+riv.nameB.toUpperCase(),col:'#fb7185'});
+    if(life.r>0&&life.r%50===0)cands.push({type:'Milestone Celebration',label:'ROUND '+life.r+' MILESTONE',col:'#22d3ee'});
+    const filtered=cands.filter(x=>x.type!==rt.lastDirectorType);
+    const pick=filtered[0]||null;
+    if(pick){
+      rt.lastDirectorRound=round;
+      rt.lastDirectorType=pick.type;
+    }
+    return pick;
+  }
+
+  // Wrap onRoundStart for v6.0 initialization (clean reset every battle)
+  const prevOnRoundStart=adm.onRoundStart.bind(adm);
+  adm.onRoundStart=(queued)=>{
+    rt.suddenActive=false;
+    rt.suddenTriggeredAt=0;
+    rt.suddenBannerT=0;
+    rt.upsetBanner=null;
+    rt.comebackBanner=null;
+    rt.recordBanner=null;
+    rt.dangerEscapes={};
+    rt.currentTimeline=[];
+    rt.hadRareThisRound=false;
+
+    prevOnRoundStart(queued);
+
+    rt.activeRivalry=detectActiveRivalryInField();
+    rt.entranceTier=selectEntranceTier(rt.activeRivalry);
+    rt.activeDirectorEvent=runEventDirector(rt.activeRivalry);
+    rt.activeProfile=v6Cfg.personalityProfile==='auto'
+      ?(rt.activeRivalry?'rivalry_focus':(ED.n==='Championship'||ED.leg==='omega'?'championship_focus':(ED.leg==='silent_prestige'?'minimal':'energetic')))
+      :v6Cfg.personalityProfile;
+    if(adm.activeRareMoment)rt.hadRareThisRound=true;
+
+    pushMoment('Battle Start',ED.n+' Edition · '+rt.entranceTier+' Entrance'+(rt.activeDirectorEvent?' · '+rt.activeDirectorEvent.type:''));
+    if(rt.activeRivalry&&(round-(rivalExt.lastCalloutRound||-99)>=(v6Cfg.rivalry.cooldownRounds||3))){
+      rivalExt.lastCalloutRound=round;
+      saveRivalExt();
+      pushMoment('Rivalry Detected',rt.activeRivalry.nameA+' ('+rt.activeRivalry.winsA+') vs '+rt.activeRivalry.nameB+' ('+rt.activeRivalry.winsB+')');
+    }
+  };
+
+  // Wrap tickEntertainment for Sudden Death Overtime + In-Battle Comeback Escape Tracking
+  const prevTickEnt=adm.tickEntertainment.bind(adm);
+  let lastAliveTrack=99;
+  adm.tickEntertainment=(dt)=>{
+    prevTickEnt(dt);
+    if(rt.suddenBannerT>0)rt.suddenBannerT=Math.max(0,rt.suddenBannerT-dt);
+    if(rt.upsetBanner){rt.upsetBanner.t+=dt;if(rt.upsetBanner.t>=rt.upsetBanner.ttl)rt.upsetBanner=null;}
+    if(rt.comebackBanner){rt.comebackBanner.t+=dt;if(rt.comebackBanner.t>=rt.comebackBanner.ttl)rt.comebackBanner=null;}
+    if(rt.recordBanner){rt.recordBanner.t+=dt;if(rt.recordBanner.t>=rt.recordBanner.ttl)rt.recordBanner=null;}
+
+    if(phase!==0||!F)return;
+    if(adm.activeRareMoment)rt.hadRareThisRound=true;
+
+    // Track real alive milestones & near-hole danger escapes for Comeback Recognition
+    let aliveCount=0;
+    for(let i=0;i<F.length;i++){
+      const f=F[i];
+      if(!f.on)continue;
+      aliveCount++;
+      // Measurable danger state: flag within outer 12% rim zone near hole or in storm danger
+      const dist=Math.hypot(f.x,f.y);
+      const nearDanger=dist>0.84||!!f.inDanger;
+      let st=rt.dangerEscapes[f.c];
+      if(!st){st={inDanger:false,count:0};rt.dangerEscapes[f.c]=st;}
+      if(nearDanger&&!st.inDanger){st.inDanger=true;}
+      else if(!nearDanger&&dist<0.68&&st.inDanger){st.inDanger=false;st.count++;}
+    }
+    if(aliveCount===5&&lastAliveTrack>5)pushMoment('Final Five','5 countries remaining in '+ED.n);
+    if(aliveCount===2&&lastAliveTrack>2)pushMoment('Final Showdown','Final 2 countries face off');
+    lastAliveTrack=aliveCount;
+
+    // System 1: Cross-Edition Sudden Death Overtime Engine (non-Classic, non-Sudden-edition)
+    if(v6Cfg.suddenDeath.enabled&&!rt.suddenActive&&ED.n!=='Classic'&&!ED.sudden&&aliveCount>=(v6Cfg.suddenDeath.minAlive||3)){
+      const elapsed=(Date.now()-rStart)/1000;
+      if(elapsed>=(v6Cfg.suddenDeath.triggerSec||75)){
+        rt.suddenActive=true;
+        rt.suddenTriggeredAt=elapsed;
+        rt.suddenBannerT=5.0;
+        pushMoment('Sudden Death Overtime','Triggered at '+Math.round(elapsed)+'s with '+aliveCount+' flags remaining');
+        if(run()){const n=AC.currentTime;tone(220,n,.18,'sawtooth',.16);tone(440,n+.16,.24,'sawtooth',.18)}
+        shout('Sudden Death Overtime! High tension finale!','SUDDEN DEATH OVERTIME!');
+      }
+    }
+  };
+
+  // Wrap recordMatchResult for Upset, Comeback, Revenge Rivalry, Country Journey, Achievements, Timeline Save
+  const prevRecordMatch=adm.recordMatchResult.bind(adm);
+  adm.recordMatchResult=(rec)=>{
+    prevRecordMatch(rec);
+    if(IS_PREVIEW||rec.matchType==='showcase')return;
+    const winId=rec.winner;
+    if(!APPS.has(winId))return;
+    const runnerId=APPS.has(rec.runnerUp)?rec.runnerUp:-1;
+    const winName=C[winId].n;
+
+    // 1. Country Journey Update (real data only)
+    if(F){
+      for(let i=0;i<F.length;i++){
+        const cid=F[i].c;
+        if(!APPS.has(cid))continue;
+        if(!journey[cid])journey[cid]={battles:0,wins:0,top5:0,championships:0,upsets:0,comebacks:0,tier:'Contender'};
+        journey[cid].battles++;
+      }
+    }
+    if(!journey[winId])journey[winId]={battles:1,wins:0,top5:0,championships:0,upsets:0,comebacks:0,tier:'Contender'};
+    journey[winId].wins++;
+    journey[winId].top5++;
+    if(ED.n==='Championship'||ED.leg==='omega')journey[winId].championships++;
+    journey[winId].tier=computeJourneyTier(journey[winId]);
+
+    // 2. Transparent Upset Detector
+    const cl=readJ('fca_champion_legacy',null);
+    const maxWins=Math.max(0,...Object.values(life.w||{}));
+    const winBefore=Math.max(0,(life.w[winId]||1)-1);
+    const hasEnoughData=life.r>=(v6Cfg.upsetDetector.minRoundsData||6);
+    const upsetByRatio=hasEnoughData&&maxWins>=4&&winBefore<=Math.max(1,Math.floor(maxWins*(v6Cfg.upsetDetector.winRatioMax||0.25)));
+    const isGenuineUpset=v6Cfg.upsetDetector.enabled&&upsetByRatio;
+    if(isGenuineUpset){
+      journey[winId].upsets=(journey[winId].upsets||0)+1;
+      rt.upsetBanner={title:'VERIFIED UPSET VICTORY!',sub:winName+' ('+winBefore+' prior wins vs '+maxWins+' leader)',t:0,ttl:6};
+      pushMoment('Upset Victory',winName+' defeated stronger field ('+winBefore+' vs '+maxWins+' wins)');
+      unlockAchievement('upset_hero',winId);
+    }
+
+    // 3. Genuine In-Battle Comeback Recognition
+    const esc=(rt.dangerEscapes[winId]&&rt.dangerEscapes[winId].count)||0;
+    if(v6Cfg.comeback.enabled&&esc>=(v6Cfg.comeback.minEscapes||2)){
+      journey[winId].comebacks=(journey[winId].comebacks||0)+1;
+      rt.comebackBanner={title:'COMEBACK SURVIVOR!',sub:winName+' escaped '+esc+' danger zones to win',t:0,ttl:6};
+      pushMoment('Comeback Win',winName+' survived '+esc+' outer-rim danger escapes');
+    }
+
+    // 4. Rivalry & Revenge Victory Detection (real pair history)
+    if(runnerId>=0){
+      const rawR=readJ('fca_rivalry_history',null);
+      const a=Math.min(winId,runnerId),b=Math.max(winId,runnerId);
+      const pair=rawR&&rawR.pairs&&rawR.pairs[a+'_'+b];
+      if(pair&&pair.matches>=2){
+        unlockAchievement('rivalry_victor',winId);
+        if(rt.activeRivalry&&((rt.activeRivalry.a===a&&rt.activeRivalry.b===b))&&rt.activeRivalry.lastWinner===runnerId){
+          rivalExt.revengeWins=(rivalExt.revengeWins||0)+1;
+          rivalExt.recentRevenge={winner:winName,defeated:C[runnerId].n,round,at:new Date().toISOString()};
+          pushMoment('Revenge Victory',winName+' avenged prior loss against '+C[runnerId].n);
+        }
+        if(!rivalExt.topRivalry||pair.matches>rivalExt.topRivalry.matches){
+          rivalExt.topRivalry={a,b,nameA:C[a].n,nameB:C[b].n,winsA:pair.winsA,winsB:pair.winsB,matches:pair.matches};
+        }
+        saveRivalExt();
+      }
+    }
+
+    // 5. Sudden Death & Rare Event Achievements
+    if(rt.suddenActive){
+      unlockAchievement('sudden_survivor',winId);
+      pushMoment('Sudden Death Winner',winName+' prevailed in overtime');
+    }
+    if(rt.hadRareThisRound){
+      unlockAchievement('rare_witness',winId);
+    }
+
+    // 6. Champion Legacy New Longest Reign Record Celebration
+    if(cl&&cl.currentChampion===winId&&cl.reignDefenses>=3&&cl.reignDefenses===cl.longestReign){
+      rt.recordBanner={title:'NEW ALL-TIME REIGN RECORD!',sub:winName+' · '+cl.reignDefenses+' Consecutive Defenses',t:0,ttl:6};
+      pushMoment('New Record',winName+' set longest reign ('+cl.reignDefenses+' defenses)');
+    }
+
+    // 7. Save Moment Timeline (structured event recap, honestly labeled)
+    pushMoment('Victory',winName+' won Round '+round+' ('+ED.n+')');
+    if(v6Cfg.replayMoments.enabled){
+      timelines.unshift({
+        id:'tl_'+Date.now(),
+        round,
+        edition:ED.n,
+        winner:winName,
+        runnerUp:runnerId>=0?C[runnerId].n:'',
+        durationSec:Math.max(1,Math.round(rec.durationSec||((Date.now()-rStart)/1000))),
+        suddenDeath:rt.suddenActive,
+        upset:isGenuineUpset,
+        comebackEscapes:esc,
+        note:'Structured event timeline (metadata recap, not video recording)',
+        moments:rt.currentTimeline.slice()
+      });
+      saveTimelines();
+    }
+    saveJourney();
+    lastAliveTrack=99;
+  };
+
+  // Wrap drawOverlays for Sudden Death Warning, Upset/Comeback/Record Banners, & Compact Broadcast HUD
+  const prevDrawOverlays=adm.drawOverlays.bind(adm);
+  adm.drawOverlays=(g)=>{
+    prevDrawOverlays(g);
+    if(adm.emergencyStop)return;
+    if(phase===0){
+      if(rt.suddenActive&&v6Cfg.hud.showSuddenDeath){
+        const pulse=0.55+0.35*Math.sin(performance.now()*0.008);
+        g.save();
+        g.strokeStyle='rgba(239,68,68,'+pulse.toFixed(2)+')';g.lineWidth=4;
+        g.beginPath();g.arc(CX,CY,R+3,0,PI2);g.stroke();
+        pill(104,92,176,18,5,'#450a0ae6','#ef4444');
+        T('⚡ SUDDEN DEATH OVERTIME',192,104,7.8,'#fecaca','center',AN);
+        g.restore();
+      }
+      if(rt.activeDirectorEvent&&v6Cfg.hud.showEventTag){
+        g.save();
+        pill(78,112,228,16,4,'#070b1ad8',rt.activeDirectorEvent.col+'aa');
+        T('DIRECTOR · '+rt.activeDirectorEvent.label.slice(0,34),192,123,6.8,rt.activeDirectorEvent.col,'center','bold system-ui,sans-serif');
+        g.restore();
+      }else if(rt.activeRivalry&&v6Cfg.hud.showRivalry){
+        g.save();
+        pill(88,112,208,16,4,'#1a0812d8','#fb7185aa');
+        T('RIVALRY: '+rt.activeRivalry.nameA.toUpperCase().slice(0,10)+' '+rt.activeRivalry.winsA+'-'+rt.activeRivalry.winsB+' '+rt.activeRivalry.nameB.toUpperCase().slice(0,10),192,123,6.8,'#fecdd3','center','bold system-ui,sans-serif');
+        g.restore();
+      }
+    }
+    if(phase===1){
+      const b=rt.recordBanner||rt.upsetBanner||rt.comebackBanner;
+      if(b){
+        g.save();
+        pill(48,44,288,28,6,'#0f172af0','#facc15');
+        T('★ '+b.title,192,56,8.2,'#fde047','center',AN);
+        T(b.sub.slice(0,48),192,67,6.8,'#f8fafc','center','bold system-ui,sans-serif');
+        g.restore();
+      }
+    }
+  };
+
+  // Wrap getSnapshot to expose Rotation + v6.0 Intelligence state to Admin Panel
+  const prevGetSnapshot=adm.getSnapshot.bind(adm);
+  adm.getSnapshot=()=>{
+    const snap=prevGetSnapshot();
+    const disabledSet=new Set(rot.disabledEditions);
+    if(Array.isArray(snap.editions)){
+      snap.editions=snap.editions.map(e=>({...e,batch:EDS[e.idx]?.batch||(e.idx<13?'orig':'leg24'),disabled:disabledSet.has(e.idx)}));
+    }
+    snap.rotation=ROT_API.getSummary();
+    snap.v6Config=v6Cfg;
+    snap.v6Runtime={
+      suddenActive:rt.suddenActive,
+      activeRivalry:rt.activeRivalry,
+      activeDirectorEvent:rt.activeDirectorEvent,
+      entranceTier:rt.entranceTier,
+      activeProfile:rt.activeProfile,
+      profileLabel:(PROFILES[rt.activeProfile]||PROFILES.auto).label,
+      revengeWins:rivalExt.revengeWins||0,
+      recentRevenge:rivalExt.recentRevenge||null,
+      topRivalry:rivalExt.topRivalry||null
+    };
+    snap.momentTimelines=timelines.slice(0,15);
+    // Top 12 countries by real Journey wins/battles
+    snap.countryJourney=Object.entries(journey)
+      .filter(([k])=>APPS.has(+k))
+      .map(([k,v])=>({id:+k,name:C[+k].n,...v,tier:computeJourneyTier(v)}))
+      .sort((a,b)=>b.wins-a.wins||b.battles-a.battles)
+      .slice(0,12);
+    // Extend Hall of Legends with genuine v6.0 entries
+    if(Array.isArray(snap.hallOfLegends)){
+      if(rivalExt.topRivalry)snap.hallOfLegends.push({title:'Historic Rivalry',country:rivalExt.topRivalry.nameA+' vs '+rivalExt.topRivalry.nameB,metric:rivalExt.topRivalry.matches+' Matches ('+rivalExt.topRivalry.winsA+'-'+rivalExt.topRivalry.winsB+')'});
+      const topUpset=snap.countryJourney.filter(x=>x.upsets>0).sort((a,b)=>b.upsets-a.upsets)[0];
+      if(topUpset)snap.hallOfLegends.push({title:'Top Upset Victor',country:topUpset.name,metric:topUpset.upsets+' Verified Upsets'});
+      const topJourney=snap.countryJourney[0];
+      if(topJourney&&topJourney.wins>=1)snap.hallOfLegends.push({title:'Journey Leader ('+topJourney.tier+')',country:topJourney.name,metric:topJourney.wins+'W / '+topJourney.battles+'B'});
+    }
+    // End-of-session top 3 standings for Finale
+    snap.sessionStandings=Object.entries(S.w||{})
+      .filter(([k])=>APPS.has(+k))
+      .sort((a,b)=>b[1]-a[1])
+      .slice(0,3)
+      .map(([k,v])=>({id:+k,name:C[+k].n,wins:v}));
+    return snap;
+  };
+
+  // Wrap handleCommand for Rotation & v6.0 Admin commands (all via existing dual-transport ACK sync!)
+  const prevHandleCommand=adm.handleCommand.bind(adm);
+  adm.handleCommand=(cmd)=>{
+    if(!cmd||typeof cmd!=='object')return{ok:false,error:'Invalid command'};
+    const {action,payload={}}=cmd;
+    if(action==='rotation.update'){
+      const res=ROT_API.updateConfig(payload);
+      adm.broadcastState();
+      return{...res,stateSeq:adm.stateSeq};
+    }
+    if(action==='edition.toggle_enabled'){
+      const res=ROT_API.toggleEditionEnabled(+payload.editionIdx,!!payload.enabled);
+      adm.broadcastState();
+      return{...res,stateSeq:adm.stateSeq};
+    }
+    if(action==='v6.update_config'){
+      for(const k of ['suddenDeath','rivalry','eventDirector','upsetDetector','comeback','entranceEvolution','hud','replayMoments']){
+        if(payload[k]&&typeof payload[k]==='object')v6Cfg[k]=Object.assign(v6Cfg[k],payload[k]);
+      }
+      if(typeof payload.personalityProfile==='string'&&PROFILES[payload.personalityProfile]){
+        v6Cfg.personalityProfile=payload.personalityProfile;
+      }
+      saveV6Cfg();
+      adm.broadcastState();
+      return{ok:true,v6Config:v6Cfg,stateSeq:adm.stateSeq};
+    }
+    if(action==='v6.clear_timelines'){
+      timelines.length=0;saveTimelines();
+      adm.broadcastState();
+      return{ok:true,stateSeq:adm.stateSeq};
+    }
+    if(action==='v6.trigger_sudden_death'){
+      if(phase!==0||ED.n==='Classic')return{ok:false,error:'Sudden Death overtime can only trigger during an active non-Classic battle.'};
+      if(rt.suddenActive)return{ok:true,alreadyActive:true,stateSeq:adm.stateSeq};
+      rt.suddenActive=true;rt.suddenTriggeredAt=(Date.now()-rStart)/1000;rt.suddenBannerT=5.0;
+      pushMoment('Sudden Death Overtime','Triggered manually by Admin');
+      shout('Sudden Death Overtime! High tension finale!','SUDDEN DEATH OVERTIME!');
+      adm.broadcastState();
+      return{ok:true,suddenActive:true,stateSeq:adm.stateSeq};
+    }
+    return prevHandleCommand(cmd);
+  };
+
+  window.__FCA_V6__={
+    getConfig:()=>v6Cfg,
+    getRuntime:()=>rt,
+    getTimelines:()=>timelines,
+    getJourney:()=>journey,
+    PROFILES
+  };
+
+  if(!IS_PREVIEW)adm.broadcastState();
 })();
 
 </script></body>

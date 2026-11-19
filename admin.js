@@ -28,19 +28,84 @@
   ]);
 
   const DEFAULT_EDITIONS = [
-    { idx: 0, name: 'Classic' },
-    { idx: 1, name: 'Rivalry' },
-    { idx: 2, name: 'Extreme' },
-    { idx: 3, name: 'Mystery' },
-    { idx: 4, name: 'Championship' },
-    { idx: 5, name: '60-Second Battle' },
-    { idx: 6, name: 'Survival Storm' },
-    { idx: 7, name: 'King of the Arena' },
-    { idx: 8, name: 'Team Wars' },
-    { idx: 9, name: 'Sudden Death' },
-    { idx: 10, name: 'Boss Battle' },
-    { idx: 11, name: 'Chaos Arena' },
-    { idx: 12, name: 'Power-Up Battle' }
+    { idx: 0, name: 'Classic', tier: 1, rarity: 'Classic', desc: 'Original protected Flag Clash Arena experience.' },
+    { idx: 1, name: 'Rivalry', tier: 3, rarity: 'Standard', desc: 'Historic international rivalries collide.' },
+    { idx: 2, name: 'Extreme', tier: 3, rarity: 'Special', desc: 'High-speed 60s survival arena.' },
+    { idx: 3, name: 'Mystery', tier: 3, rarity: 'Special', desc: 'Hidden flags revealed on elimination.' },
+    { idx: 4, name: 'Championship', tier: 1, rarity: 'Legendary', desc: '12-round Championship Tournament standings.' },
+    { idx: 5, name: '60-Second Battle', tier: 3, rarity: 'Standard', desc: '7-stage accelerating 60-second sprint.' },
+    { idx: 6, name: 'Survival Storm', tier: 2, rarity: 'Special', desc: '4-stage contracting safe zone storm.' },
+    { idx: 7, name: 'King of the Arena', tier: 2, rarity: 'Legendary', desc: '1 crowned King defends against 29 challengers.' },
+    { idx: 8, name: 'Team Wars', tier: 3, rarity: 'Special', desc: 'Crimson vs Cobalt 15v15 team clash.' },
+    { idx: 9, name: 'Sudden Death', tier: 3, rarity: 'Special', desc: 'Zero shields, maximum danger.' },
+    { idx: 10, name: 'Boss Battle', tier: 2, rarity: 'Legendary', desc: '29 challengers unite against 1 Boss flag.' },
+    { idx: 11, name: 'Chaos Arena', tier: 1, rarity: 'Special', desc: 'Unpredictable controlled arena surprises.' },
+    { idx: 12, name: 'Power-Up Battle', tier: 3, rarity: 'Special', desc: 'Collectible arena power orbs.' },
+    { idx: 13, name: 'Singularity', tier: 1, rarity: 'Singularity', desc: 'Cosmic black-hole centerpiece & Singularity Collapse.' },
+    { idx: 14, name: 'Volcanic Rise', tier: 2, rarity: 'Special', desc: 'Caldera lava veins & Volcanic Surge eruptions.' },
+    { idx: 15, name: 'Frostbite', tier: 2, rarity: 'Special', desc: 'Crystalline ice arena & Blizzard Wave sweeps.' },
+    { idx: 16, name: 'Thunderbreak', tier: 2, rarity: 'Special', desc: 'Storm sky, lightning arcs & Thunder Strike.' },
+    { idx: 17, name: 'Great Colosseum', tier: 1, rarity: 'Legendary', desc: 'Ancient stone colosseum & Champion Legacy framing.' },
+    { idx: 18, name: 'Crystal Realms', tier: 4, rarity: 'Special', desc: 'Prismatic crystal shards & Crystal Resonance.' },
+    { idx: 19, name: 'Expedition Survival', tier: 4, rarity: 'Standard', desc: 'Rugged canyon ruins & endurance atmosphere.' },
+    { idx: 20, name: 'Celestial Ascension', tier: 2, rarity: 'Legendary', desc: 'Golden sky dome & prestigious Ascension.' },
+    { idx: 21, name: 'Aurora', tier: 3, rarity: 'Special', desc: 'Northern lights ribbons & Aurora Burst.' },
+    { idx: 22, name: 'Candy Mayhem', tier: 4, rarity: 'Standard', desc: 'Colorful pastel arena & playful Sugar Rush.' },
+    { idx: 23, name: 'Ronin Rivalry', tier: 4, rarity: 'Special', desc: 'Respectful dojo framing, sakura petals & Honor Duel.' },
+    { idx: 24, name: 'Alien Worlds', tier: 3, rarity: 'Special', desc: 'Bioluminescent exoplanet & Xenon Pulse.' },
+    { idx: 25, name: 'Titan Mechanics', tier: 4, rarity: 'Special', desc: 'Rotating industrial gears & Mechanical Overdrive.' },
+    { idx: 26, name: 'Abyssal Ocean', tier: 3, rarity: 'Special', desc: 'Deep turquoise ocean & Deep Ocean Pulse.' },
+    { idx: 27, name: 'Desert Dynasty', tier: 3, rarity: 'Standard', desc: 'Golden dunes & Desert Storm gusts.' },
+    { idx: 28, name: 'Reality Break', tier: 2, rarity: 'Legendary', desc: 'Dimensional shards & Reality Fracture visuals.' },
+    { idx: 29, name: 'Omega Championship', tier: 1, rarity: 'Ultimate', desc: 'Obsidian & gold championship stage.' },
+    { idx: 30, name: 'Multiverse', tier: 2, rarity: 'Ultimate', desc: 'Dynamic realm shifts & Multiverse Shift.' },
+    { idx: 31, name: 'Prism Overdrive', tier: 2, rarity: 'Legendary', desc: 'Full-spectrum prismatic rays & Prism Explosion.' },
+    { idx: 32, name: 'Skybound', tier: 3, rarity: 'Standard', desc: 'Floating sky islands & Skyfall Gust.' },
+    { idx: 33, name: 'Speedforce', tier: 4, rarity: 'Special', desc: 'Kinetic racing arena & Hyper Acceleration.' },
+    { idx: 34, name: 'Wilderness', tier: 3, rarity: 'Standard', desc: 'Forest & mountain arena with Nature Fury.' },
+    { idx: 35, name: 'Cyber Overdrive', tier: 3, rarity: 'Special', desc: 'Neon cyber grid & Cyber Surge.' },
+    { idx: 36, name: 'Legendary Infinity', tier: 1, rarity: 'Ultimate', desc: 'Curated ultimate broadcast showcase.' }
+,
+    { idx: 37, name: 'Duality', tier: 1, rarity: 'Special', batch: 'v5a', desc: 'Opposing ivory and obsidian realms with mirrored architecture.' },
+    { idx: 38, name: 'Timebreak', tier: 1, rarity: 'Legendary', batch: 'v5a', desc: 'Giant Roman clockface arena & visual temporal fracture.' },
+    { idx: 39, name: 'BioGlow', tier: 2, rarity: 'Special', batch: 'v5a', desc: 'Bioluminescent subterranean botanical cavern & luminous spores.' },
+    { idx: 40, name: 'Art Deco Royale', tier: 1, rarity: 'Legendary', batch: 'v5a', desc: '1920s geometric sunburst arches & champagne-gold symmetry.' },
+    { idx: 41, name: 'Paperworld', tier: 2, rarity: 'Standard', batch: 'v5a', desc: 'Handcrafted layered parchment arena & origami geometry.' },
+    { idx: 42, name: 'Museum of Worlds', tier: 2, rarity: 'Standard', batch: 'v5a', desc: 'Exhibition gallery with real achievement & battle plaques.' },
+    { idx: 43, name: 'Ironworks', tier: 2, rarity: 'Special', batch: 'v5a', desc: 'Heavy steel foundry beams, furnace grates & forge embers.' },
+    { idx: 44, name: 'Carnival Royale', tier: 2, rarity: 'Special', batch: 'v5a', desc: 'Big-top marquee stripes, chase-bulb lights & confetti.' },
+    { idx: 45, name: 'Silent Prestige', tier: 1, rarity: 'Special', batch: 'v5a', desc: 'Minimalist matte charcoal & silver restrained prestige.' },
+    { idx: 46, name: 'Horizon Zero', tier: 2, rarity: 'Special', batch: 'v5a', desc: 'Oversized atmospheric sun disc over silhouetted horizon.' },
+    { idx: 47, name: 'Glasshouse', tier: 2, rarity: 'Special', batch: 'v5a', desc: 'Transparent conservatory dome ribs & specular light refraction.' },
+    { idx: 48, name: 'Paintstorm', tier: 2, rarity: 'Standard', batch: 'v5a', desc: 'Dynamic studio canvas with bold readable pigment arcs.' },
+    { idx: 49, name: 'Last Station', tier: 2, rarity: 'Special', batch: 'v5a', desc: 'Cinematic railway terminus & real-data departure board.' },
+    { idx: 50, name: 'Lantern Festival', tier: 2, rarity: 'Special', batch: 'v5a', desc: 'Twilight indigo sky filled with warm floating paper lanterns.' },
+    { idx: 51, name: 'Soundwave', tier: 2, rarity: 'Special', batch: 'v5a', desc: 'Tempo-synced circular equalizer spectrum & bass pulses.' },
+    { idx: 52, name: 'Labyrinth', tier: 2, rarity: 'Special', batch: 'v5a', desc: 'Concentric stone-and-teal cosmetic maze pathways.' },
+    { idx: 53, name: 'World Expo', tier: 1, rarity: 'Special', batch: 'v5a', desc: 'International geodesic pavilion & genuine country showcase.' },
+    { idx: 54, name: 'Infinite Mirror', tier: 1, rarity: 'Legendary', batch: 'v5a', desc: 'Recursive vanishing-point mirror frames & reflection depth.' },
+    { idx: 55, name: 'Jewelstorm', tier: 1, rarity: 'Legendary', batch: 'v5a', desc: 'Luxury cut-gemstone octagon facets in ruby, sapphire & emerald.' },
+    { idx: 56, name: 'Grand Opening', tier: 1, rarity: 'Ultimate', batch: 'v5a', desc: 'Major stadium opening ceremony with sweeping floodlights.' },
+    { idx: 57, name: 'Retro Arcade', tier: 2, rarity: 'Special', batch: 'v5b', desc: 'Classic 8-bit CRT bezel, pixel-grid border & retro scoreboard.' },
+    { idx: 58, name: 'Steampunk', tier: 2, rarity: 'Special', batch: 'v5b', desc: 'Victorian copper pipes, brass pressure gauges & rising steam.' },
+    { idx: 59, name: 'Film Noir', tier: 2, rarity: 'Special', batch: 'v5b', desc: 'High-contrast silver-screen monochrome & sweeping spotlights.' },
+    { idx: 60, name: 'Toybox', tier: 3, rarity: 'Standard', batch: 'v5b', desc: 'Polished miniature toy workshop with building-block aesthetics.' },
+    { idx: 61, name: 'Botanical Garden', tier: 3, rarity: 'Standard', batch: 'v5b', desc: 'Sunlit conservatory garden with blooming petals & trellis.' },
+    { idx: 62, name: 'Blueprint', tier: 2, rarity: 'Special', batch: 'v5b', desc: 'Prussian-blue drafting paper & technical wireframe grid.' },
+    { idx: 63, name: "Pharaoh's Empire", tier: 1, rarity: 'Legendary', batch: 'v5b', desc: 'Monumental sandstone colonnade & lapis-and-gold frieze.' },
+    { idx: 64, name: 'Megacity', tier: 2, rarity: 'Special', batch: 'v5b', desc: 'Towering metropolitan skyscraper skyline at dusk.' },
+    { idx: 65, name: 'Grand Prix', tier: 2, rarity: 'Special', batch: 'v5b', desc: 'Race circuit curbing, checkered finish strip & starting lights.' },
+    { idx: 66, name: 'Royal Court', tier: 1, rarity: 'Legendary', batch: 'v5b', desc: 'Ceremonial crimson velvet banners & gilded palace arches.' },
+    { idx: 67, name: 'Inflatable World', tier: 3, rarity: 'Standard', batch: 'v5b', desc: 'Glossy soft-cushion arches & playful balloon spectacle.' },
+    { idx: 68, name: 'Data Vault', tier: 2, rarity: 'Special', batch: 'v5b', desc: 'High-security digital archive with live real-data telemetry.' },
+    { idx: 69, name: 'Canyon Clash', tier: 3, rarity: 'Standard', batch: 'v5b', desc: 'Monumental layered red-rock canyon cliffs & terraced depth.' },
+    { idx: 70, name: 'Laser Symphony', tier: 2, rarity: 'Special', batch: 'v5b', desc: 'Coordinated multi-beam concert laser choreography.' },
+    { idx: 71, name: 'Broadcast Classic', tier: 2, rarity: 'Standard', batch: 'v5b', desc: 'Vintage television sports broadcast frame & retro chyron.' },
+    { idx: 72, name: 'Summit', tier: 2, rarity: 'Special', batch: 'v5b', desc: 'High-altitude alpine mountain peak above sunlit clouds.' },
+    { idx: 73, name: 'Geometry', tier: 2, rarity: 'Special', batch: 'v5b', desc: 'Abstract Bauhaus polygon tessellations & vector symmetry.' },
+    { idx: 74, name: 'Infinite Library', tier: 1, rarity: 'Legendary', batch: 'v5b', desc: 'Candlelit grand library arches & genuine battle chronicle.' },
+    { idx: 75, name: 'Runway Royale', tier: 2, rarity: 'Special', batch: 'v5b', desc: 'High-fashion spotlight catwalk & couture gold framing.' },
+    { idx: 76, name: 'Fireworks Finale', tier: 1, rarity: 'Ultimate', batch: 'v5b', desc: 'Night-sky celebration arena with performance-capped fireworks.' }
   ];
 
   const SPECIAL_EVENTS = [
@@ -1833,4 +1898,415 @@
 
   // Boot
   checkSession();
+
+  // ===== MASTER SYNC v4 (DUAL-TRANSPORT, CONFIRMED ACK, MONOTONIC SEQ) & MOBILE HUB =====
+  const SYNC_CMD_KEY = 'fca_sync_cmd';
+  const SYNC_ACK_KEY = 'fca_sync_ack';
+  const SYNC_STATE_KEY = 'fca_sync_state';
+  const pendingAcks = new Map();
+  let lastAppliedSeq = 0;
+  let activeEdFilter = 'all';
+
+  function updateSyncIndicators(t) {
+    const connected = !!(t && Date.now() - state.lastTelemetryAt < 4500);
+    const queuedName = t && t.pendingEditionName ? t.pendingEditionName : '';
+    const pills = [$('mqd-sync-pill'), $('ed-sync-status')];
+    pills.forEach((p) => {
+      if (!p) return;
+      p.classList.remove('synced', 'queued', 'offline');
+      if (!connected) {
+        p.classList.add('offline');
+        p.textContent = 'Waiting for Game';
+      } else if (queuedName) {
+        p.classList.add('queued');
+        p.textContent = 'Queued: ' + queuedName;
+      } else {
+        p.classList.add('synced');
+        p.textContent = 'Live Synced';
+      }
+    });
+    if ($('mqd-edition') && t) $('mqd-edition').textContent = (t.editionName || 'Classic') + ' · R' + (t.round || 0);
+    if ($('mqd-pause-btn') && t) $('mqd-pause-btn').textContent = t.paused ? 'Resume' : 'Pause';
+    if ($('mqd-queued-row')) {
+      if (queuedName) {
+        $('mqd-queued-row').classList.remove('hidden');
+        if ($('mqd-queued-text')) $('mqd-queued-text').textContent = 'Queued for next battle: ' + queuedName;
+      } else {
+        $('mqd-queued-row').classList.add('hidden');
+      }
+    }
+    if ($('ed-active-banner') && t) $('ed-active-banner').textContent = (t.editionName || 'Classic') + ' (#' + ((t.editionIdx || 0) + 1) + ')';
+    if ($('ed-queued-banner')) $('ed-queued-banner').textContent = queuedName ? ('Queued for next battle: ' + queuedName) : 'No edition queued';
+  }
+
+  function resolveAck(reqId, res) {
+    const entry = pendingAcks.get(reqId);
+    if (!entry) return;
+    clearTimeout(entry.timer);
+    pendingAcks.delete(reqId);
+    entry.resolve(res);
+  }
+
+  function dispatchConfirmedToGame(action, payload) {
+    const reqId = 'req_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+    const msg = { target: 'game', reqId, action, payload, ts: Date.now() };
+    return new Promise((resolve) => {
+      const timer = setTimeout(() => {
+        pendingAcks.delete(reqId);
+        resolve({ ok: false, unconfirmed: true, error: 'Main game tab did not confirm in time (ensure Main Game is open).' });
+      }, 1800);
+      pendingAcks.set(reqId, { resolve, timer });
+      try { if (bc) bc.postMessage(msg); } catch (_) {}
+      try { localStorage.setItem(SYNC_CMD_KEY, JSON.stringify(msg)); } catch (_) {}
+    });
+  }
+
+  async function execConfirmedAction(action, payload = {}, summary = '') {
+    const authRes = await execAdminAction(action, payload, summary, false);
+    if (!authRes.ok) return authRes;
+    const ack = await dispatchConfirmedToGame(action, payload);
+    if (!ack || !ack.ok) {
+      toast((ack && ack.error) || 'Game did not confirm change.', 'error');
+      return { ok: false, error: ack && ack.error };
+    }
+    if (ack.queued) toast(summary + ' (Queued safely for next battle)', 'ok');
+    else toast(summary + ' (Applied live)', 'ok');
+    return { ok: true, ack };
+  }
+
+  function renderEditionsHub(t) {
+    const grid = $('editions-card-grid');
+    if (!grid) return;
+    const list = (t && Array.isArray(t.editions) && t.editions.length) ? t.editions : DEFAULT_EDITIONS;
+    const activeIdx = t ? t.editionIdx : 0;
+    const queuedIdx = t && Number.isInteger(t.pendingEditionIdx) ? t.pendingEditionIdx : -1;
+    const filtered = list.filter((e) => {
+      if (activeEdFilter === 'all') return true;
+      if (activeEdFilter === 'original') return e.idx <= 12;
+      if (activeEdFilter === 'v5a') return e.idx >= 37 && e.idx <= 56;
+      if (activeEdFilter === 'v5b') return e.idx >= 57 && e.idx <= 76;
+      if (activeEdFilter === 'tier1') return e.tier === 1;
+      if (activeEdFilter === 'tier2') return e.tier === 2;
+      if (activeEdFilter === 'tier3') return e.tier === 3;
+      if (activeEdFilter === 'tier4') return e.tier === 4;
+      return true;
+    });
+    grid.innerHTML = filtered.map((e) => {
+      const isAct = e.idx === activeIdx;
+      const isQ = e.idx === queuedIdx;
+      const rar = e.rarity || 'Standard';
+      return '<div class="edition-card ' + (isAct ? 'is-active' : '') + (isQ ? ' is-queued' : '') + '">' +
+        '<div class="edition-card-top">' +
+          '<span class="edition-name">' + (e.idx + 1) + '. ' + escapeHtml(e.name) + '</span>' +
+          '<span class="rarity-badge rarity-' + escapeHtml(rar) + '">' + escapeHtml(rar) + '</span>' +
+        '</div>' +
+        '<div class="edition-desc">' + escapeHtml(e.desc || (e.name + ' Edition')) + '</div>' +
+        '<div style="display:flex;gap:6px;margin-top:4px">' +
+          '<button type="button" class="btn btn-sm ' + (isAct ? 'btn-primary' : '') + '" style="flex:1" data-ed-select="' + e.idx + '" data-ed-now="0">' + (isAct ? 'Active' : (isQ ? 'Queued' : 'Select')) + '</button>' +
+          '<button type="button" class="btn btn-sm" data-ed-select="' + e.idx + '" data-ed-now="1" title="Switch Immediately">Now</button>' +
+          (e.idx > 0 ? '<button type="button" class="btn btn-sm" data-ed-toggle="' + e.idx + '" data-ed-disabled="' + (e.disabled ? '1' : '0') + '" title="Enable or disable in auto-rotation">' + (e.disabled ? 'Off' : 'On') + '</button>' : '') +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  function renderShowMasterPanels(t) {
+    if (!t) return;
+    const sd = t.showDirector || {};
+    document.querySelectorAll('[data-preset]').forEach((b) => {
+      b.classList.toggle('active-preset', b.dataset.preset === sd.preset);
+    });
+    if ($('sd-intensity-val')) {
+      const labels = ['', 'Stage 1 (Normal)', 'Stage 2 (Rising)', 'Stage 3 (High)', 'Stage 4 (Final Climax)'];
+      $('sd-intensity-val').textContent = labels[t.intensityStage || 1] || 'Stage 1 (Normal)';
+    }
+    if ($('sd-stakes-val')) {
+      $('sd-stakes-val').textContent = t.currentStakes ? t.currentStakes.label : 'Standard Match';
+    }
+    if ($('sd-champ-legacy-summary') && t.championLegacy) {
+      const cl = t.championLegacy;
+      const cName = (state.countries.find((x) => x.id === cl.currentChampion) || {}).name || 'None yet';
+      const lName = (state.countries.find((x) => x.id === cl.longestReignC) || {}).name || '-';
+      const gStatus = cl.gauntlet && cl.gauntlet.active ? (' · <span style="color:#f97316">GAUNTLET ACTIVE (' + cl.gauntlet.defeated + '/' + cl.gauntlet.targetDefenses + ')</span>') : '';
+      $('sd-champ-legacy-summary').innerHTML = 'Current Throne: <strong>' + escapeHtml(cName) + '</strong> (' + (cl.reignDefenses || 0) + ' defenses) · Longest Reign: <strong>' + escapeHtml(lName) + ' (' + (cl.longestReign || 0) + ')</strong>' + gStatus;
+    }
+    if ($('sd-retention-intel-list') && t.retentionIntel && Array.isArray(t.retentionIntel.recommendations)) {
+      $('sd-retention-intel-list').innerHTML = t.retentionIntel.recommendations.map((r) =>
+        '<div class="intel-item ' + escapeHtml(r.level || 'ok') + '">' + escapeHtml(r.text) + '</div>'
+      ).join('');
+    }
+    if ($('sd-highlights-list') && Array.isArray(t.highlights)) {
+      $('sd-highlights-list').innerHTML = t.highlights.length
+        ? t.highlights.map((h) => '<div style="padding:6px 0;border-bottom:1px solid rgba(148,163,184,0.12)"><strong style="color:#fcd34d">' + escapeHtml(h.category) + '</strong> · R' + h.battleRound + ' (' + escapeHtml(h.edition) + ')<br>' + escapeHtml(h.reason) + '</div>').join('')
+        : 'No highlights recorded yet.';
+    }
+    if ($('sd-legends-list') && Array.isArray(t.hallOfLegends)) {
+      $('sd-legends-list').innerHTML = t.hallOfLegends.length
+        ? t.hallOfLegends.map((l) => '<div>🏆 <strong>' + escapeHtml(l.title) + '</strong>: ' + escapeHtml(l.country) + ' (' + escapeHtml(l.metric) + ')</div>').join('')
+        : 'No Legend titles earned yet.';
+    }
+    if ($('sd-recaps-list') && Array.isArray(t.recaps)) {
+      $('sd-recaps-list').innerHTML = t.recaps.length
+        ? t.recaps.slice(0, 12).map((r) => '<div style="padding:4px 0;border-bottom:1px solid rgba(148,163,184,0.1)">R' + r.round + ' · <strong>' + escapeHtml(r.winner) + '</strong> (' + escapeHtml(r.edition) + ', ' + r.durationSec + 's) · ' + escapeHtml(r.personality || '') + '</div>').join('')
+        : 'No recaps yet.';
+    }
+  }
+
+  // Patch incoming syncFromTelemetry + dual-transport listeners
+  const origSyncFromTelemetry = syncFromTelemetry;
+  syncFromTelemetry = function(d) {
+    if (d && Number.isInteger(d.stateSeq)) {
+      if (d.stateSeq < lastAppliedSeq && Date.now() - state.lastTelemetryAt < 10000) return;
+      lastAppliedSeq = d.stateSeq;
+    }
+    origSyncFromTelemetry(d);
+    updateSyncIndicators(d);
+    renderEditionsHub(d);
+    renderShowMasterPanels(d);
+  };
+
+  // Listen to storage fallback for ACKs and Telemetry + wrap BroadcastChannel ack
+  window.addEventListener('storage', (ev) => {
+    if (ev.key === SYNC_ACK_KEY && ev.newValue) {
+      try {
+        const a = JSON.parse(ev.newValue);
+        if (a && a.reqId) resolveAck(a.reqId, a.res);
+      } catch (_) {}
+    } else if (ev.key === SYNC_STATE_KEY && ev.newValue) {
+      try {
+        const snap = JSON.parse(ev.newValue);
+        if (snap && snap.ts) {
+          state.telemetry = snap;
+          state.lastTelemetryAt = Date.now();
+          syncFromTelemetry(snap);
+        }
+      } catch (_) {}
+    }
+  });
+
+  // Intercept BroadcastChannel ACKs once channel is initialized
+  const origInitChannel = initChannel;
+  initChannel = function() {
+    origInitChannel();
+    if (bc && !bc.__fcaAckPatched) {
+      bc.__fcaAckPatched = true;
+      const prevOnMsg = bc.onmessage;
+      bc.onmessage = (ev) => {
+        const msg = ev.data;
+        if (msg && msg.target === 'admin' && msg.type === 'ack' && msg.reqId) {
+          resolveAck(msg.reqId, msg.res);
+        }
+        if (prevOnMsg) prevOnMsg(ev);
+      };
+    }
+    // Hydrate from last saved sync state immediately
+    try {
+      const cached = localStorage.getItem(SYNC_STATE_KEY);
+      if (cached) {
+        const snap = JSON.parse(cached);
+        if (snap && Date.now() - snap.ts < 30000) {
+          state.telemetry = snap;
+          state.lastTelemetryAt = Date.now();
+          syncFromTelemetry(snap);
+        }
+      }
+    } catch (_) {}
+  };
+
+  // Auto-resync on visibilitychange / focus
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && state.authenticated) {
+      dispatchConfirmedToGame('sync.resync', {}).catch(() => {});
+    }
+  });
+  window.addEventListener('focus', () => {
+    if (state.authenticated) {
+      dispatchConfirmedToGame('sync.resync', {}).catch(() => {});
+    }
+  });
+
+  // Periodic sync indicator freshness check
+  setInterval(() => updateSyncIndicators(state.telemetry), 2000);
+
+  // Mobile Bottom Nav switching
+  document.querySelectorAll('.mbn-item').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if (btn.dataset.mbnAction === 'more') {
+        const sb = document.querySelector('.sidebar');
+        if (sb) sb.classList.toggle('open');
+        return;
+      }
+      const tab = btn.dataset.mbnTab;
+      if (!tab) return;
+      const sb = document.querySelector('.sidebar');
+      if (sb) sb.classList.remove('open');
+      const targetNav = document.querySelector('.nav-item[data-tab="' + tab + '"]');
+      if (targetNav) targetNav.click();
+      document.querySelectorAll('.mbn-item').forEach((b) => b.classList.toggle('active', b === btn));
+    });
+  });
+
+  // Mobile Quick-Action Dock handlers
+  $('mqd-pause-btn')?.addEventListener('click', () => {
+    const isPaused = !!(state.telemetry && state.telemetry.paused);
+    execConfirmedAction(isPaused ? 'battle.resume' : 'battle.pause', {}, isPaused ? 'Resumed battle' : 'Paused battle');
+  });
+  $('mqd-next-btn')?.addEventListener('click', () => execConfirmedAction('battle.skip', {}, 'Skipped to next battle'));
+  $('mqd-classic-btn')?.addEventListener('click', () => execConfirmedAction('edition.switch_classic', {}, 'Switched to Classic Edition'));
+  $('mqd-resync-btn')?.addEventListener('click', () => execConfirmedAction('sync.resync', {}, 'Resynchronized with Main Game'));
+  $('mqd-cancel-queue')?.addEventListener('click', () => execConfirmedAction('edition.cancel_queue', {}, 'Cancelled queued edition'));
+
+  // Editions Hub handlers
+  $('btn-ed-return-classic')?.addEventListener('click', () => execConfirmedAction('edition.switch_classic', {}, 'Returned to Classic Edition'));
+  $('btn-ed-cancel-queue')?.addEventListener('click', () => execConfirmedAction('edition.cancel_queue', {}, 'Cancelled queued edition'));
+  $('ed-filter-bar')?.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-ed-filter]');
+    if (!btn) return;
+    activeEdFilter = btn.dataset.edFilter;
+    document.querySelectorAll('[data-ed-filter]').forEach((b) => b.classList.toggle('active-filter', b === btn));
+    renderEditionsHub(state.telemetry);
+  });
+  $('editions-card-grid')?.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-ed-select]');
+    if (!btn) return;
+    const idx = Number(btn.dataset.edSelect);
+    const immediate = btn.dataset.edNow === '1';
+    const safeQueue = immediate ? false : !!($('ed-safe-queue-toggle') && $('ed-safe-queue-toggle').checked);
+    const edObj = (state.telemetry && state.telemetry.editions && state.telemetry.editions[idx]) || DEFAULT_EDITIONS[idx];
+    execConfirmedAction('battle.set_edition', { editionIdx: idx, safeQueue, immediate }, 'Edition -> ' + (edObj ? edObj.name : ('#' + idx)));
+  });
+
+  // Show Director Master Suite handlers
+  $('sd-preset-grid')?.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-preset]');
+    if (!btn) return;
+    execConfirmedAction('showdirector.apply_preset', { preset: btn.dataset.preset }, 'Applied preset: ' + btn.textContent.trim());
+  });
+  $('sd-pacing-select')?.addEventListener('change', (e) => {
+    execConfirmedAction('showdirector.set_pacing', { pacingMode: e.target.value }, 'Set pacing: ' + e.target.value);
+  });
+  $('sd-intensity-toggle')?.addEventListener('change', (e) => {
+    execConfirmedAction('showdirector.set_intensity', { enabled: e.target.checked }, 'Intensity Director ' + (e.target.checked ? 'ON' : 'OFF'));
+  });
+  $('sd-statusbar-toggle')?.addEventListener('change', (e) => {
+    execConfirmedAction('settings.update_visual_audio', { overlays: { statusBar: e.target.checked } }, 'Live Show Status Bar ' + (e.target.checked ? 'ON' : 'OFF'));
+  });
+  $('btn-gauntlet-start')?.addEventListener('click', () => {
+    const targetDefenses = Math.max(2, Math.min(10, parseInt($('gauntlet-target')?.value || '5', 10) || 5));
+    execConfirmedAction('gauntlet.start', { targetDefenses }, "Started Champion's Gauntlet (" + targetDefenses + ' defenses)');
+  });
+  $('btn-gauntlet-stop')?.addEventListener('click', () => execConfirmedAction('gauntlet.stop', {}, "Stopped Champion's Gauntlet"));
+  $('btn-sd-save-rare')?.addEventListener('click', () => {
+    execConfirmedAction('showdirector.update_rare_config', {
+      enabled: !!$('sd-rare-enabled')?.checked,
+      chance: parseFloat($('sd-rare-chance')?.value || '0.12'),
+      cooldownRounds: parseInt($('sd-rare-cd')?.value || '5', 10)
+    }, 'Updated Rare Moment rules');
+  });
+  $('btn-sd-trigger-rare')?.addEventListener('click', () => {
+    const rareId = $('sd-rare-select')?.value || 'golden_arena';
+    execConfirmedAction('showdirector.trigger_rare', { rareId }, 'Triggered Rare Moment: ' + rareId);
+  });
+  $('btn-sd-launch-finale')?.addEventListener('click', () => {
+    const format = $('sd-finale-format')?.value || 'Grand Championship Finale';
+    execConfirmedAction('showdirector.trigger_finale', { format, editionIdx: 36 }, 'Launched Finale: ' + format);
+  });
+  $('btn-smart-queue')?.addEventListener('click', () => execConfirmedAction('queue.smart_fill', { count: 3 }, 'Smart-filled 3 varied battles'));
+  $('btn-clear-highlights')?.addEventListener('click', async () => {
+    const ok = await confirmDialog({ title: 'Clear Highlights Log', body: 'Remove all stored highlight metadata entries? Competitive win records are unaffected.', confirmText: 'Clear Highlights' });
+    if (ok) execConfirmedAction('highlights.clear', {}, 'Cleared Highlights log');
+  });
+
+  // Render initial 37 editions grid right away
+  renderEditionsHub(null);
+
+
+  // ===== v5.0 ROTATION & v6.0 BATTLE INTELLIGENCE ADMIN WIRING =====
+  const prevRenderShowMaster = renderShowMasterPanels;
+  renderShowMasterPanels = function(t) {
+    prevRenderShowMaster(t);
+    if (!t) return;
+    if (t.rotation) {
+      const r = t.rotation;
+      if ($('rot-status-badge')) $('rot-status-badge').textContent = 'Edition: ' + (r.edition.mode || 'every_battle');
+      if ($('rot-ed-next')) $('rot-ed-next').textContent = '(' + (r.edition.nextLabel || '') + ')';
+      if ($('rot-theme-next')) $('rot-theme-next').textContent = '(' + (r.theme.nextLabel || '') + ')';
+      if ($('rot-mode-next')) $('rot-mode-next').textContent = '(' + (r.mode.nextLabel || '') + ')';
+      if ($('rot-diff-next')) $('rot-diff-next').textContent = '(' + (r.difficulty.nextLabel || '') + ')';
+      if ($('rot-current-summary')) {
+        $('rot-current-summary').textContent = 'Active: ' + r.edition.currentName + ' · Theme: ' + r.theme.currentName + ' · Mode: ' + r.mode.current + ' · Diff: ' + r.difficulty.current;
+      }
+      if (document.activeElement?.id !== 'rot-edition-mode' && $('rot-edition-mode')) $('rot-edition-mode').value = r.edition.mode;
+      if (document.activeElement?.id !== 'rot-theme-mode' && $('rot-theme-mode')) $('rot-theme-mode').value = r.theme.mode;
+      if (document.activeElement?.id !== 'rot-mode-mode' && $('rot-mode-mode')) $('rot-mode-mode').value = r.mode.mode;
+      if (document.activeElement?.id !== 'rot-diff-mode' && $('rot-diff-mode')) $('rot-diff-mode').value = r.difficulty.mode;
+    }
+    if (t.v6Config) {
+      const c = t.v6Config;
+      if ($('v6-sudden-en')) $('v6-sudden-en').checked = !!c.suddenDeath?.enabled;
+      if ($('v6-rivalry-en')) $('v6-rivalry-en').checked = !!c.rivalry?.enabled;
+      if ($('v6-director-en')) $('v6-director-en').checked = !!c.eventDirector?.enabled;
+      if ($('v6-upset-en')) $('v6-upset-en').checked = !!c.upsetDetector?.enabled;
+      if ($('v6-comeback-en')) $('v6-comeback-en').checked = !!c.comeback?.enabled;
+      if ($('v6-entrance-en')) $('v6-entrance-en').checked = !!c.entranceEvolution?.enabled;
+      if (document.activeElement?.id !== 'v6-sudden-sec' && $('v6-sudden-sec')) $('v6-sudden-sec').value = c.suddenDeath?.triggerSec || 75;
+      if (document.activeElement?.id !== 'v6-profile-select' && $('v6-profile-select')) $('v6-profile-select').value = c.personalityProfile || 'auto';
+    }
+    if (t.v6Runtime && $('v6-live-summary')) {
+      const rt = t.v6Runtime;
+      const rivTxt = rt.activeRivalry ? (rt.activeRivalry.nameA + ' vs ' + rt.activeRivalry.nameB + ' (' + rt.activeRivalry.winsA + '-' + rt.activeRivalry.winsB + ')') : 'None active';
+      $('v6-live-summary').innerHTML = 'Entrance: <strong>' + escapeHtml(rt.entranceTier || 'Standard') + '</strong> · Profile: <strong>' + escapeHtml(rt.profileLabel || 'Auto') + '</strong> · Rivalry: <strong>' + escapeHtml(rivTxt) + '</strong> · Sudden Death: <strong>' + (rt.suddenActive ? 'ACTIVE' : 'Standby') + '</strong>';
+    }
+    if ($('v6-journey-list') && Array.isArray(t.countryJourney)) {
+      $('v6-journey-list').innerHTML = t.countryJourney.length
+        ? t.countryJourney.map((j) => '<div style="padding:3px 0;border-bottom:1px solid rgba(148,163,184,0.1)"><strong>' + escapeHtml(j.name) + '</strong> [' + escapeHtml(j.tier) + '] · ' + j.wins + 'W/' + j.battles + 'B</div>').join('')
+        : 'No journey records yet.';
+    }
+    if ($('v6-timelines-list') && Array.isArray(t.momentTimelines)) {
+      $('v6-timelines-list').innerHTML = t.momentTimelines.length
+        ? t.momentTimelines.slice(0, 8).map((tl) => '<div style="padding:3px 0;border-bottom:1px solid rgba(148,163,184,0.1)"><strong>R' + tl.round + ' ' + escapeHtml(tl.winner) + '</strong> (' + escapeHtml(tl.edition) + ', ' + (tl.moments?.length || 0) + ' events)</div>').join('')
+        : 'No timelines captured yet.';
+    }
+  };
+
+  // Edition enable/disable toggle handler
+  $('editions-card-grid')?.addEventListener('click', async (ev) => {
+    const tBtn = ev.target.closest('[data-ed-toggle]');
+    if (!tBtn) return;
+    ev.stopPropagation();
+    const idx = parseInt(tBtn.dataset.edToggle, 10);
+    const currentlyDisabled = tBtn.dataset.edDisabled === '1';
+    await execConfirmedAction('edition.toggle_enabled', { editionIdx: idx, enabled: currentlyDisabled }, (currentlyDisabled ? 'Enabled' : 'Disabled') + ' edition #' + (idx + 1));
+  });
+
+  // Rotation Save button
+  $('rot-save-btn')?.addEventListener('click', async () => {
+    const timedSec = Math.max(30, Math.min(7200, parseInt($('rot-timed-sec')?.value || '300', 10) || 300));
+    await execConfirmedAction('rotation.update', {
+      edition: { mode: $('rot-edition-mode')?.value || 'every_battle', timedSec },
+      theme: { mode: $('rot-theme-mode')?.value || 'manual', timedSec },
+      mode: { mode: $('rot-mode-mode')?.value || 'manual', timedSec },
+      difficulty: { mode: $('rot-diff-mode')?.value || 'manual', timedSec }
+    }, 'Updated round-based rotation settings');
+  });
+
+  // v6.0 Config Save / Trigger Sudden Death / Clear Timelines
+  $('v6-save-btn')?.addEventListener('click', async () => {
+    await execConfirmedAction('v6.update_config', {
+      suddenDeath: { enabled: !!$('v6-sudden-en')?.checked, triggerSec: Math.max(20, Math.min(300, parseInt($('v6-sudden-sec')?.value || '75', 10) || 75)) },
+      rivalry: { enabled: !!$('v6-rivalry-en')?.checked },
+      eventDirector: { enabled: !!$('v6-director-en')?.checked },
+      upsetDetector: { enabled: !!$('v6-upset-en')?.checked },
+      comeback: { enabled: !!$('v6-comeback-en')?.checked },
+      entranceEvolution: { enabled: !!$('v6-entrance-en')?.checked },
+      personalityProfile: $('v6-profile-select')?.value || 'auto'
+    }, 'Saved v6.0 Battle Intelligence configuration');
+  });
+  $('v6-trigger-sd-btn')?.addEventListener('click', async () => {
+    await execConfirmedAction('v6.trigger_sudden_death', {}, 'Triggered Sudden Death overtime');
+  });
+  $('v6-clear-tl-btn')?.addEventListener('click', async () => {
+    await execConfirmedAction('v6.clear_timelines', {}, 'Cleared stored battle moment timelines');
+  });
+
 })();
