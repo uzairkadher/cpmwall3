@@ -398,13 +398,8 @@
 
       if (prevCfg) pushReversibleSnapshot(action, summary, prevCfg);
       if (data.audit) recordLocalActivity(data.audit);
-      if (dispatchToGame && bc) {
-        bc.postMessage({
-          target: 'game',
-          reqId: 'req_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
-          action,
-          payload
-        });
+      if (dispatchToGame) {
+        enqueuePersistentCommand(action, payload);
       }
       refreshAuditLog();
       return { ok: true, audit: data.audit };
@@ -482,6 +477,8 @@
   }
 
   function syncFromTelemetry(d) {
+    if (typeof pushPreviewMirror === 'function') pushPreviewMirror(d, null);
+    if (typeof updatePreviewParityUI === 'function') updatePreviewParityUI(d);
     if (Array.isArray(d.countries) && d.countries.length) {
       populateCountrySelectors(d.countries);
     }
@@ -1975,17 +1972,78 @@
     entry.resolve(res);
   }
 
-  function dispatchConfirmedToGame(action, payload) {
+  const PENDING_CMDS_KEY = 'fca_pending_cmds_v1';
+  const AUTH_REV_KEY = 'fca_auth_rev_v1';
+
+  function nextAuthRev() {
+    let rev = 0;
+    try { rev = Number(JSON.parse(localStorage.getItem(AUTH_REV_KEY) || '0')) || 0; } catch (_) {}
+    rev += 1;
+    try { localStorage.setItem(AUTH_REV_KEY, JSON.stringify(rev)); } catch (_) {}
+    return rev;
+  }
+
+  function pushPreviewMirror(telemetry, cmd) {
+    const iframe = $('preview-iframe');
+    if (!iframe || !iframe.contentWindow) return;
+    try {
+      iframe.contentWindow.postMessage({
+        target: 'preview',
+        action: 'preview.sync_state',
+        payload: { telemetry: telemetry || state.telemetry || null, cmd: cmd || null }
+      }, location.origin);
+    } catch (_) {}
+  }
+
+  function updatePreviewParityUI(t) {
+    const txt = $('preview-parity-text');
+    const pill = $('preview-parity-pill');
+    if (!txt || !pill) return;
+    let authRev = 0;
+    try { authRev = Number(JSON.parse(localStorage.getItem(AUTH_REV_KEY) || '0')) || 0; } catch (_) {}
+    const edName = (t && t.editionName) || 'Classic';
+    const liveRev = (t && Number.isFinite(t.configRev)) ? t.configRev : 0;
+    const connected = !!(t && state.lastTelemetryAt && (Date.now() - state.lastTelemetryAt < 4500));
+    if (connected && liveRev >= authRev) {
+      txt.textContent = `Audience & Preview: ${edName} · Rev #${liveRev}`;
+      pill.textContent = 'Synced Live';
+      pill.className = 'sync-pill synced';
+    } else if (connected && liveRev < authRev) {
+      txt.textContent = `Audience: ${edName} (Rev #${liveRev} → #${authRev})`;
+      pill.textContent = 'Syncing Update';
+      pill.className = 'sync-pill queued';
+    } else {
+      txt.textContent = `Pending Audience Open · Rev #${authRev} (Last: ${edName})`;
+      pill.textContent = 'Queued · Audience Offline';
+      pill.className = 'sync-pill queued';
+    }
+  }
+
+  function enqueuePersistentCommand(action, payload) {
     const reqId = 'req_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
-    const msg = { target: 'game', reqId, action, payload, ts: Date.now() };
+    const rev = nextAuthRev();
+    const msg = { target: 'game', reqId, rev, action, payload: payload || {}, ts: Date.now() };
+    try {
+      const list = JSON.parse(localStorage.getItem(PENDING_CMDS_KEY) || '[]');
+      const arr = Array.isArray(list) ? list : [];
+      arr.push(msg);
+      localStorage.setItem(PENDING_CMDS_KEY, JSON.stringify(arr.slice(-40)));
+    } catch (_) {}
+    try { if (bc) bc.postMessage(msg); } catch (_) {}
+    try { localStorage.setItem(SYNC_CMD_KEY, JSON.stringify(msg)); } catch (_) {}
+    pushPreviewMirror(state.telemetry, msg);
+    updatePreviewParityUI(state.telemetry);
+    return msg;
+  }
+
+  function dispatchConfirmedToGame(action, payload) {
+    const msg = enqueuePersistentCommand(action, payload);
     return new Promise((resolve) => {
       const timer = setTimeout(() => {
-        pendingAcks.delete(reqId);
-        resolve({ ok: false, unconfirmed: true, error: 'Main game tab did not confirm in time (ensure Main Game is open).' });
+        pendingAcks.delete(msg.reqId);
+        resolve({ ok: true, queuedOffline: true, rev: msg.rev, message: `Saved & queued (Rev #${msg.rev}) — will apply automatically when Audience opens.` });
       }, 1800);
-      pendingAcks.set(reqId, { resolve, timer });
-      try { if (bc) bc.postMessage(msg); } catch (_) {}
-      try { localStorage.setItem(SYNC_CMD_KEY, JSON.stringify(msg)); } catch (_) {}
+      pendingAcks.set(msg.reqId, { resolve, timer });
     });
   }
 
@@ -1997,8 +2055,9 @@
       toast((ack && ack.error) || 'Game did not confirm change.', 'error');
       return { ok: false, error: ack && ack.error };
     }
-    if (ack.queued) toast(summary + ' (Queued safely for next battle)', 'ok');
-    else toast(summary + ' (Applied live)', 'ok');
+    if (ack.queuedOffline) toast(`${summary} (Saved Rev #${ack.rev} — applies on Audience open)`, 'ok');
+    else if (ack.queued) toast(summary + ' (Queued safely for next battle)', 'ok');
+    else toast(summary + ' (Confirmed live on Audience)', 'ok');
     return { ok: true, ack };
   }
 
@@ -2154,7 +2213,16 @@
   });
 
   // Periodic sync indicator freshness check
-  setInterval(() => updateSyncIndicators(state.telemetry), 2000);
+  setInterval(() => { updateSyncIndicators(state.telemetry); updatePreviewParityUI(state.telemetry); }, 2000);
+  $('btn-preview-resync')?.addEventListener('click', () => {
+    pushPreviewMirror(state.telemetry, null);
+    updatePreviewParityUI(state.telemetry);
+    toast('Preview synced to authoritative Audience config.', 'ok');
+  });
+  $('preview-iframe')?.addEventListener('load', () => {
+    pushPreviewMirror(state.telemetry, null);
+    updatePreviewParityUI(state.telemetry);
+  });
 
   // Mobile Bottom Nav switching
   document.querySelectorAll('.mbn-item').forEach((btn) => {

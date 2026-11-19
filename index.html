@@ -5259,7 +5259,7 @@ requestAnimationFrame(loop);
     },
     onBattleCompleted(){
       // Strict single-evaluation guard per round to prevent duplicate triggers or rapid loops
-      if(rotEvaluatedRound===round)return;
+      if(IS_PREVIEW||rotEvaluatedRound===round)return;
       rotEvaluatedRound=round;
       const now=Date.now();
 
@@ -5831,6 +5831,212 @@ requestAnimationFrame(loop);
   };
 
   if(!IS_PREVIEW)adm.broadcastState();
+})();
+
+
+// ===== SINGLE SOURCE OF TRUTH: AUTHORITATIVE COMMAND QUEUE, CONFIG REV & LIVE PREVIEW MIRROR =====
+(function(){
+  const adm=window.__FCA_ADM__;
+  if(!adm)return;
+  const PENDING_KEY='fca_pending_cmds_v1';
+  const APPLIED_KEY='fca_applied_reqs_v1';
+  const REV_KEY='fca_auth_rev_v1';
+  const SYNC_STATE_KEY='fca_sync_state';
+  const SYNC_ACK_KEY='fca_sync_ack';
+  const CFG_KEY='fca_admin_config';
+  const ROT_KEY='fca_rotation_v5';
+  const V6_CFG_KEY='fca_v6_config';
+
+  const readJ=(k,fb)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):fb}catch(_){return fb}};
+  const writeJ=(k,v)=>{if(IS_PREVIEW)return;try{localStorage.setItem(k,JSON.stringify(v))}catch(_){}};
+
+  adm.configRev=Math.max(Number(readJ(REV_KEY,0))||0,Number(adm.configRev)||0);
+
+  // Include authoritative configRev in every snapshot
+  const prevSnap=adm.getSnapshot.bind(adm);
+  adm.getSnapshot=()=>{
+    const s=prevSnap();
+    s.configRev=adm.configRev||0;
+    s.authRev=Number(readJ(REV_KEY,0))||0;
+    return s;
+  };
+
+  if(!IS_PREVIEW){
+    // AUDIENCE MODE: Drain persisted Admin commands on boot, tab focus, visibilitychange, and storage update
+    const appliedSet=new Set(Array.isArray(readJ(APPLIED_KEY,[]))?readJ(APPLIED_KEY,[]):[]);
+    const saveApplied=()=>{
+      const arr=[...appliedSet].slice(-200);
+      writeJ(APPLIED_KEY,arr);
+    };
+
+    function drainPendingCommands(){
+      const list=readJ(PENDING_KEY,[]);
+      if(!Array.isArray(list)||!list.length)return 0;
+      let appliedCount=0;
+      const ordered=list.slice().sort((a,b)=>(Number(a.ts)||0)-(Number(b.ts)||0));
+      for(const cmd of ordered){
+        if(!cmd||!cmd.reqId||!cmd.action)continue;
+        if(appliedSet.has(cmd.reqId))continue;
+        // Mark before applying to guarantee no duplicate execution
+        appliedSet.add(cmd.reqId);
+        // If Admin changed edition while Audience was offline/closed, apply immediately so stale fca_state never wins
+        const isEdCmd=(cmd.action==='battle.set_edition'||cmd.action==='edition.switch_classic');
+        const payload=Object.assign({},cmd.payload||{});
+        if(isEdCmd&&(Date.now()-(Number(cmd.ts)||0))>1500){
+          payload.immediate=true;
+          payload.safeQueue=false;
+        }
+        const res=adm.handleCommand({reqId:cmd.reqId,action:cmd.action,payload});
+        if(Number(cmd.rev)>adm.configRev)adm.configRev=Number(cmd.rev);
+        try{localStorage.setItem(SYNC_ACK_KEY,JSON.stringify({reqId:cmd.reqId,rev:adm.configRev,ts:Date.now(),res}))}catch(_){}
+        appliedCount++;
+      }
+      if(appliedCount>0){
+        saveApplied();
+        // Prune fully applied commands older than 30s to keep storage lean
+        const cutoff=Date.now()-30000;
+        const remaining=list.filter(c=>c&&c.reqId&&(!appliedSet.has(c.reqId)||(Number(c.ts)||0)>cutoff)).slice(-40);
+        writeJ(PENDING_KEY,remaining);
+        try{localStorage.setItem(SYNC_STATE_KEY,JSON.stringify(adm.getSnapshot()))}catch(_){}
+        adm.broadcastState();
+      }
+      return appliedCount;
+    }
+
+    adm.drainPendingCommands=drainPendingCommands;
+
+    // 1. Drain any commands issued by Admin before Audience opened
+    const drained=drainPendingCommands();
+
+    // 2. Reconcile authoritative manual edition if stale fca_state restored a different edition
+    if(drained===0&&window.__FCA_ROT__&&window.__FCA_ROT__.getConfig){
+      const rc=window.__FCA_ROT__.getConfig();
+      if(rc&&rc.edition&&rc.edition.mode==='manual'&&Number.isInteger(rc.edition.currentIdx)&&EDS[rc.edition.currentIdx]&&curEi!==rc.edition.currentIdx){
+        setEdition(rc.edition.currentIdx);
+      }
+    }
+
+    // 3. Re-drain whenever Audience tab regains focus, becomes visible, or storage receives new pending commands
+    window.addEventListener('storage',ev=>{
+      if(ev.key===PENDING_KEY&&ev.newValue)drainPendingCommands();
+    });
+    document.addEventListener('visibilitychange',()=>{
+      if(!document.hidden){drainPendingCommands();adm.broadcastState();}
+    });
+    window.addEventListener('focus',()=>{
+      drainPendingCommands();adm.broadcastState();
+    });
+
+    adm.broadcastState();
+  }else{
+    // LIVE PREVIEW MODE (IS_PREVIEW === true): Strictly Read-Only Mirror of Authoritative Audience Config
+    let lastMirrorSig='';
+    function applyPreviewMirror(snap,pendingCmd){
+      try{
+        // 1. Re-hydrate shared visual/gameplay/showDirector config from authoritative storage
+        const cfg=readJ(CFG_KEY,null);
+        if(cfg&&typeof cfg==='object'){
+          if(cfg.gameplay&&typeof cfg.gameplay==='object')Object.assign(adm.gameplay,cfg.gameplay);
+          if(cfg.visual&&typeof cfg.visual==='object'){
+            Object.assign(adm.visual,cfg.visual);
+            if(cfg.visual.overlays&&typeof cfg.visual.overlays==='object')Object.assign(adm.visual.overlays,cfg.visual.overlays);
+          }
+          if(cfg.showDirector&&typeof cfg.showDirector==='object')Object.assign(adm.showDirector,cfg.showDirector);
+        }
+        // 2. Sync v6 config
+        const v6s=readJ(V6_CFG_KEY,null);
+        if(v6s&&window.__FCA_V6__&&window.__FCA_V6__.getConfig){
+          const curV6=window.__FCA_V6__.getConfig();
+          for(const k of Object.keys(v6s)){
+            if(v6s[k]&&typeof v6s[k]==='object'&&curV6[k]&&typeof curV6[k]==='object')Object.assign(curV6[k],v6s[k]);
+            else curV6[k]=v6s[k];
+          }
+        }
+        // 3. Sync rotation theme overlay
+        const rotS=readJ(ROT_KEY,null);
+        if(rotS&&window.__FCA_ROT__&&window.__FCA_ROT__.getConfig){
+          const curRot=window.__FCA_ROT__.getConfig();
+          if(rotS.theme&&curRot.theme)Object.assign(curRot.theme,rotS.theme);
+          if(rotS.edition&&curRot.edition)curRot.edition.mode=rotS.edition.mode;
+        }
+        // 4. Resolve authoritative active edition index:
+        //    Priority: explicit pending edition command > live Audience snapshot > saved rotation currentIdx
+        let targetEi=-1;
+        if(pendingCmd&&pendingCmd.action==='edition.switch_classic')targetEi=0;
+        else if(pendingCmd&&pendingCmd.action==='battle.set_edition'&&pendingCmd.payload&&Number.isInteger(+pendingCmd.payload.editionIdx)&&EDS[+pendingCmd.payload.editionIdx])targetEi=+pendingCmd.payload.editionIdx;
+        else{
+          // Check latest unapplied pending edition command in storage (when Audience tab is closed)
+          const pList=readJ(PENDING_KEY,[]);
+          const appSet=new Set(Array.isArray(readJ(APPLIED_KEY,[]))?readJ(APPLIED_KEY,[]):[]);
+          if(Array.isArray(pList)){
+            for(let i=pList.length-1;i>=0;i--){
+              const c=pList[i];
+              if(!c||appSet.has(c.reqId))continue;
+              if(c.action==='edition.switch_classic'){targetEi=0;break;}
+              if(c.action==='battle.set_edition'&&c.payload&&Number.isInteger(+c.payload.editionIdx)&&EDS[+c.payload.editionIdx]){targetEi=+c.payload.editionIdx;break;}
+            }
+          }
+        }
+        if(targetEi<0&&snap&&Number.isInteger(snap.editionIdx)&&EDS[snap.editionIdx])targetEi=snap.editionIdx;
+        if(targetEi<0&&rotS&&rotS.edition&&Number.isInteger(rotS.edition.currentIdx)&&EDS[rotS.edition.currentIdx])targetEi=rotS.edition.currentIdx;
+
+        // Also apply live theme/visual/gameplay/showDirector from snap or snap.config if provided
+        const sVis=(snap&&(snap.visual||(snap.config&&snap.config.visual)))||null;
+        const sGp=(snap&&(snap.gameplay||(snap.config&&snap.config.gameplay)))||null;
+        const sSd=(snap&&(snap.showDirector||(snap.config&&snap.config.showDirector)))||null;
+        if(sVis&&typeof sVis==='object')Object.assign(adm.visual,sVis);
+        if(sGp&&typeof sGp==='object')Object.assign(adm.gameplay,sGp);
+        if(sSd&&typeof sSd==='object')Object.assign(adm.showDirector,sSd);
+        if(snap&&snap.rotation&&snap.rotation.theme&&window.__FCA_ROT__&&window.__FCA_ROT__.getConfig){
+          Object.assign(window.__FCA_ROT__.getConfig().theme,snap.rotation.theme);
+        }
+
+        const rev=(snap&&snap.configRev)||Number(readJ(REV_KEY,0))||0;
+        adm.configRev=rev;
+        const themeId=(window.__FCA_ROT__&&window.__FCA_ROT__.getConfig&&window.__FCA_ROT__.getConfig().theme?.current)||'default';
+        const sig=targetEi+'|'+themeId+'|'+rev;
+
+        if(targetEi>=0&&EDS[targetEi]&&curEi!==targetEi){
+          setEdition(targetEi);
+          lastMirrorSig=sig;
+        }else if(sig!==lastMirrorSig){
+          lastMirrorSig=sig;
+        }
+      }catch(_){}
+    }
+
+    // Initial mirror on Preview boot
+    applyPreviewMirror(readJ(SYNC_STATE_KEY,null),null);
+
+    // Mirror live telemetry from Audience via BroadcastChannel (read-only)
+    try{
+      if(typeof BroadcastChannel!=='undefined'){
+        const pbc=new BroadcastChannel('fca_admin_channel');
+        pbc.onmessage=ev=>{
+          const m=ev.data;
+          if(m&&m.target==='admin'&&m.type==='telemetry'&&m.data){
+            applyPreviewMirror(m.data,null);
+          }
+        };
+      }
+    }catch(_){}
+
+    // Mirror storage updates from Audience or Admin (read-only)
+    window.addEventListener('storage',ev=>{
+      if(ev.key===SYNC_STATE_KEY||ev.key===CFG_KEY||ev.key===ROT_KEY||ev.key===V6_CFG_KEY||ev.key===PENDING_KEY){
+        applyPreviewMirror(readJ(SYNC_STATE_KEY,null),null);
+      }
+    });
+
+    // Mirror explicit postMessage sync from Admin parent window
+    window.addEventListener('message',ev=>{
+      if(ev.origin!==location.origin)return;
+      const d=ev.data;
+      if(d&&d.target==='preview'&&d.action==='preview.sync_state'&&d.payload){
+        applyPreviewMirror(d.payload.telemetry||readJ(SYNC_STATE_KEY,null),d.payload.cmd||null);
+      }
+    });
+  }
 })();
 
 </script></body>
